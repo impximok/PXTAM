@@ -1,0 +1,16 @@
+﻿# Visual Studio / .NET
+.vs/
+.v17/
+DesignTimeBuild/
+FileContentIndex/
+*.suo
+*.user
+*.dbcache
+*.dbcache.v2
+*.sqlite
+DocumentLayout.json
+VSWorkspaceState.json
+
+# Build output
+bin/
+obj/
