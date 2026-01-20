@@ -1,0 +1,294 @@
+﻿@model SnomiAssignmentReal.Models.MenuItem
+@{
+    ViewData["Title"] = Model.MenuItemName + " · Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var customizations = ViewBag.Customizations as IEnumerable<SnomiAssignmentReal.Models.OrderCustomizationSettings>;
+}
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+<div class="container py-5">
+    <!-- TempData messages (non-AJAX fallback) -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger text-center">@TempData["Error"]</div>
+    }
+    @if (TempData["CartMessage"] != null)
+    {
+        <div class="alert alert-success text-center">@TempData["CartMessage"]</div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-9">
+
+            <!-- Hero Image -->
+            <div class="text-center mb-4">
+                <img src="@Model.MenuItemImageUrl" alt="@Model.MenuItemName" class="mi-hero-img shadow-sm" />
+            </div>
+
+            <!-- Product Info -->
+            <div class="text-center mb-4">
+                <h1 class="mi-title">@Model.MenuItemName</h1>
+                <p class="mi-category">@(Model.Category?.CategoryName ?? "Uncategorized")</p>
+                <p class="mi-desc">@(!string.IsNullOrWhiteSpace(Model.MenuItemDescription) ? Model.MenuItemDescription : "No description available.")</p>
+            </div>
+
+            <!-- Meta & Price -->
+            <div class="d-flex justify-content-center flex-wrap gap-3 mb-4">
+                <span class="mi-badge"><i class="bi bi-cash-coin me-1"></i>@Model.MenuItemUnitPrice.ToString("C")</span>
+                @if (Model.MenuItemCalories > 0)
+                {
+                    <span class="mi-badge"><i class="bi bi-fire me-1"></i>@Model.MenuItemCalories kcal</span>
+                }
+                <span class="mi-badge @(Model.IsAvailableForOrder ? "mi-badge--ok" : "mi-badge--bad")">
+                    @(Model.IsAvailableForOrder ? "Available" : "Not Available")
+                </span>
+            </div>
+
+            <!-- Actions (AJAX Add to Cart) -->
+            <form id="addToCartForm"
+                  asp-controller="Order"
+                  asp-action="AddToCart"
+                  method="post"
+                  data-available="@(Model.IsAvailableForOrder ? "1" : "0")"
+                  class="d-flex flex-column align-items-stretch gap-3">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="menuItemId" value="@Model.MenuItemId" />
+
+                <!-- Customizations -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <strong><i class="bi bi-sliders me-1"></i> Customizations</strong>
+                    </div>
+                    <div class="card-body">
+                        @if (customizations != null && customizations.Any())
+                        {
+                            <div class="row">
+                                @foreach (var c in customizations)
+                                {
+                                    <div class="col-md-6 col-lg-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="c_@c.MenuItemCustomizationId"
+                                                   name="customizationIds"
+                                                   value="@c.MenuItemCustomizationId" />
+                                            <label class="form-check-label" for="c_@c.MenuItemCustomizationId">
+                                                <span class="fw-semibold">@c.CustomizationName</span>
+                                                @if (!string.IsNullOrWhiteSpace(c.CustomizationDescription))
+                                                {
+                                                    <span class="text-muted">— @c.CustomizationDescription</span>
+                                                }
+                                                @if (c.CustomizationAdditionalPrice > 0)
+                                                {
+                                                    <span class="badge bg-light text-dark ms-1">+ @c.CustomizationAdditionalPrice.ToString("C")</span>
+                                                }
+                                            </label>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-muted">No extra options available for this item.</div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div class="d-flex flex-column align-items-center">
+                    <div class="qty-wrap d-inline-flex align-items-center mb-2">
+                        <button type="button" class="qty-btn" id="qtyMinus" aria-label="Decrease quantity"><i class="bi bi-dash"></i></button>
+                        <input type="number" class="qty-input" id="qtyInput" name="quantity" value="1" min="1" />
+                        <button type="button" class="qty-btn" id="qtyPlus" aria-label="Increase quantity"><i class="bi bi-plus"></i></button>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-center gap-3">
+                    <!-- ✅ keep enabled so JS can show the toast -->
+                    <button type="submit" class="btn-bw btn-bw--solid px-5">
+                        <i class="bi bi-cart-plus me-1"></i> Add to Cart
+                    </button>
+                    <a href="@Url.Action("Catalog", "Menu")" class="btn-bw btn-bw--outline px-5">← Back to Menu</a>
+                </div>
+            </form>
+
+            <!-- Feedback toast -->
+            <div id="cartToast" class="alert text-center mt-3 d-none"></div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Quantity stepper
+        const minus = document.getElementById('qtyMinus');
+        const plus  = document.getElementById('qtyPlus');
+        const input = document.getElementById('qtyInput');
+
+        if (minus && plus && input) {
+            minus.addEventListener('click', () => {
+                const v = Math.max(1, (parseInt(input.value, 10) || 1) - 1);
+                input.value = v;
+            });
+            plus.addEventListener('click', () => {
+                const v = (parseInt(input.value, 10) || 1) + 1;
+                input.value = v;
+            });
+        }
+
+        // AJAX add to cart with client-side "unavailable" toast
+        document.getElementById('addToCartForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.currentTarget;
+            const toast = document.getElementById('cartToast');
+
+            // Instant client-side guard
+            if (form.dataset.available === '0') {
+                toast.textContent = "This item is currently unavailable and can’t be ordered.";
+                toast.className = "alert alert-danger text-center mt-3";
+                toast.classList.remove("d-none");
+                return;
+            }
+
+            const fd = new FormData(form);
+            let data;
+
+            try {
+                const resp = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: fd
+                });
+
+                // Try to parse JSON (even if !resp.ok)
+                const text = await resp.text();
+                try { data = JSON.parse(text); } catch { data = { ok: false, message: "Unexpected server response." }; }
+            } catch {
+                data = { ok: false, message: "Network error. Please try again." };
+            }
+
+            if (data.ok) {
+                toast.textContent = data.message + (data.cartCount !== undefined ? ` (Items: ${data.cartCount}, Total: ${data.cartTotal})` : "");
+                toast.className = "alert alert-success text-center mt-3";
+            } else {
+                toast.textContent = data.message || "Could not add to cart.";
+                toast.className = "alert alert-danger text-center mt-3";
+            }
+            toast.classList.remove("d-none");
+        });
+    </script>
+}
+
+
+<style>
+    /* --- Hero Image --- */
+    .mi-hero-img {
+        width: 100%;
+        max-height: 520px;
+        border-radius: 20px;
+        object-fit: cover;
+        background: #fafafa;
+        border: 1px solid #e5e5e5;
+    }
+
+    /* --- Title & Description --- */
+    .mi-title {
+        font-size: 2.4rem;
+        font-weight: 700;
+        margin-bottom: .3rem;
+    }
+
+    .mi-category {
+        font-size: 0.95rem;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .mi-desc {
+        font-size: 1.05rem;
+        color: #222;
+        max-width: 720px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    /* --- Badges --- */
+    .mi-badge {
+        border: 1.5px solid #111;
+        padding: .55rem 1rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.98rem;
+        background: #fff;
+    }
+
+    .mi-badge--ok {
+        background: #f3f9f3;
+    }
+
+    .mi-badge--bad {
+        background: #faf3f3;
+    }
+
+    /* --- Buttons --- */
+    .btn-bw {
+        border: 1.5px solid #111;
+        border-radius: 12px;
+        padding: .75rem 1rem;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+    .btn-bw--solid {
+        background: #000;
+        color: #fff;
+    }
+
+        .btn-bw--solid:hover {
+            background: #fff;
+            color: #000;
+        }
+
+    .btn-bw--outline {
+        background: #fff;
+        color: #000;
+    }
+
+        .btn-bw--outline:hover {
+            background: #000;
+            color: #fff;
+        }
+
+    /* --- Quantity --- */
+    .qty-wrap {
+        border: 1.5px solid #111;
+        border-radius: 12px;
+        background: #fff;
+        padding: .25rem;
+        gap: .25rem;
+    }
+
+    .qty-btn {
+        border: 0;
+        background: #f3f3f4;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .qty-input {
+        width: 70px;
+        text-align: center;
+        border: 0;
+        outline: none;
+        font-weight: 600;
+        background: transparent;
+    }
+</style>

@@ -1,0 +1,38 @@
+﻿@using Microsoft.Extensions.Configuration
+@inject IConfiguration Cfg
+
+@{
+    // from controller ViewBag.ShowCaptcha (bool)
+    bool showCaptcha = (ViewBag.ShowCaptcha as bool?) ?? false;
+    var siteKey = Cfg["ReCaptcha:SiteKey"];
+}
+
+<!-- Honeypot (invisible but in DOM) -->
+<input type="text" name="Website" id="Website" class="d-none" tabindex="-1" autocomplete="off" />
+<input type="hidden" name="RenderedAtTicks" id="RenderedAtTicks" value="@DateTime.UtcNow.Ticks" />
+
+<!-- Server-side knows whether to enforce captcha -->
+<input type="hidden" name="UseCaptcha" value="@(showCaptcha ? "true" : "false")" />
+
+@if (showCaptcha)
+{
+    <style>
+        .captcha-frame {
+            border: 1px solid #111;
+            border-radius: 12px;
+            padding: .75rem;
+            background: #f9f9f9;
+            margin-bottom: 1rem;
+        }
+    </style>
+    <div class="captcha-frame">
+        <div class="g-recaptcha" data-sitekey="@siteKey"></div>
+    </div>
+}
+
+@section Scripts {
+    @if (showCaptcha)
+    {
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    }
+}

@@ -1,0 +1,175 @@
+﻿@{
+    ViewBag.Title = "Welcome to Snömi Café";
+    ViewBag.HideHeader = true; // keep header hidden, footer stays
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    :root {
+        --bg: #ffffff;
+        --fg: #0a0a0a;
+        --muted: #6b6b6b;
+        --border: #000000;
+        --font-sans: -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,system-ui,sans-serif;
+    }
+
+    /* Page font + colors */
+    .welcome-container, .welcome-container * {
+        font-family: var(--font-sans) !important;
+        color: var(--fg);
+    }
+
+    .welcome-container {
+        min-height: 82vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1.25rem 1rem;
+        gap: .75rem;
+        background: var(--bg);
+    }
+
+    /* Cropping wrapper for logo */
+    .logo-frame {
+        
+        aspect-ratio: 5 / 2; /* approximate logo shape */
+        
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1rem;
+        animation: snomiFloat 3.2s ease-in-out infinite;
+        will-change: transform;
+    }
+
+
+    .logo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform: scale(1.3); /* zoom to cut empty space */
+        filter: drop-shadow(0 6px 18px rgba(0,0,0,.05));
+        pointer-events: none;
+        user-select: none;
+    }
+
+    @@keyframes snomiFloat {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-8px);
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .logo-frame {
+            animation: none;
+        }
+    }
+
+    /* Headings */
+    .welcome-title {
+        font-size: clamp(1.9rem,3vw,2.4rem);
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -.01em;
+        margin: .2rem 0 0;
+    }
+
+    .welcome-lead {
+        font-size: clamp(1rem,1.4vw,1.15rem);
+        color: var(--muted);
+        margin: .5rem 0 1rem;
+        letter-spacing: .005em;
+        max-width: 60ch;
+    }
+
+    /* Button group */
+    .welcome-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .9rem;
+        justify-content: center;
+    }
+
+    /* Apple-style outlined buttons */
+    .btn-welcome {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.9rem 1.6rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        background: #fff;
+        color: #000;
+        border: 1.5px solid var(--border);
+        transition: background .2s ease, color .2s ease, transform .1s ease, box-shadow .2s ease;
+    }
+
+        .btn-welcome:hover {
+            background: #000;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(0,0,0,.15);
+        }
+
+        .btn-welcome:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 6px rgba(0,0,0,.1);
+        }
+
+        .btn-welcome:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0,0,0,.25);
+        }
+
+    /* Mobile: full-width buttons */
+    @@media (max-width:520px) {
+        .btn-welcome {
+            width: 100%;
+        }
+    }
+
+    :root {
+        --center-offset: 6vh; /* adjust this: 3–10vh usually looks nice */
+    }
+
+    /* keep your existing .welcome-container rules */
+    .welcome-container {
+        min-height: 82vh; /* your value is fine */
+        display: grid; /* switch to grid for perfect centering */
+        place-items: center; /* centers both axes */
+        text-align: center;
+        padding: 1.25rem 1rem;
+        gap: .75rem;
+        background: var(--bg);
+    }
+
+    /* this actually moves the whole block down a bit */
+    .welcome-inner {
+        transform: translateY(var(--center-offset));
+    }
+
+</style>
+
+<div class="welcome-container">
+    <div class="welcome-inner">
+        <div class="logo-frame">
+            <img class="logo-img" src='@Url.Content("~/images/Logoremovedbg.png")' alt="Snömi Café logo" />
+        </div>
+
+        <h1 class="welcome-title">Welcome to Snömi Café</h1>
+        <p class="welcome-lead">Dine In with a Dash of Sugar, Spice &amp; Everything Nice!</p>
+
+        <div class="welcome-buttons">
+            <a href='@Url.Action("StaffEntry", "Home")' class="btn-welcome">I’m Admin / Staff</a>
+            <a href='@Url.Action("CustomerEntry", "Customer")' class="btn-welcome">I’m a Customer</a>
+        </div>
+    </div>
+</div>

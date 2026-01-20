@@ -1,0 +1,774 @@
+﻿@model SnomiAssignmentReal.Models.MenuItem
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Edit Menu Item";
+    var customs = ViewBag.Customizations as List<SnomiAssignmentReal.Models.OrderCustomizationSettings>
+                  ?? new List<SnomiAssignmentReal.Models.OrderCustomizationSettings>();
+}
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" />
+
+<div class="container py-5">
+    <div class="d-flex gap-2 justify-content-end mb-3">
+        <a asp-action="Index" class="btn btn-outline-dark rounded-pill"><i class="bi bi-arrow-left"></i> Back</a>
+
+        <!-- Delete form -->
+        <form asp-action="Delete" asp-route-id="@Model.MenuItemId" method="post" class="d-inline"
+              onsubmit="return confirm('Delete this menu item permanently?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger rounded-pill">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </form>
+    </div>
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-success">@TempData["Info"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-7">
+            <div class="card p-4" style="border:1px solid #e5e7eb; border-radius:1.25rem;">
+                <h3 class="mb-3"><i class="bi bi-pencil-square"></i> Item Details</h3>
+
+                <!-- Edit form (multipart for file upload) -->
+                <form method="post" asp-action="Edit" enctype="multipart/form-data" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="MenuItemId" />
+
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="MenuItemName" class="form-label fw-semibold">Name</label>
+                        <input asp-for="MenuItemName" class="form-control" />
+                        <span asp-validation-for="MenuItemName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MenuItemDescription" class="form-label fw-semibold">Description</label>
+                        <textarea asp-for="MenuItemDescription" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="MenuItemDescription" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="MenuItemUnitPrice" class="form-label fw-semibold">Price</label>
+                            <input asp-for="MenuItemUnitPrice" type="number" step="0.01" min="0" max="1000" class="form-control" />
+                            <span asp-validation-for="MenuItemUnitPrice" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="MenuItemCalories" class="form-label fw-semibold">Calories</label>
+                            <input asp-for="MenuItemCalories" type="number" min="0" max="4000" class="form-control" />
+                            <span asp-validation-for="MenuItemCalories" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-0">
+                        <div class="col-md-6">
+                            <label asp-for="CategoryId" class="form-label fw-semibold">Category</label>
+                            <select asp-for="CategoryId" class="form-select"
+                                    asp-items="@(ViewBag.Categories as List<SelectListItem>)"></select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Read-only availability display (toggle via separate button) -->
+                        <div class="col-md-6">
+                            <label class="form-label d-block">Availability</label>
+                            <span class="badge @(Model.IsAvailableForOrder ? "bg-success" : "bg-secondary")">
+                                @(Model.IsAvailableForOrder ? "Available" : "Unavailable")
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Image with DnD + Browse + Webcam + Editor -->
+                    <div class="mb-3 mt-3">
+                        <label class="form-label fw-semibold">Item Image</label>
+
+                        <input id="ImageFileEdit"
+                               name="ImageFile"
+                               type="file"
+                               accept="image/*"
+                               class="d-none">
+
+                        @{
+                            var hasImg = !string.IsNullOrWhiteSpace(Model.MenuItemImageUrl);
+                            var initialSrc = hasImg
+                            ? $"{Model.MenuItemImageUrl}{(Model.MenuItemImageUrl.Contains("?") ? "&" : "?")}v={DateTime.UtcNow.Ticks}"
+                            : "";
+                        }
+                        <div id="previewBoxEdit"
+                             class="square-preview clickable mb-2@(hasImg ? " has-image" : "")"
+                             title="Click or drop an image">
+                            <img id="imgPreviewEdit" alt="" src="@initialSrc">
+                            <div class="square-overlay" aria-hidden="true">
+                                <i class="bi bi-image"></i>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-start gap-2 mt-2">
+                            <button type="button" class="btn btn-outline-dark rounded-pill" id="btnBrowseEdit">
+                                <i class="bi bi-folder2-open"></i> Browse
+                            </button>
+                            <button type="button" class="btn btn-outline-dark rounded-pill" id="btnCameraEdit">
+                                <i class="bi bi-camera"></i> Take Photo
+                            </button>
+                            <span class="text-muted small align-self-center">Max 2 MB</span>
+                        </div>
+
+                        <div class="form-text mb-2 text-start">
+                            Drag & drop, browse, or capture. You can crop/rotate before saving.
+                        </div>
+
+                        <span class="text-danger small" data-valmsg-for="ImageFile" data-valmsg-replace="true"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-dark rounded-pill" type="submit">Save Changes</button>
+
+                        <!-- Toggle availability button (posts to ToggleAvailability) -->
+                        <button class="btn btn-outline-dark rounded-pill" type="submit"
+                                formaction="@Url.Action("ToggleAvailability", "Menu", new { id = Model.MenuItemId })"
+                                formmethod="post">
+                            @(Model.IsAvailableForOrder ? "Mark Unavailable" : "Mark Available")
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="card p-4 h-100" style="border:1px solid #e5e7eb; border-radius:1.25rem;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h4 class="mb-0">Customizations</h4>
+                    <div class="btn-group">
+                        <a class="btn btn-outline-dark btn-sm rounded-pill"
+                           asp-action="Customizations" asp-route-menuItemId="@Model.MenuItemId">Open List</a>
+                        <a class="btn btn-dark btn-sm rounded-pill"
+                           asp-action="CreateCustomization" asp-route-menuItemId="@Model.MenuItemId">Add New</a>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr class="table-light">
+                                <th>Name</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-center" style="width: 160px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!customs.Any())
+                            {
+                                <tr><td colspan="3" class="text-muted text-center">No customizations yet.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in customs)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold">@c.CustomizationName</div>
+                                            @if (!string.IsNullOrWhiteSpace(c.CustomizationDescription))
+                                            {
+                                                <div class="small text-muted">@c.CustomizationDescription</div>
+                                            }
+                                        </td>
+                                        <td class="text-end">RM @c.CustomizationAdditionalPrice.ToString("0.00")</td>
+                                        <td class="text-center">
+                                            <div class="btn-group">
+                                                <a class="btn btn-outline-dark btn-sm rounded-pill"
+                                                   asp-action="EditCustomization" asp-route-id="@c.MenuItemCustomizationId"><i class="bi bi-pencil-square"></i></a>
+                                                <a class="btn btn-outline-danger btn-sm rounded-pill"
+                                                   asp-action="DeleteCustomization" asp-route-id="@c.MenuItemCustomizationId"><i class="bi bi-trash"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Quick Add</h6>
+                    <a class="btn btn-outline-dark btn-sm rounded-pill"
+                       asp-action="AddFromLibrary" asp-route-menuItemId="@Model.MenuItemId">
+                        <i class="bi bi-collection"></i> Add From Library
+                    </a>
+                </div>
+
+                <div class="border rounded p-3 mt-auto">
+                    <form asp-action="QuickAddCustomization" method="post" class="row g-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="menuItemId" value="@Model.MenuItemId" />
+                        <div class="col-6">
+                            <input class="form-control form-control-sm" name="name" placeholder="Name" required />
+                        </div>
+                        <div class="col-3">
+                            <input class="form-control form-control-sm" name="price" type="number" step="0.01" min="0" placeholder="Price" required />
+                        </div>
+                        <div class="col-3">
+                            <select name="eligibleCategoryId" class="form-select form-select-sm">
+                                @foreach (var opt in (IEnumerable<SelectListItem>)ViewBag.CategoriesForEligible)
+                                {
+                                    <option value="@opt.Value">@opt.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <input class="form-control form-control-sm" name="description" placeholder="Description (optional)" />
+                        </div>
+                        <div class="col-12 d-grid">
+                            <button class="btn btn-sm btn-dark rounded-pill" type="submit">Add Customization</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Camera + Editor (Edit) -->
+<div class="camera-sheet" id="cameraSheetEdit" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="camera-sheet__panel" role="document">
+        <div class="camera-sheet__header">
+            <h2 class="m-0 fs-6">Edit Photo</h2>
+            <button type="button" class="icon-btn" id="closeCamEdit" aria-label="Close">×</button>
+        </div>
+        <div class="camera-sheet__body">
+            <!-- Live webcam -->
+            <section class="cam-section" id="liveSectionEdit">
+                <header class="cam-section__title">Live view</header>
+                <div class="camera-frame">
+                    <div class="cam-loader" id="camLoaderEdit"></div>
+                    <video id="camVideoEdit" playsinline muted autoplay></video>
+                    <div class="square-mask" aria-hidden="true"></div>
+                </div>
+                <div class="camera-actions">
+                    <button type="button" class="btn btn-dark rounded-pill" id="captureEdit">Capture</button>
+                </div>
+            </section>
+
+            <!-- Editor -->
+            <section class="cam-section" id="editorSectionEdit" hidden>
+                <header class="cam-section__title">Crop & Adjust</header>
+                <div id="apCropBoxEdit" style="position:relative;width:min(420px,90vw);aspect-ratio:1/1;border:1px solid #eee;border-radius:12px;overflow:hidden;background:#000;margin:0 auto;">
+                    <img id="apEditImgEdit" alt="Editor" style="position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;">
+                </div>
+
+                <div class="ap-toolbar">
+                    <div class="ap-group">
+                        <label for="apZoomEdit" class="ap-label">Zoom</label>
+                        <input id="apZoomEdit" type="range" min="1" max="3" step="0.01" value="1" class="ap-range">
+                    </div>
+                    <div class="ap-group">
+                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill" id="apRotLEdit">⟲ Rotate Left</button>
+                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill" id="apRotREdit">⟳ Rotate Right</button>
+                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill" id="apResetEdit">Reset</button>
+                    </div>
+                    <div class="ap-group">
+                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill" id="apBackEdit">Back</button>
+                        <button type="button" class="btn btn-dark btn-sm rounded-pill" id="usePhotoEdit">Use Photo</button>
+                    </div>
+                </div>
+
+                <canvas id="apCanvasEdit" width="512" height="512" hidden></canvas>
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // --- General helpers ---
+        function dtFor(file){ const dt=new DataTransfer(); dt.items.add(file); return dt; }
+        function setFileOn(inputEl,file){ inputEl.files = dtFor(file).files; }
+        async function dataUrlToFile(dataUrl, filename='menu-item.jpg'){
+          const res = await fetch(dataUrl);
+          const blob = await res.blob();
+          const ext  = (blob.type && blob.type.includes('png')) ? 'png' : 'jpg';
+          return new File([blob], filename.replace(/\.(jpg|jpeg|png)$/i,'') + '.' + ext, { type: blob.type || 'image/jpeg' });
+        }
+
+        // --- Preview convenience (only used for initial display) ---
+        function showPreviewFromFileInput(inputEl){
+          const file = inputEl && inputEl.files && inputEl.files[0];
+          const img  = document.getElementById('imgPreviewEdit');
+          const box  = document.getElementById('previewBoxEdit');
+          if (!file) { if(img){img.src='';} if(box){box.classList.remove('has-image');} return; }
+          const reader = new FileReader();
+          reader.onload = (e) => { if(img){img.src = e.target.result;} if(box){box.classList.add('has-image');} };
+          reader.readAsDataURL(file);
+        }
+
+        // --- DnD Hook: open editor when a file is dropped ---
+        function hookDropzone(boxId, inputId, maxMB){
+          const box=document.getElementById(boxId), input=document.getElementById(inputId);
+          if(!box||!input) return;
+          const highlight=(on)=>box.classList.toggle('dragover', !!on);
+          ['dragenter','dragover'].forEach(evt=> box.addEventListener(evt, e=>{e.preventDefault(); e.stopPropagation(); highlight(true);} ));
+          ['dragleave','dragend'].forEach(evt=> box.addEventListener(evt, e=> highlight(false)));
+          box.addEventListener('drop', e=>{
+            e.preventDefault(); e.stopPropagation(); highlight(false);
+            const f=e.dataTransfer.files && e.dataTransfer.files[0];
+            if(!f) return;
+            if(!f.type.startsWith('image/')) { alert('Please drop an image file.'); return; }
+            if(f.size > (maxMB||2)*1024*1024){ alert('Max size ' + (maxMB||2) + ' MB.'); return; }
+            openEditorFromFile(f); // go straight to editor
+          });
+        }
+
+        // --- Elements ---
+        const fileInput   = document.getElementById('ImageFileEdit');
+        const boxPreview  = document.getElementById('previewBoxEdit');
+        const imgPreview  = document.getElementById('imgPreviewEdit');
+        const btnBrowse   = document.getElementById('btnBrowseEdit');
+        const btnCamera   = document.getElementById('btnCameraEdit');
+
+        const sheet   = document.getElementById('cameraSheetEdit');
+        const closeBt = document.getElementById('closeCamEdit');
+        const liveSec = document.getElementById('liveSectionEdit');
+        const editSec = document.getElementById('editorSectionEdit');
+
+        const video   = document.getElementById('camVideoEdit');
+        const loader  = document.getElementById('camLoaderEdit');
+        const capture = document.getElementById('captureEdit');
+
+        const cropBox = document.getElementById('apCropBoxEdit');
+        const editImg = document.getElementById('apEditImgEdit');
+        const zoom    = document.getElementById('apZoomEdit');
+        const rotL    = document.getElementById('apRotLEdit');
+        const rotR    = document.getElementById('apRotREdit');
+        const resetBt = document.getElementById('apResetEdit');
+        const backBt  = document.getElementById('apBackEdit');
+        const useBt   = document.getElementById('usePhotoEdit');
+        const canvas  = document.getElementById('apCanvasEdit'), g = canvas.getContext('2d');
+
+        // --- Editor state ---
+        let stream=null, base=null, w=0,h=0, z=1, minZ=1, maxZ=3, offX=0, offY=0, dragging=false, sx=0, sy=0;
+
+        // --- Modal helpers ---
+        function showSheet(){ sheet.setAttribute('aria-hidden','false'); document.documentElement.style.overflow='hidden'; }
+        function hideSheet(){ sheet.setAttribute('aria-hidden','true');  document.documentElement.style.overflow=''; stopCamera(); }
+        function stopCamera(){
+          try{ stream?.getTracks().forEach(t=>t.stop()); }catch{}
+          stream=null;
+          try{ video.pause(); video.srcObject=null; video.removeAttribute('src'); video.load(); }catch{}
+        }
+
+        // --- Editor core (shared by file + webcam) ---
+        function startEditor(src){
+          base = src;
+          editImg.src = '';
+          requestAnimationFrame(()=> editImg.src = src);
+          editImg.onload = () => { w=editImg.naturalWidth; h=editImg.naturalHeight; initLayout(); };
+        }
+
+        function initLayout(){
+          const box = cropBox.getBoundingClientRect().width;
+          const zx = box / w, zy = box / h;
+          minZ = Math.max(zx, zy);
+          z    = Math.max(minZ, 1);
+          offX = (box - w*z)/2;
+          offY = (box - h*z)/2;
+
+          zoom.min  = String(Math.min(minZ, maxZ).toFixed(2));
+          zoom.max  = String(maxZ);
+          zoom.value= String(Math.min(Math.max(z, minZ), maxZ).toFixed(2));
+          render();
+
+          const start=(x,y)=>{ dragging=true; sx=x-offX; sy=y-offY; };
+          const move =(x,y)=>{ if(!dragging) return; offX=x-sx; offY=y-sy; render(); };
+          const end  =()=>{ dragging=false; };
+
+          cropBox.onmousedown = e=>{ e.preventDefault(); start(e.clientX,e.clientY); };
+          window.onmousemove  = e=> move(e.clientX,e.clientY);
+          window.onmouseup    = end;
+
+          cropBox.ontouchstart= e=>{ const t=e.touches[0]; start(t.clientX,t.clientY); };
+          cropBox.ontouchmove = e=>{ const t=e.touches[0]; move(t.clientX,t.clientY); };
+          cropBox.ontouchend  = end;
+
+          cropBox.onwheel = e=>{
+            e.preventDefault();
+            const d = -Math.sign(e.deltaY)*0.08, prev=z;
+            z = Math.max(minZ, Math.min(maxZ, z + d));
+            const r=cropBox.getBoundingClientRect(), cx=e.clientX-r.left, cy=e.clientY-r.top;
+            offX = cx - ((cx - offX) * (z / prev));
+            offY = cy - ((cy - offY) * (z / prev));
+            zoom.value = String(z.toFixed(2));
+            render();
+          };
+
+          zoom.oninput = ()=>{
+            const prev=z;
+            z = Math.max(minZ, Math.min(maxZ, parseFloat(zoom.value)||minZ));
+            const s = cropBox.getBoundingClientRect().width/2;
+            offX = s - ((s - offX) * (z / prev));
+            offY = s - ((s - offY) * (z / prev));
+            render();
+          };
+        }
+
+        function clamp(box, dw, dh){
+          if (dw <= box){ offX = (box - dw)/2; }
+          else { const mn = box - dw; offX = Math.min(0, Math.max(offX, mn)); }
+          if (dh <= box){ offY = (box - dh)/2; }
+          else { const mn = box - dh; offY = Math.min(0, Math.max(offY, mn)); }
+        }
+
+        function render(){
+          const box = cropBox.getBoundingClientRect().width;
+          const dw  = w * z, dh = h * z;
+          clamp(box, dw, dh);
+          editImg.style.width  = dw + 'px';
+          editImg.style.height = dh + 'px';
+          editImg.style.transform = `translate(${offX}px, ${offY}px)`;
+        }
+
+        function rotateDataUrl(src, deg){
+          return new Promise((resolve,reject)=>{
+            const img=new Image();
+            img.onload=()=>{
+              const r=(deg%360+360)%360, swap=(r===90||r===270);
+              const iw=img.naturalWidth, ih=img.naturalHeight;
+              const cw=swap?ih:iw, ch=swap?iw:ih;
+              const c=document.createElement('canvas'); c.width=cw; c.height=ch;
+              const gg=c.getContext('2d');
+              gg.translate(cw/2, ch/2);
+              gg.rotate(r*Math.PI/180);
+              gg.drawImage(img, -iw/2, -ih/2);
+              resolve(c.toDataURL('image/jpeg', .95));
+            };
+            img.onerror=reject;
+            img.src=src;
+          });
+        }
+
+        // --- Open editor from chosen/dropped file ---
+        function openEditorFromFile(file){
+          const reader = new FileReader();
+          reader.onload = e => {
+            const dataUrl = e.target.result;
+            startEditor(dataUrl);
+            liveSec.hidden = true;
+            editSec.hidden = false;
+            showSheet();
+          };
+          reader.readAsDataURL(file);
+        }
+
+        // --- Browse / file selection ---
+        btnBrowse?.addEventListener('click', ()=> fileInput.click());
+        fileInput?.addEventListener('change', function(){
+          const f=this.files?.[0];
+          if(!f){ return; }
+          openEditorFromFile(f); // open editor for selected file
+        });
+
+        // --- Drag & drop on preview box (2MB limit on Edit) ---
+        hookDropzone('previewBoxEdit','ImageFileEdit', 2);
+
+        // --- Webcam flow (shares editor) ---
+        btnCamera?.addEventListener('click', async ()=>{
+          const dev=['localhost','127.0.0.1','::1'];
+          if(!window.isSecureContext && !dev.includes(location.hostname)){ fileInput.click(); return; }
+          liveSec.hidden=false; editSec.hidden=true; showSheet(); loader.style.display='grid';
+          try{
+            stream = await navigator.mediaDevices.getUserMedia({
+              video:{ facingMode:{ideal:'user'}, width:{ideal:720}, height:{ideal:720}, aspectRatio:{ideal:1} },
+              audio:false
+            });
+            video.srcObject = stream; await video.play();
+          }catch{
+            hideSheet();
+          }finally{
+            loader.style.display='none';
+          }
+        });
+
+        capture?.addEventListener('click', ()=>{
+          if(!video.videoWidth) return;
+          const c=document.createElement('canvas'); c.width=video.videoWidth; c.height=video.videoHeight;
+          c.getContext('2d').drawImage(video,0,0,c.width,c.height);
+          const dataUrl = c.toDataURL('image/jpeg', .95);
+          stopCamera();
+          startEditor(dataUrl);
+          liveSec.hidden=true; editSec.hidden=false;
+        });
+
+        // --- Modal controls ---
+        closeBt?.addEventListener('click', hideSheet);
+        sheet?.addEventListener('click', e=>{ if(e.target===sheet) hideSheet(); });
+        document.addEventListener('keydown', e=>{ if(e.key==='Escape' && sheet.getAttribute('aria-hidden')==='false') hideSheet(); });
+
+        // --- Editor buttons ---
+        rotL.addEventListener('click', async ()=>{ base = await rotateDataUrl(base, -90); startEditor(base); });
+        rotR.addEventListener('click', async ()=>{ base = await rotateDataUrl(base,  90); startEditor(base); });
+        resetBt.addEventListener('click', ()=> startEditor(base));
+        backBt.addEventListener('click', ()=>{ editSec.hidden=true; liveSec.hidden=false; });
+
+        // --- Export cropped image back to input[type=file] so controller gets it ---
+        useBt.addEventListener('click', async ()=>{
+          const box = cropBox.getBoundingClientRect().width, out=512;
+          canvas.width=out; canvas.height=out;
+
+          const s=z;
+          const srcX=Math.max(0,(-offX)/s), srcY=Math.max(0,(-offY)/s);
+          const srcW=Math.min(w-srcX, box/s), srcH=Math.min(h-srcY, box/s);
+
+          g.fillStyle='#fff'; g.fillRect(0,0,out,out); g.imageSmoothingQuality='high';
+          g.drawImage(editImg, srcX,srcY,srcW,srcH, 0,0,out,out);
+          const dataUrl = canvas.toDataURL('image/jpeg', .95);
+
+          const editedFile = await dataUrlToFile(dataUrl, 'menu-item.jpg');
+          setFileOn(fileInput, editedFile);        // controller receives this file
+          imgPreview.src = dataUrl;                // on-page preview
+          document.getElementById('previewBoxEdit')?.classList.add('has-image');
+
+          hideSheet();
+        });
+
+        // Click on preview box also opens file dialog (nice UX)
+        boxPreview?.addEventListener('click', () => fileInput.click());
+    </script>
+
+    <style>
+        /* Preview box */
+        .square-preview {
+            width: clamp(160px, 26vw, 220px);
+            aspect-ratio: 1/1;
+            border: 1.5px dashed #cfd3d7;
+            border-radius: 14px;
+            background: #f7f7f8;
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            transition: border-color .15s, background-color .15s;
+            cursor: pointer;
+        }
+
+            .square-preview:hover {
+                border-color: #111;
+            }
+
+            .square-preview img {
+                display: none;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .square-preview.has-image img {
+                display: block;
+            }
+
+            .square-preview.has-image .square-overlay {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+        .square-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9aa0a6;
+            transition: opacity .15s;
+        }
+
+            .square-overlay .bi {
+                font-size: 1.6rem;
+            }
+
+        .square-preview.dragover {
+            border-color: #111;
+            background: #eef2ff;
+        }
+
+        /* Camera sheet */
+        .camera-sheet {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.5);
+            display: grid;
+            place-items: center;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .18s;
+            z-index: 2100;
+        }
+
+            .camera-sheet[aria-hidden="false"] {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+        .camera-sheet__panel {
+            width: min(560px,96vw);
+            max-height: min(92vh,760px);
+            background: #fff;
+            color: #111;
+            border: 1px solid #e8e8e8;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px rgba(0,0,0,.18);
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        .camera-sheet__header {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .camera-sheet__body {
+            display: grid;
+            gap: 14px;
+            padding: 12px 16px;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: 1px solid #cfcfcf;
+            color: #111;
+            border-radius: 999px;
+            width: 34px;
+            height: 34px;
+            font-size: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-frame {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eee;
+            background: #000;
+            height: clamp(260px,56vh,440px);
+            aspect-ratio: 1/1;
+        }
+
+            .camera-frame video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+        .cam-loader {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(120deg,rgba(255,255,255,.06),rgba(255,255,255,0),rgba(255,255,255,.06));
+            animation: shimmer 1.2s infinite linear;
+        }
+        @@keyframes shimmer {
+            to
+
+        {
+            background-position: 200% 0
+        }
+
+        }
+
+        .square-mask {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,.35),0 0 0 2px rgba(255,255,255,.9);
+            border-radius: 10px;
+            margin: 6%;
+        }
+
+        .camera-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        /* Editor toolbar */
+        .ap-toolbar {
+            display: grid;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .ap-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ap-label {
+            color: #555;
+            font-size: .9rem;
+            font-weight: 600;
+            letter-spacing: -.01em;
+        }
+
+        .ap-range {
+            width: min(360px,80vw);
+            height: 6px;
+        }
+
+            .ap-range::-webkit-slider-runnable-track {
+                height: 4px;
+                background: #e6e6e6;
+                border-radius: 999px;
+            }
+
+            .ap-range::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                background: #111;
+                margin-top: -7px;
+                box-shadow: 0 1px 3px rgba(0,0,0,.2);
+            }
+
+            .ap-range::-moz-range-track {
+                height: 4px;
+                background: #e6e6e6;
+                border-radius: 999px;
+            }
+
+            .ap-range::-moz-range-thumb {
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                border: 0;
+                background: #111;
+                box-shadow: 0 1px 3px rgba(0,0,0,.2);
+            }
+    </style>
+}

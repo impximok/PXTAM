@@ -1,0 +1,180 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Customer Entry";
+    ViewBag.HideHeader = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Monochrome icon set -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+<style>
+    :root {
+        --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text","SF Pro Display","Segoe UI", Roboto,"Helvetica Neue", Arial, system-ui, sans-serif;
+        --fg: #0a0a0a;
+        --muted: #5f5f5f;
+        --border: #0a0a0a;
+        --bg: #ffffff;
+        --footer-h: 84px; /* set to 0 if no footer spacing needed */
+        --center-nudge: 0; /* e.g., 2vh if you want it slightly lower */
+    }
+
+    /* Viewport centers the card */
+    .entry-wrap {
+        min-height: calc(100dvh - var(--footer-h));
+        display: grid;
+        place-items: center;
+        padding: 2rem 1rem;
+        font-family: var(--font-sans);
+        color: var(--fg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: var(--bg);
+    }
+
+    /* Card */
+    .entry-card {
+        width: 100%;
+        max-width: 720px;
+        border: 1.5px solid var(--border);
+        border-radius: 18px;
+        background: var(--bg);
+        padding: 1.75rem;
+        translate: 0 var(--center-nudge); /* optional nudge */
+    }
+
+    .entry-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: .75rem;
+        margin-bottom: 1rem;
+    }
+
+    .entry-title {
+        margin: 0;
+        font-weight: 800;
+        letter-spacing: -.01em;
+        font-size: clamp(1.7rem, 2.6vw, 2.1rem);
+        line-height: 1.15;
+    }
+
+    .entry-sub {
+        margin: .2rem 0 0;
+        color: var(--muted);
+        font-size: 1.02rem;
+    }
+
+    /* Actions grid */
+    .entry-actions {
+        display: grid;
+        gap: .8rem;
+        grid-template-columns: 1fr;
+        margin-top: 1.25rem;
+    }
+    @@media (min-width:700px) {
+        .entry-actions
+
+    {
+        grid-template-columns: repeat(3,1fr);
+    }
+
+    }
+
+    .entry-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .6rem;
+        padding: 1rem 1.1rem;
+        border-radius: 14px;
+        font-weight: 750;
+        text-decoration: none;
+        border: 1.5px solid var(--border);
+        color: var(--fg);
+        background: #fff;
+        transition: background .15s ease, color .15s ease, border-color .15s ease, transform .06s ease;
+    }
+
+        .entry-btn:focus-visible {
+            outline: 3px solid #000;
+            outline-offset: 3px;
+        }
+
+        .entry-btn:hover {
+            background: #111;
+            color: #fff;
+            border-color: #111;
+            transform: translateY(-1px);
+        }
+
+    .entry-btn--primary {
+        background: #000;
+        color: #fff;
+        border-color: #000;
+    }
+
+        .entry-btn--primary:hover {
+            background: #111;
+            border-color: #111;
+        }
+
+    /* Mono icons */
+    .ico {
+        font-size: 1.25rem; /* size */
+        line-height: 1;
+        color: #000; /* black by default */
+    }
+
+    .entry-btn--primary .ico {
+        color: #fff;
+    }
+    /* white on dark button */
+    .entry-btn:hover .ico {
+        color: #fff;
+    }
+    /* white when hovered */
+    .entry-btn:focus-visible .ico {
+        color: #fff;
+    }
+    /* white when focused on hoverable */
+
+    /* Short screens: allow scrolling instead of forced centering */
+    @@media (max-height: 580px) {
+        .entry-wrap
+
+    {
+        min-height: auto;
+    }
+
+    }
+</style>
+
+<div class="entry-wrap">
+    <section class="entry-card" aria-labelledby="entryTitle">
+        <div class="entry-head">
+            <div>
+                <h1 id="entryTitle" class="entry-title">Welcome</h1>
+                <p class="entry-sub">Choose how you’d like to continue.</p>
+            </div>
+        </div>
+
+        <nav class="entry-actions" aria-label="Customer actions">
+            <a href="/Customer/Login" class="entry-btn entry-btn--primary" aria-label="Login">
+                <i class="bi bi-key-fill ico" aria-hidden="true"></i> Login
+            </a>
+
+            <a href="/Customer/Register" class="entry-btn" aria-label="Register">
+                <i class="bi bi-person-plus ico" aria-hidden="true"></i> Register
+            </a>
+
+            <a asp-controller="Customer"
+               asp-action="ContinueAsGuest"
+               asp-route-returnUrl="/Menu/Catalog"
+               class="entry-btn"
+               aria-label="Continue as Guest">
+                <i class="bi bi-person ico" aria-hidden="true"></i> Guest
+            </a>
+        </nav>
+    </section>
+</div>

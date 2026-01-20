@@ -1,0 +1,274 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Contact · Snömi Café";
+}
+
+<style>
+    .contact-wrap {
+        background: #fff;
+        color: #000;
+        font-family: -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;
+        letter-spacing: .2px;
+        min-height: 60vh;
+    }
+
+    /* Hero */
+    .contact-hero {
+        max-width: 880px;
+        margin: 6.5rem auto 2rem;
+        text-align: center;
+        padding: 0 1.25rem;
+    }
+
+        .contact-hero h1 {
+            font-weight: 700;
+            font-size: clamp(2rem,4vw,3rem);
+            line-height: 1.15;
+            margin: 0 0 .75rem;
+        }
+
+        .contact-hero p {
+            font-size: clamp(1.02rem,2.1vw,1.2rem);
+            color: #222;
+            margin: 0 auto;
+            max-width: 48ch;
+        }
+
+    .hairline {
+        border: 0;
+        height: 1px;
+        background: linear-gradient(to right,transparent,#000 35%,#000 65%,transparent);
+        opacity: .12;
+        margin: 2.25rem auto;
+        width: min(720px,92%);
+    }
+
+    /* Grid */
+    .contact-grid {
+        max-width: 980px;
+        margin: 0 auto 2rem;
+        padding: 0 1.25rem;
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: 1.5rem;
+    }
+    @@media (max-width: 900px) {
+        .contact-grid
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    }
+
+    .card-plain {
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 16px;
+        background: #fff;
+        padding: 1.25rem 1.25rem 1.1rem;
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+        .card-plain:hover {
+            transform: translateY(-2px);
+            border-color: rgba(0,0,0,.22);
+            box-shadow: 0 8px 24px rgba(0,0,0,.05);
+        }
+
+        .card-plain h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 0 0 .6rem;
+        }
+
+        .card-plain p {
+            margin: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+
+    .alink {
+        color: #000 !important;
+        text-decoration: underline !important;
+        text-underline-offset: 2px;
+    }
+
+        .alink:hover {
+            color: #444 !important;
+        }
+
+    /* Hours */
+    .hours {
+        max-width: 980px;
+        margin: 0 auto 2rem;
+        padding: 0 1.25rem;
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: 1.5rem;
+    }
+    @@media (max-width: 900px) {
+        .hours
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    }
+
+    .hours-box {
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 16px;
+        padding: 1.25rem;
+    }
+
+    .hours-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+        .hours-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: .35rem 0;
+            border-bottom: 1px dashed rgba(0,0,0,.08);
+        }
+
+            .hours-list li:last-child {
+                border-bottom: 0;
+            }
+
+    /* Form */
+    .contact-form {
+        max-width: 980px;
+        margin: 0 auto 3rem;
+        padding: 0 1.25rem;
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 16px;
+    }
+
+    .cf-inner {
+        padding: 1.25rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: .35rem;
+    }
+
+    .form-control, .form-textarea {
+        width: 100%;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 10px;
+        padding: .7rem .85rem;
+        font-size: 1rem;
+        background: #fff;
+        color: #000;
+    }
+
+    .form-textarea {
+        min-height: 140px;
+        resize: vertical;
+    }
+
+    .cf-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: .75rem;
+        margin-top: 1rem;
+    }
+
+    .btn-bw {
+        border: 1px solid #000;
+        background: #000;
+        color: #fff;
+        border-radius: 10px;
+        padding: .6rem 1.1rem;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+        .btn-bw:hover {
+            background: #fff;
+            color: #000;
+        }
+
+    .btn-ghost {
+        border: 1px solid rgba(0,0,0,.3);
+        background: #fff;
+        color: #000;
+        border-radius: 10px;
+        padding: .6rem 1.1rem;
+    }
+
+        .btn-ghost:hover {
+            border-color: #000;
+        }
+
+    /* Back link (bottom-left) */
+    .back-container {
+        max-width: 980px;
+        margin: 0 auto 4rem;
+        padding: 0 1.25rem;
+        text-align: left;
+    }
+
+    .back-link {
+        color: #555 !important;
+        text-decoration: underline !important;
+        text-underline-offset: 2px;
+        font-size: .95rem;
+    }
+
+        .back-link:hover {
+            color: #000 !important;
+        }
+</style>
+
+<div class="contact-wrap">
+    <!-- Hero -->
+    <section class="contact-hero">
+        <h1>Contact Us</h1>
+        <p>Questions, bookings, feedback — we’d love to hear from you.</p>
+    </section>
+
+    <hr class="hairline" />
+
+    <!-- Two info cards -->
+    <section class="contact-grid">
+        <div class="card-plain">
+            <h3>Reach Us</h3>
+            <p>Email: <a href="mailto:tancaiyee2912@gmail.com" class="alink">tancaiyee2912@gmail.com</a></p>
+            <p style="margin-top:.4rem;">Phone: <a href="tel:+60123456789" class="alink">+60 12-345 6789</a></p>
+        </div>
+        <div class="card-plain">
+            <h3>Visit Us</h3>
+            <p>Snömi Café<br />123 Jalan Damai, 50450<br />Kuala Lumpur, Malaysia</p>
+        </div>
+    </section>
+
+    <!-- Hours + Note -->
+    <section class="hours">
+        <div class="hours-box">
+            <h3 style="margin:0 0 .6rem;font-size:1.05rem;font-weight:600;">Opening Hours</h3>
+            <ul class="hours-list">
+                <li><span>Mon – Thu</span><span>10:00 – 20:00</span></li>
+                <li><span>Fri – Sat</span><span>10:00 – 22:00</span></li>
+                <li><span>Sunday</span><span>Closed</span></li>
+            </ul>
+        </div>
+        <div class="hours-box">
+            <h3 style="margin:0 0 .6rem;font-size:1.05rem;font-weight:600;">Customer Care</h3>
+            <p style="margin:0; color:#333; line-height:1.6;">
+                Walk-ins are always welcome. For urgent questions, please call us during opening hours and our team will be happy to assist.
+            </p>
+        </div>
+    </section>
+
+
+
+    <!-- Back link -->
+    <div class="back-container">
+        <a href="javascript:history.back()" class="back-link">← Back</a>
+    </div>
+</div>

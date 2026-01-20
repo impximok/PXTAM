@@ -1,0 +1,436 @@
+﻿@using SnomiAssignmentReal.Models
+@using SnomiAssignmentReal.Models.ViewModels
+@model ManageOrdersVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Manage CustomerOrders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string[] statusOptions = { "AwaitingPayment", "Ordered", "Preparing", "Ready", "Served", "Completed", "Cancelled" };
+
+    string FmtTotal(CustomerOrder o)
+    {
+        var total = o.NetPayableAmount > 0 ? o.NetPayableAmount : (o.OrderTotalAmount - o.TotalDiscountAmount);
+        if (total < 0) total = 0;
+        return $"MYR {total:0.00}";
+    }
+    string StatusBadge(string s) => "badge-mono";
+}
+
+<div class="container py-4">
+
+    @if (TempData["Info"] is string infoMsg && !string.IsNullOrWhiteSpace(infoMsg))
+    {
+        <div class="alert alert-success mb-3" role="alert">
+            @infoMsg
+        </div>
+    }
+    <div class="page-head">
+        <h1 class="page-title">Manage Orders</h1>
+        <a asp-controller="Order" asp-action="ManageTracks" class="btn btn-solid">Track Board →</a>
+    </div>
+
+    <form method="get" class="toolbar row g-2 align-items-end">
+        <div class="col-12 col-md-3">
+            <label class="form-label small">Status</label>
+            <select name="status" class="form-select form-select-sm">
+                <option value="">All</option>
+                @foreach (var s in statusOptions)
+                {
+                    <option value="@s" selected="@(string.Equals(Model.Status, s, StringComparison.OrdinalIgnoreCase))">@s</option>
+                }
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <label class="form-label small">Search</label>
+            <input name="q" value="@(Model.Q ?? "")" class="form-control form-control-sm" placeholder="Order ID, customer, payment, table…" />
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small">Page size</label>
+            <select name="pageSize" class="form-select form-select-sm">
+                @foreach (var size in new[] { 10, 12, 15, 20, 30, 50 })
+                {
+                    <option value="@size" selected="@(Model.PageSize == size)">@size</option>
+                }
+            </select>
+        </div>
+        <div class="col-6 col-md-3 d-flex gap-2">
+            <button class="btn btn-solid flex-grow-1" type="submit">Apply</button>
+            <a asp-action="ManageOrders" class="btn btn-ghost">Reset</a>
+        </div>
+    </form>
+
+    @if (Model.Orders == null || !Model.Orders.Any())
+    {
+        <div class="empty-card">No orders found.</div>
+    }
+    else
+    {
+        <div class="list-meta">
+            <span>Total <b>@Model.Total</b></span>
+            <span>Page <b>@Model.Page</b> of <b>@Model.TotalPages</b></span>
+        </div>
+
+        <div class="table-wrap">
+            <table class="table align-middle mb-0 luxe-table">
+                <thead>
+                    <tr>
+                        <th style="width:15rem">Order</th>
+                        <th>Customer</th>
+                        <th>When</th>
+                        <th>Status</th>
+                        <th class="text-end">Total</th>
+                        <th>Paid</th>
+                        <th class="text-center">Items</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in Model.Orders)
+                    {
+                        var itemsCount = o.CustomerOrderDetails?.Sum(d => d.OrderedQuantity) ?? 0;
+                        <tr class="row-line">
+                            <td>
+                                <div class="id">@o.CustomerOrderId</div>
+                                <div class="muted">Table #@(o.TableNumber > 0 ? o.TableNumber : 0) · @((o.PaymentMethodName ?? "N/A"))</div>
+                            </td>
+                            <td>
+                                <div>@(o.Customer?.CustomerFullName ?? "Guest")</div>
+                                <div class="muted">@((o.Customer?.CustomerId) ?? o.CustomerId)</div>
+                            </td>
+                            <td>
+                                <div>@o.OrderCreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                <div class="muted">@(o.PaymentCompletedAt.HasValue ? $"Paid {o.PaymentCompletedAt:dd/MM HH:mm}" : "Unpaid")</div>
+                            </td>
+                            <td><span class="@StatusBadge(o.OrderStatus ?? "")">@o.OrderStatus</span></td>
+                            <td class="text-end"><b>@FmtTotal(o)</b></td>
+                            <td>
+                                @if (o.PaymentCompletedAt.HasValue)
+                                {
+                                    <span class="badge-mono">Paid</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge-mono">Unpaid</span>
+                                }
+                            </td>
+                            <td class="text-center">@itemsCount</td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-2">
+                                    <form asp-action="UpdateStatus" method="post" class="d-flex gap-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@o.CustomerOrderId" />
+                                        <select class="form-select form-select-sm" name="status">
+                                            @foreach (var s in statusOptions)
+                                            {
+                                                <option value="@s" selected="@(string.Equals(o.OrderStatus, s, StringComparison.OrdinalIgnoreCase))">@s</option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-outline">Update</button>
+                                    </form>
+
+                                    @if (!o.PaymentCompletedAt.HasValue)
+                                    {
+                                        <form asp-action="MarkPaid" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@o.CustomerOrderId" />
+                                            <button class="btn btn-solid" type="submit">Mark Paid</button>
+                                        </form>
+                                    }
+
+                                    @if (!string.Equals(o.OrderStatus, "Completed", StringComparison.OrdinalIgnoreCase) &&
+                                                                !string.Equals(o.OrderStatus, "Cancelled", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <form asp-action="Cancel" method="post" class="d-inline" onsubmit="return confirm('Cancel this order?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@o.CustomerOrderId" />
+                                            <button class="btn btn-outline danger" type="submit">Cancel</button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Items (sub-card) -->
+                        <tr class="items-row">
+                            <td colspan="8" class="border-0">
+                                <details class="items">
+                                    <summary>Items (@itemsCount)</summary>
+                                    <div class="items-card">
+                                        @foreach (var d in o.CustomerOrderDetails ?? new List<OrderDetail>())
+                                        {
+                                            <div class="item">
+                                                <div class="item-head">
+                                                    <span class="name">@d.MenuItem?.MenuItemName</span>
+                                                    <span class="qty">× @d.OrderedQuantity</span>
+                                                </div>
+                                                @if (d.AppliedCustomizations != null && d.AppliedCustomizations.Any())
+                                                {
+                                                    <div class="mods">
+                                                        @foreach (var c in d.AppliedCustomizations)
+                                                        {
+                                                            <span class="chip">+ @c.CustomizationName</span>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </details>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <nav class="mt-3">
+            <ul class="pagination pager mb-0 flex-wrap justify-content-end">
+                <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="ManageOrders" asp-route-status="@Model.Status" asp-route-q="@Model.Q" asp-route-page="1" asp-route-pageSize="@Model.PageSize">First</a>
+                </li>
+                <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="ManageOrders" asp-route-status="@Model.Status" asp-route-q="@Model.Q" asp-route-page="@(Model.Page - 1)" asp-route-pageSize="@Model.PageSize">Prev</a>
+                </li>
+                @{
+                    var start = Math.Max(1, Model.Page - 2);
+                    var end = Math.Min(Model.TotalPages, Model.Page + 2);
+                    for (int p = start; p <= end; p++)
+                    {
+                        <li class="page-item @(p == Model.Page ? "active" : "")">
+                            <a class="page-link" asp-action="ManageOrders" asp-route-status="@Model.Status" asp-route-q="@Model.Q" asp-route-page="@p" asp-route-pageSize="@Model.PageSize">@p</a>
+                        </li>
+                    }
+                }
+                <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="ManageOrders" asp-route-status="@Model.Status" asp-route-q="@Model.Q" asp-route-page="@(Model.Page + 1)" asp-route-pageSize="@Model.PageSize">Next</a>
+                </li>
+                <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="ManageOrders" asp-route-status="@Model.Status" asp-route-q="@Model.Q" asp-route-page="@Model.TotalPages" asp-route-pageSize="@Model.PageSize">Last</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+<style>
+    :root {
+        --header-offset: 88px
+    }
+    /* adjust to your toolbar height */
+
+    /* Page head */
+    .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem
+    }
+
+    .page-title {
+        font-weight: 900;
+        letter-spacing: .3px;
+        margin: 0
+    }
+
+    /* Buttons (monochrome, haute) */
+    .btn {
+        border-radius: 999px;
+        padding: .45rem 1rem;
+        font-weight: 700
+    }
+
+    .btn-solid {
+        background: #111;
+        color: #fff;
+        border: 1px solid #111
+    }
+
+    .btn-ghost {
+        background: #fff;
+        border: 1px solid #111;
+        color: #111
+    }
+
+    .btn-outline {
+        background: #fff;
+        border: 1px solid #111;
+        color: #111
+    }
+
+        .btn-outline.danger {
+            border-color: #111
+        }
+
+    .btn:focus {
+        box-shadow: none;
+        outline: 2px solid #111
+    }
+
+    /* Toolbar */
+    .toolbar .form-label {
+        margin-bottom: .25rem
+    }
+
+    .toolbar .form-control, .toolbar .form-select {
+        border-radius: 12px
+    }
+
+    .list-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: .25rem 0 .75rem;
+        color: #6b6b6b
+    }
+
+    /* Table container */
+    .table-wrap {
+        border: 1.5px solid #111;
+        border-radius: 16px;
+        background: #fff;
+        overflow: visible
+    }
+
+    /* Luxe table */
+    .luxe-table thead th {
+        position: sticky;
+        top: var(--header-offset);
+        z-index: 3;
+        background: #fff;
+        color: #111;
+        border-bottom: 2px solid #111;
+        font-weight: 800;
+        letter-spacing: .02em;
+    }
+
+    .luxe-table tbody td {
+        border-top: 1px solid #ececec
+    }
+
+    .row-line:hover td {
+        background: #fafafa
+    }
+
+    .id {
+        font-weight: 800;
+        letter-spacing: .3px
+    }
+
+    .muted {
+        color: #8b8b8b
+    }
+
+    /* Badges (one elegant style) */
+    .badge-mono {
+        display: inline-block;
+        border: 1px solid #111;
+        border-radius: 999px;
+        padding: .15rem .6rem;
+        font-weight: 700;
+        background: #fff;
+        font-size: .82rem;
+        color: #111
+    }
+
+    /* Items section as a sub-card */
+    .items summary {
+        list-style: none;
+        cursor: pointer;
+        font-weight: 700;
+        padding: .6rem 0;
+        margin-top: .2rem
+    }
+
+        .items summary::-webkit-details-marker {
+            display: none
+        }
+
+        .items summary:before {
+            content: "▸";
+            display: inline-block;
+            margin-right: .5rem;
+            transform: translateY(-1px)
+        }
+
+    .items[open] summary:before {
+        content: "▾"
+    }
+
+    .items-card {
+        border: 1px solid #111;
+        border-radius: 12px;
+        padding: .75rem 1rem;
+        margin: .25rem 0 1rem;
+        background: #fff
+    }
+
+    .item {
+        padding: .4rem 0;
+        border-top: 1px solid #efefef
+    }
+
+        .item:first-child {
+            border-top: 0
+        }
+
+    .item-head {
+        display: flex;
+        gap: .5rem;
+        align-items: baseline
+    }
+
+        .item-head .name {
+            font-weight: 700
+        }
+
+        .item-head .qty {
+            color: #6b6b6b
+        }
+
+    .mods {
+        margin-top: .3rem;
+        display: flex;
+        gap: .4rem;
+        flex-wrap: wrap
+    }
+
+    .chip {
+        border: 1px solid #111;
+        border-radius: 999px;
+        padding: .08rem .55rem;
+        font-size: .72rem;
+        font-weight: 700;
+        background: #fff;
+        white-space: nowrap
+    }
+
+    /* Pagination */
+    .pager .page-link {
+        border: 1px solid #111;
+        border-radius: 999px;
+        color: #111;
+        margin-left: .35rem
+    }
+
+    .pager .page-item.active .page-link {
+        background: #111;
+        color: #fff;
+        border-color: #111
+    }
+
+    .pager .page-item.disabled .page-link {
+        opacity: .45;
+        pointer-events: none
+    }
+
+    /* Empty state */
+    .empty-card {
+        border: 1.5px dashed #111;
+        border-radius: 16px;
+        padding: 1.25rem;
+        background: #fff;
+        color: #555
+    }
+</style>

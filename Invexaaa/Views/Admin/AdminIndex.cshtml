@@ -1,0 +1,21 @@
+﻿@*
+
+@{
+    ViewBag.Title = "Dashboard";
+    var role = ViewBag.Role as string;
+}
+
+<h1>Welcome to the Dashboard, @role!</h1>
+
+@if (role == "Admin")
+{
+<p>✔ You can manage users, categories, and reports.</p>
+<a href="/Admin/ManageUsers" class="btn btn-primary">Manage Users</a>
+}
+else if (role == "Staff")
+{
+<p>✔ You can handle orders and view menu.</p>
+<a href="/Order/Index" class="btn btn-success">View Orders</a>
+}
+
+*@

@@ -1,0 +1,244 @@
+﻿@using SnomiAssignmentReal.Models
+@model List<CustomerOrder>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Track CustomerOrders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // columns to show
+    var cols = new[] { "AwaitingPayment", "Ordered", "Preparing", "Ready", "Served" };
+
+    // group by status
+    var grouped = Model?
+        .GroupBy(o => (o.OrderStatus ?? "").Trim())
+        .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.OrderCreatedAt).ToList())
+        ?? new Dictionary<string, List<CustomerOrder>>();
+
+    // helpers
+    string FmtDate(DateTime dt) => dt.ToString("dd/MM/yyyy");
+    string FmtTime(DateTime dt) => dt.ToString("HH:mm");
+    string FmtTotal(CustomerOrder o)
+    {
+        var total = (o.NetPayableAmount > 0 ? o.NetPayableAmount : o.OrderTotalAmount - o.TotalDiscountAmount );
+        if (total < 0) total = 0;
+        return $"MYR {total:0.00}";
+    }
+    string PaymentPillClass(string? pm) => (pm ?? "").ToLower() switch
+    {
+        "qr" => "pill pill-qr",
+        "cash" => "pill pill-cash",
+        "card" => "pill pill-card",
+        "e-wallet" => "pill pill-ew",
+        _ => "pill"
+    };
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="ppg-title mb-0">Track Orders</h1>
+        <a asp-action="ManageOrders" class="btn btn-outline-dark">← Manage Orders</a>
+    </div>
+
+    <div class="row g-3">
+        @foreach (var col in cols)
+        {
+            var list = grouped.ContainsKey(col) ? grouped[col] : new List<CustomerOrder>();
+            <div class="col-12 col-md-6 col-xl">
+                <section class="ppg-col h-100">
+                    <header class="ppg-col-header d-flex justify-content-between align-items-center">
+                        <span>@col</span>
+                        <span class="count-badge">@list.Count</span>
+                    </header>
+
+                    <div class="d-flex flex-column gap-2">
+                        @if (!list.Any())
+                        {
+                            <div class="ppg-card empty">No orders</div>
+                        }
+                        else
+                        {
+                            foreach (var o in list)
+                            {
+                                var items = o.CustomerOrderDetails?.Sum(d => d.OrderedQuantity) ?? 0;
+                                <article class="ppg-card d-flex flex-column">
+                                    <!-- Top: ID + Total -->
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div class="id-wrap">
+                                            <div class="order-id">@o.CustomerOrderId</div>
+                                            <div class="sub muted">
+                                                @FmtDate(o.OrderCreatedAt) &nbsp;•&nbsp; @FmtTime(o.OrderCreatedAt)
+                                            </div>
+                                        </div>
+                                        <div class="total fs-6 fw-bold text-nowrap">@FmtTotal(o)</div>
+                                    </div>
+
+                                    <!-- Meta rows -->
+                                    <div class="meta-row">
+                                        <span class="muted">@(o.Customer?.CustomerFullName ?? "Guest")</span>
+                                        <span class="dot">•</span>
+                                        <span>Table #@(o.TableNumber > 0 ? o.TableNumber : 0)</span>
+                                    </div>
+
+                                    <div class="meta-row">
+                                        <span class="@PaymentPillClass(o.PaymentMethodName)">@((o.PaymentMethodName ?? "N/A"))</span>
+                                        <span class="muted">Items: @items</span>
+                                        @* Optional little QR hint *@
+                                        @if ((o.PaymentMethodName ?? "").Equals("QR", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="qr-chip" title="QR payment">QR</span>
+                                        }
+                                    </div>
+
+                                    <!-- Spacer pushes buttons to bottom -->
+                                    <div class="flex-grow-1"></div>
+
+
+                                    <!-- Actions -->
+                                    <div class="btn-row">
+                                        <a asp-action="ManageOrders" asp-route-id="@o.CustomerOrderId" class="btn btn-sm btn-dark">
+                                            View
+                                        </a>
+
+                                        @if (!o.PaymentCompletedAt.HasValue && string.Equals(o.OrderStatus, "AwaitingPayment", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <form asp-action="MarkPaid" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@o.CustomerOrderId" />
+                                                <button class="btn btn-sm btn-outline-dark" type="submit">Mark Paid</button>
+                                            </form>
+                                        }
+                                    </div>
+
+
+                                </article>
+                            }
+                        }
+                    </div>
+                </section>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* layout */
+    .ppg-title {
+        font-weight: 800;
+        letter-spacing: .3px
+    }
+
+    .ppg-col {
+        border: 2px solid #000;
+        border-radius: 16px;
+        background: #fff;
+        padding: 1rem;
+        min-height: 360px
+    }
+
+    .ppg-col-header {
+        font-weight: 800;
+        margin-bottom: .75rem;
+        border-bottom: 2px dashed #000;
+        padding-bottom: .5rem
+    }
+
+    .count-badge {
+        font-size: .85rem;
+        background: #111;
+        color: #fff;
+        border-radius: 999px;
+        padding: .1rem .6rem
+    }
+
+    /* card */
+    .ppg-card {
+        border: 1.5px solid #000;
+        border-radius: 14px;
+        padding: .9rem;
+        background: #fff;
+        box-shadow: 0 1px 0 #00000010
+    }
+
+        .ppg-card.empty {
+            border-style: dashed;
+            color: #666
+        }
+
+    .order-id {
+        font-weight: 800;
+        letter-spacing: .2px
+    }
+
+    .sub {
+        font-size: .8rem
+    }
+
+    .muted {
+        color: #6b7280
+    }
+
+    .meta-row {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin: .25rem 0 .35rem 0;
+        flex-wrap: wrap
+    }
+
+        .meta-row .dot {
+            color: #a3a3a3
+        }
+
+    /* pills */
+    .pill {
+        border: 1px solid #111;
+        border-radius: 999px;
+        padding: .1rem .5rem;
+        font-size: .8rem;
+        font-weight: 600;
+        background: #fff
+    }
+
+    .pill-qr {
+        background: #eef2ff;
+        border-color: #3730a3
+    }
+
+    .pill-cash {
+        background: #ecfdf5;
+        border-color: #065f46
+    }
+
+    .pill-card {
+        background: #f5f3ff;
+        border-color: #6d28d9
+    }
+
+    .pill-ew {
+        background: #f0f9ff;
+        border-color: #0ea5e9
+    }
+
+    .qr-chip {
+        font-size: .7rem;
+        border: 1px solid #111;
+        padding: .1rem .4rem;
+        border-radius: 6px
+    }
+
+    /* buttons */
+    .btn-row {
+        display: flex;
+        gap: .5rem;
+        margin-top: .5rem
+    }
+
+    .total {
+        min-width: 96px;
+        text-align: right
+    }
+
+    .id-wrap {
+        min-width: 0
+    }
+</style>

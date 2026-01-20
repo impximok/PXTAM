@@ -1,0 +1,162 @@
+﻿@model SnomiAssignmentReal.Models.ViewModels.LoginVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Admin/Staff Login";
+    ViewBag.HideHeader = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var siteKey = ViewBag.HCaptchaSiteKey as string ?? "";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css">
+
+<div class="full-page-wrapper">
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <div class="text-center mb-4">
+                    <h2 class="fw-semibold mb-1 text-dark">Sign In</h2>
+                    <p class="text-muted small">Admin/Staff portal. Authorized personnel only.</p>
+                </div>
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger text-center">@TempData["Error"]</div>
+                }
+
+                @* Show model errors only after POST (optional, clearer UX) *@
+                @if (ViewData.ModelState.ErrorCount > 0 && Context.Request.Method == "POST")
+                {
+                    <div class="alert alert-danger small" role="alert">
+                        <div asp-validation-summary="All"></div>
+                    </div>
+                }
+
+                <form asp-action="Login" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-floating mb-3 position-relative">
+                        <input asp-for="Email" type="email" class="form-control" placeholder="Email" />
+                        <label asp-for="Email">Email address</label>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-floating mb-3 position-relative">
+                        <input asp-for="Password" id="Password" type="password" class="form-control pe-5" placeholder="Password" />
+                        <label asp-for="Password">Password</label>
+                        <i id="togglePassword" class="bi bi-eye-slash password-toggle"></i>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <!-- 🔒 hCaptcha (required) -->
+                    <div class="mb-3">
+                        <div class="h-captcha" data-sitekey="@siteKey"></div>
+                        <small class="text-muted">This helps us keep bots out.</small>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input asp-for="RememberMe" class="form-check-input" id="rememberMeCheckbox" />
+                        <label asp-for="RememberMe" class="form-check-label">Remember Me</label>
+                    </div>
+                    <div id="rememberMeMessage" class="remember-me-info" style="display:none;">
+                        You’ll stay signed in for 7 days on this device.
+                    </div>
+
+                    <div class="mb-3 text-end">
+                        <a asp-controller="Account" asp-action="ResetPassword" class="forgot-link">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-custom-black w-100">Log In</button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="~/" class="text-muted small">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <!-- hCaptcha widget -->
+    <script src="https://hcaptcha.com/1/api.js" async defer></script>
+
+    <script>
+        // Remember Me hint
+        const rememberMeCheckbox = document.getElementById("rememberMeCheckbox");
+        const rememberMeMessage = document.getElementById("rememberMeMessage");
+        function updateRememberMeMessage() {
+            if (!rememberMeCheckbox) return;
+            rememberMeMessage.style.display = rememberMeCheckbox.checked ? "block" : "none";
+        }
+        rememberMeCheckbox?.addEventListener("change", updateRememberMeMessage);
+        updateRememberMeMessage();
+
+        // Show/Hide password
+        const togglePwd = document.getElementById("togglePassword");
+        const pwd = document.getElementById("Password");
+        togglePwd?.addEventListener("click", () => {
+            const type = pwd.type === "password" ? "text" : "password";
+            pwd.type = type;
+            togglePwd.classList.toggle("bi-eye");
+            togglePwd.classList.toggle("bi-eye-slash");
+        });
+    </script>
+}
+
+<style>
+    .password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 1rem;
+        transform: translateY(-50%);
+        font-size: 1.1rem;
+        color: #6c757d;
+        cursor: pointer;
+    }
+
+        .password-toggle:hover {
+            color: #333;
+        }
+
+    .form-control.pe-5 {
+        padding-right: 2.5rem;
+    }
+
+    body, html {
+        background-color: #f5f5f7 !important;
+    }
+
+    .btn-custom-black {
+        background-color: #000;
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 999px;
+        transition: all .2s;
+        padding: .65rem 1rem;
+        font-weight: 500;
+    }
+
+        .btn-custom-black:hover {
+            background: #fff;
+            color: #000;
+            border-color: #000;
+        }
+
+    .forgot-link {
+        color: #6c757d;
+        text-decoration: none;
+    }
+
+        .forgot-link:hover {
+            color: #0d6efd;
+            text-decoration: underline;
+        }
+
+    .remember-me-info {
+        color: #9aa0a6;
+        font-size: .95rem;
+        margin: .25rem 0 1rem;
+    }
+</style>

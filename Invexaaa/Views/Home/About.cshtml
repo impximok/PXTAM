@@ -1,0 +1,172 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "About · Snömi Café";
+}
+
+<style>
+    .about-wrap {
+        background: #fff;
+        color: #000;
+        font-family: -apple-system, BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;
+        letter-spacing: .2px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+
+    .about-hero {
+        max-width: 880px;
+        margin: 8rem auto 3rem;
+        text-align: center;
+        padding: 0 1.25rem;
+    }
+
+        .about-hero h1 {
+            font-weight: 700;
+            font-size: clamp(2rem,4vw,3rem);
+            line-height: 1.15;
+            margin-bottom: 1rem;
+        }
+
+        .about-hero p.lead {
+            font-size: clamp(1.05rem,2.2vw,1.25rem);
+            color: #222;
+            margin: 0 auto 1rem;
+            max-width: 48ch;
+        }
+
+    .hairline {
+        border: 0;
+        height: 1px;
+        background: linear-gradient(to right,transparent,#000 35%,#000 65%,transparent);
+        opacity: .15;
+        margin: 2.25rem auto;
+        width: min(720px,92%);
+    }
+
+    .about-grid {
+        max-width: 980px;
+        margin: 0 auto 4rem;
+        padding: 0 1.25rem;
+        display: grid;
+        grid-template-columns: repeat(3,1fr);
+        gap: 2rem;
+    }
+    @@media(max - width:900px) {
+        .about-grid
+
+    {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    }
+
+    .card-plain {
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 18px;
+        padding: 1.25rem;
+        background: #fff;
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+        .card-plain:hover {
+            transform: translateY(-2px);
+            border-color: rgba(0,0,0,.22);
+            box-shadow: 0 8px 24px rgba(0,0,0,.05);
+        }
+
+        .card-plain h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 0 0 .5rem;
+            letter-spacing: .3px;
+        }
+
+        .card-plain p {
+            margin: 0;
+            color: #333;
+            line-height: 1.55;
+        }
+
+    .about-story {
+        max-width: 820px;
+        margin: 0 auto 3.5rem;
+        padding: 0 1.25rem;
+        color: #111;
+        line-height: 1.65;
+        font-size: 1.05rem;
+    }
+
+    .about-mono {
+        font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+        font-size: .9rem;
+        color: #444;
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 12px;
+        padding: .6rem .8rem;
+        display: inline-block;
+    }
+
+    /* Back link at bottom-left */
+    .back-link {
+        color: #555 !important; /* lighter black (grey) */
+        text-decoration: underline !important;
+        text-underline-offset: 2px;
+        font-size: .95rem;
+        margin: 0;
+    }
+
+        .back-link:hover {
+            color: #000 !important;
+        }
+
+    .back-container {
+        max-width: 820px;
+        margin: 2rem auto 4rem;
+        padding: 0 1.25rem;
+        text-align: left; /* bottom-left alignment */
+    }
+</style>
+
+<div class="about-wrap">
+    <!-- Hero -->
+    <section class="about-hero">
+        <h1>Snömi Café</h1>
+        <p class="lead">A quiet space for simple food done well. We care about ingredients, craft, and the people we serve.</p>
+        <p class="lead" style="opacity:.75">Make yourself at home—stay for a bite, or for a moment of calm.</p>
+    </section>
+
+    <hr class="hairline" />
+
+    <!-- Three pillars -->
+    <section class="about-grid">
+        <div class="card-plain">
+            <h3>Quality</h3>
+            <p>Thoughtful sourcing, careful preparation, and consistency you can taste.</p>
+        </div>
+        <div class="card-plain">
+            <h3>Comfort</h3>
+            <p>Clean lines, warm service, and food that feels familiar without being ordinary.</p>
+        </div>
+        <div class="card-plain">
+            <h3>Community</h3>
+            <p>A small place with a big welcome—regulars, first-timers, everyone at the table.</p>
+        </div>
+    </section>
+
+    <hr class="hairline" />
+
+    <!-- Story -->
+    <section class="about-story">
+        <p>Snömi began with a simple idea: serve honest dishes in a space that lets you breathe. No noise, no clutter—just good coffee, warm plates, and time well spent.</p>
+        <p>Our menu changes with what’s fresh. The approach stays the same: less, but better. If you’re unsure where to start, ask—our team is happy to guide you.</p>
+        <p class="about-mono">Est. 2024 — Kuala Lumpur, Malaysia</p>
+    </section>
+
+    <!-- Back link -->
+    <div class="back-container">
+        <a href="javascript:history.back()" class="back-link">← Back</a>
+    </div>
+</div>
