@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
-namespace SnomiAssignmentReal.Helpers;
+namespace Invexaaa.Helpers;
 
 public static class CookieHelper
 {

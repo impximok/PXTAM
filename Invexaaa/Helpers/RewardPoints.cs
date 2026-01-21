@@ -1,7 +1,7 @@
 ﻿// File: Helpers/CustomerRewardPoints.cs
 using System;
 
-namespace SnomiAssignmentReal.Helpers
+namespace Invexaaa.Helpers
 {
     public static class RewardPoints
     {

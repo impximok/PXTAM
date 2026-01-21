@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace SnomiAssignmentReal.Controllers;
+namespace Invexaaa.Controllers;
 
 public class HomeController : Controller
 {

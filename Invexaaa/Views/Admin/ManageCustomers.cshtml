@@ -1,4 +1,5 @@
-﻿@model SnomiAssignmentReal.Models.ViewModels.ManageCustomersVm
+﻿@*
+@model SnomiAssignmentReal.Models.ViewModels.ManageCustomersVm
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Manage Customers";
@@ -20,7 +21,7 @@
 
     <!-- Filters (GET) -->
 <form method="get" asp-action="ManageCustomers" asp-controller="Admin" class="filter-card mb-3">
-    <input type="hidden" name="page" value="1" /> @* reset to page 1 when filtering *@
+    <input type="hidden" name="page" value="1" /> 
 
     <div class="row g-2 align-items-end">
         <div class="col-md-4">
@@ -279,3 +280,4 @@
     </script>
 }
 
+*@

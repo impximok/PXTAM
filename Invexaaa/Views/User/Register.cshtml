@@ -1,0 +1,58 @@
+﻿@model Invexaaa.Models.Invexa.User
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Create User";
+    ViewBag.HideHeader = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page">
+    <div class="sheet">
+
+        <h2>Create New User</h2>
+        <p class="muted">Admin can create Manager or Staff accounts</p>
+
+        <form asp-action="Register" method="post" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="All" class="val mb16"></div>
+
+            <div class="group">
+                <label class="label">Full Name</label>
+                <input asp-for="UserFullName" class="input" />
+                <span asp-validation-for="UserFullName" class="val"></span>
+
+                <label class="label">Email</label>
+                <input asp-for="UserEmail" class="input" />
+                <span asp-validation-for="UserEmail" class="val"></span>
+
+                <label class="label">Phone</label>
+                <input asp-for="UserPhone" class="input" />
+                <span asp-validation-for="UserPhone" class="val"></span>
+
+                <label class="label">Role</label>
+                <select asp-for="UserRole" class="input">
+                    <option value="Staff">Staff</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Admin">Admin</option>
+                </select>
+
+                <label class="label">Password</label>
+                <input asp-for="UserPasswordHash" type="password" class="input" />
+                <span asp-validation-for="UserPasswordHash" class="val"></span>
+            </div>
+
+            <button type="submit" class="btn solid w100 mt16">Create User</button>
+
+            @if (TempData["Success"] != null)
+            {
+                <p class="muted mt12">@TempData["Success"]</p>
+            }
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
