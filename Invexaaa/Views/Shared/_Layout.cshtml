@@ -82,7 +82,7 @@
     var profileAction = isStaffOrAdmin ? "UpdateProfile" : "Profile";
 
     // slogan
-    var slogan = (ViewBag.Slogan as string) ?? "Sugar · Spice · Everything Nice";
+    var slogan = (ViewBag.Slogan as string) ?? "Inventory, Precisely.";
 }
 
 <!DOCTYPE html>
@@ -90,7 +90,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Snömi Café</title>
+    <title>@ViewData["Title"] - Invexa</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" />
@@ -126,7 +126,7 @@
 
         .snomi-header-inner {
             padding: 10px var(--outer-pad);
-            min-height: 78px;
+            min-height: 64px;
             display: grid;
             grid-template-columns: auto 1fr auto;
             align-items: center;
@@ -142,7 +142,7 @@
         }
 
         .brand-logo {
-            height: 58px;
+            height: 42px; /* smaller, cleaner */
             width: auto;
             filter: grayscale(1) contrast(1.05);
             transition: transform .2s ease;
@@ -155,8 +155,10 @@
         .brand-stack {
             display: flex;
             flex-direction: column;
-            line-height: 1;
+            justify-content: center;
+            line-height: 1.1;
         }
+
 
         .brand-main {
             font-weight: 700;
@@ -164,10 +166,13 @@
         }
 
         .brand-slogan {
-            font-weight: 600;
-            font-size: .9rem;
-            color: #444;
+            font-weight: 500;
+            font-size: .78rem;
+            letter-spacing: .02em;
+            color: #666;
+            margin-top: 2px;
         }
+
 
         .profile-pill {
             display: inline-flex;
@@ -493,9 +498,9 @@
         <header class="snomi-header">
             <div class="snomi-header-inner">
                 <a asp-controller="@homeController" asp-action="@homeAction" class="brand-link" aria-label="Snömi Café Home">
-                    <img src="/images/Logoremovedbg.png" alt="Snomi Logo" class="brand-logo" />
+                    <img src="/images/InvexaLogoCropped.png" alt="Snomi Logo" class="brand-logo" />
                     <span class="brand-stack">
-                        <span class="brand-main">Snömi</span>
+
                         <span class="brand-slogan">@slogan</span>
                     </span>
                 </a>
