@@ -1,10 +1,11 @@
-global using SnomiAssignmentReal.Models;
+global using Invexaaa.Models;
+global using Invexaaa.Models.Invexa;
+using Invexaaa.Helpers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
-using SnomiAssignmentReal.Data;
-using SnomiAssignmentReal.Helpers;    // <-- needed to reference the verifiers
-using SnomiAssignmentReal.Services;
+using Invexaaa.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,22 +13,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // DbContext
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContext<InvexaDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Auth
+
 builder.Services.AddAuthentication("MyCookieAuth")
     .AddCookie("MyCookieAuth", options =>
     {
-        options.Cookie.Name = "SnomiAuthCookie";
-        options.LoginPath = "/Account/Login";
-        options.LogoutPath = "/Account/Logout";          //  add (used by SignOut)
-        options.AccessDeniedPath = "/Account/AccessDenied"; //  add (clean 403 UX)
+        options.Cookie.Name = "InvexaAuthCookie";
+        options.LoginPath = "/User/Login";
+        options.LogoutPath = "/User/Logout";          //  add (used by SignOut)
+      //  options.AccessDeniedPath = "/User/AccessDenied"; //  add (clean 403 UX)
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
         options.SlidingExpiration = true;
     });
 
 builder.Services.AddAuthorization();
+
 
 builder.Services.AddMemoryCache();
 
@@ -67,9 +70,9 @@ app.Use(async (ctx, next) =>
 // Seed
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    DbInitializer.Seed(context);
+    var context = scope.ServiceProvider.GetRequiredService<InvexaDbContext>();
+    context.Database.Migrate();
+    InvexaDbSeeder.Seed(context);
 }
 
 app.Run();

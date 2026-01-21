@@ -2,7 +2,7 @@
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
 
-namespace SnomiAssignmentReal.Helpers
+namespace Invexaaa.Helpers
 {
     public static class EmailHelper
     {

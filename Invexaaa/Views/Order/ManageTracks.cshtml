@@ -1,4 +1,6 @@
-﻿@using SnomiAssignmentReal.Models
+﻿
+@*
+@using SnomiAssignmentReal.Models
 @model List<CustomerOrder>
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
@@ -82,7 +84,7 @@
                                     <div class="meta-row">
                                         <span class="@PaymentPillClass(o.PaymentMethodName)">@((o.PaymentMethodName ?? "N/A"))</span>
                                         <span class="muted">Items: @items</span>
-                                        @* Optional little QR hint *@
+                                        
                                         @if ((o.PaymentMethodName ?? "").Equals("QR", StringComparison.OrdinalIgnoreCase))
                                         {
                                             <span class="qr-chip" title="QR payment">QR</span>
@@ -242,3 +244,4 @@
         min-width: 0
     }
 </style>
+*@

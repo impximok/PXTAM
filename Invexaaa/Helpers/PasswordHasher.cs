@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Mail;
 
-namespace SnomiAssignmentReal.Helpers;
+namespace Invexaaa.Helpers;
 
 public static class PasswordHasher
 {

@@ -1,0 +1,96 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Sign In";
+    ViewBag.HideHeader = true;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var isPost = string.Equals(Context.Request.Method, "POST", StringComparison.OrdinalIgnoreCase);
+    var hasModelErrors = !ViewData.ModelState.IsValid;
+}
+
+<div class="auth-wrap">
+    <div class="auth-card" role="region" aria-labelledby="authTitle">
+        <div class="auth-head">
+            <h1 id="authTitle">Invexa Login</h1>
+            <p>Admin, Manager & Staff only</p>
+        </div>
+
+        @if (isPost && hasModelErrors)
+        {
+            <div class="auth-alert" role="alert">
+                <div asp-validation-summary="ModelOnly"></div>
+            </div>
+        }
+
+        <form asp-action="Login" method="post" class="auth-form" novalidate>
+            @Html.AntiForgeryToken()
+
+            <!-- Email -->
+            <div class="field">
+                <label>Email address</label>
+                <input name="email"
+                       type="email"
+                       class="input"
+                       placeholder="staff@invexa.com"
+                       required />
+            </div>
+
+            <!-- Password -->
+            <div class="field">
+                <label>Password</label>
+                <div class="input-with-toggle">
+                    <input name="password"
+                           id="Password"
+                           type="password"
+                           class="input"
+                           placeholder="••••••••"
+                           required />
+                    <button type="button"
+                            id="togglePassword"
+                            class="toggle"
+                            aria-label="Show/Hide password"
+                            tabindex="-1">
+                        👁
+                    </button>
+                </div>
+            </div>
+
+            <!-- hCaptcha -->
+            <div class="captcha-wrap">
+                <div class="h-captcha" data-sitekey="@ViewBag.HCaptchaSiteKey"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Log In</button>
+        </form>
+
+        <div class="back">
+            <a href="~/" class="link">← Back to Home</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+
+    <script>
+        // Password show / hide
+        const pwd = document.getElementById('Password');
+        const btn = document.getElementById('togglePassword');
+
+        btn?.addEventListener('click', () => {
+            const isPwd = pwd.type === 'password';
+            pwd.type = isPwd ? 'text' : 'password';
+            btn.textContent = isPwd ? '🙈' : '👁';
+        });
+
+        // Prevent double submit
+        const form = document.querySelector('form.auth-form');
+        form?.addEventListener('submit', () => {
+            form.querySelectorAll('button[type="submit"]').forEach(b => b.disabled = true);
+            setTimeout(() => {
+                form.querySelectorAll('button[type="submit"]').forEach(b => b.disabled = false);
+            }, 3000);
+        });
+    </script>
+}

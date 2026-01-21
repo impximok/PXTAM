@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace SnomiAssignmentReal.Helpers
+namespace Invexaaa.Helpers
 {
     public class HCaptchaVerifier
     {

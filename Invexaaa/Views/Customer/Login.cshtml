@@ -1,4 +1,5 @@
-﻿@model SnomiAssignmentReal.Models.ViewModels.LoginVm
+﻿@*
+@model SnomiAssignmentReal.Models.ViewModels.LoginVm
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Sign In";
@@ -18,7 +19,7 @@
             <p>Authorized personnel only. Please log in below.</p>
         </div>
 
-        @* Top error summary: show only for model-level or TempData errors *@
+        
         @if (isPost && (hasModelErrors || TempData["Error"] != null))
         {
             <div class="auth-alert" role="alert" aria-live="polite">
@@ -51,7 +52,7 @@
                 <span asp-validation-for="Password" class="field-error" role="alert"></span>
             </div>
 
-            @* hCaptcha *@
+            
             <div class="captcha-wrap" aria-live="polite">
                 <div class="h-captcha" data-sitekey="@ViewBag.HCaptchaSiteKey"></div>
             </div>
@@ -75,7 +76,7 @@
             <p class="register-text">
                 Don’t have an account?
                 <a asp-controller="Customer" asp-action="Register" class="link-register">Register here</a>
-                @* If your route is Account/Register, change asp-controller/action above *@
+                
             </p>
         </div>
         <!-- /Register CTA -->
@@ -362,3 +363,4 @@
         text-align: center;
     }
 </style>
+*@

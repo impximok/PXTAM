@@ -1,4 +1,4 @@
-﻿namespace SnomiAssignmentReal.Helpers
+﻿namespace Invexaaa.Helpers
 {
     public static class FunctionNames
     {

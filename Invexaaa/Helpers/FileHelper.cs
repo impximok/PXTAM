@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace SnomiAssignmentReal.Helpers;
+namespace Invexaaa.Helpers;
 
 public static class FileHelper
 {

@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 
-namespace SnomiAssignmentReal.Helpers
+namespace Invexaaa.Helpers
 {
     public static class RolePreview
     {
