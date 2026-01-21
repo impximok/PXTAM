@@ -1,0 +1,797 @@
+﻿@model SnomiAssignmentReal.Models.ViewModels.UpdateProfileVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Update Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string filePath = Model.ProfileImageUrl;
+    string urlPath = filePath?.StartsWith("wwwroot", StringComparison.OrdinalIgnoreCase) == true
+        ? "~/" + filePath.Substring("wwwroot/".Length)
+        : (filePath ?? "~/images/default-profile.png");
+
+    string cacheBust = DateTime.UtcNow.Ticks.ToString();
+}
+
+<div class="profile-shell">
+    <div class="profile-card">
+        <header class="profile-header">
+            <h1 class="profile-title">Update Profile</h1>
+            <p class="profile-subtitle">Keep your details up to date.</p>
+            <div class="profile-divider"></div>
+        </header>
+
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-success text-center monocrome-alert">@TempData["Info"]</div>
+        }
+
+        <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" class="profile-form" novalidate>
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
+            <!-- Avatar + Uploader -->
+            <div class="avatar-block">
+                <div class="avatar-wrap">
+                    <!-- CHANGED: avatar-img -> ap-avatar -->
+                    <img id="avatarPreview" src="@Url.Content(urlPath)?v=@cacheBust" alt="Profile picture" class="ap-avatar" width="128" height="128" />
+                </div>
+
+                <div class="avatar-meta">
+                    <label class="field-label">Profile Image</label>
+
+                    <input type="file" id="fileInput" name="ProfileImage" accept="image/*" class="file-input-hidden" />
+                    <input type="hidden" id="capturedData" name="CapturedImageDataUrl" />
+
+                    <!-- Minimal, monochrome dropzone -->
+                    <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Drag and drop an image or use Browse">
+                        <div class="dz-main">
+                            <div class="dz-icon" aria-hidden="true">⬆︎</div>
+                            <div class="dz-text">
+                                <div class="dz-title">Drag & drop to upload</div>
+                                <div class="dz-sub">PNG/JPG/GIF · Max 2MB</div>
+                            </div>
+                            <span class="dz-chip" id="dzState">Ready</span>
+                        </div>
+                        <div class="dz-ghost" id="dzGhost">Drop to upload</div>
+                    </div>
+
+                    <div class="file-actions">
+                        <button type="button" class="btn-ghost" id="browseBtn">Browse</button>
+                        <button type="button" class="btn-ghost" id="cameraButton" aria-haspopup="dialog">
+                            <span aria-hidden="true" class="inline-ico">📷︎</span><span class="sr-only">Take Photo</span>
+                        </button>
+                        <span id="fileName" class="file-name">No file chosen</span>
+                    </div>
+
+                    <span asp-validation-for="ProfileImageUrl" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="field">
+                <label asp-for="Email" class="field-label">Email</label>
+                <input asp-for="Email" class="text-input" readonly />
+            </div>
+
+            <!-- Display Name -->
+            <div class="field">
+                <label asp-for="Name" class="field-label">Display Name</label>
+                <input asp-for="Name" class="text-input" />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn-primary">Save Changes</button>
+                <a asp-controller="Admin" asp-action="Dashboard" class="btn-ghost">Back to Dashboard</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Camera + Editor Modal (self-contained styles; won’t touch your page design) -->
+<div class="camera-sheet" id="cameraSheet" aria-hidden="true" role="dialog" aria-labelledby="cameraTitle" aria-modal="true">
+    <div class="camera-sheet__panel" role="document">
+        <div class="camera-sheet__header">
+            <h2 id="cameraTitle">Edit Photo</h2>
+            <button type="button" class="icon-btn" id="closeCamera" aria-label="Close">×</button>
+        </div>
+
+        <div class="camera-sheet__body">
+            <!-- Live view -->
+            <section class="cam-section" id="liveSection">
+                <header class="cam-section__title">Live view</header>
+                <div class="camera-frame">
+                    <div class="cam-loader" id="camLoader"></div>
+                    <video id="camVideo" playsinline muted autoplay></video>
+                    <div class="square-mask" aria-hidden="true"></div>
+                </div>
+                <div class="camera-actions" id="cameraActions">
+                    <button type="button" class="btn-primary" id="captureBtn">Capture</button>
+                </div>
+            </section>
+
+            <!-- Editor -->
+            <section class="cam-section" id="editorSection" hidden>
+                <header class="cam-section__title">Crop & Adjust</header>
+
+                <div id="apCropBox" style="position:relative;width:min(420px,90vw);aspect-ratio:1/1;border:1px solid #eee;border-radius:12px;overflow:hidden;background:#000;margin:0 auto;">
+                    <img id="apEditImg" alt="Editor" style="position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;">
+                </div>
+
+                <div class="ap-toolbar">
+                    <!-- Row 1: Zoom -->
+                    <div class="ap-group">
+                        <label for="apZoom" class="ap-label">Zoom</label>
+                        <input id="apZoom" type="range" min="1" max="3" step="0.01" value="1" class="ap-range">
+                    </div>
+
+                    <!-- Row 2: Rotate / Reset -->
+                    <div class="ap-group">
+                        <button type="button" class="btn-ghost btn-sm" id="apRotateL">⟲ Rotate Left</button>
+                        <button type="button" class="btn-ghost btn-sm" id="apRotateR">⟳ Rotate Right</button>
+                        <button type="button" class="btn-ghost btn-sm" id="apReset">Reset</button>
+                    </div>
+
+                    <!-- Row 3: Back / Use -->
+                    <div class="ap-group">
+                        <button type="button" class="btn-ghost btn-sm" id="apBack">Back</button>
+                        <button type="button" class="btn-primary btn-sm" id="usePhotoBtn">Use Photo</button>
+                    </div>
+                </div>
+
+                <canvas id="apCanvas" width="512" height="512" hidden></canvas>
+            </section>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+      const $ = id => document.getElementById(id);
+
+      // ----- Your original browse / dnd -----
+      const input = $('fileInput'), browseBtn = $('browseBtn');
+      const dz = $('dropzone'), dzGhost = $('dzGhost'), dzState = $('dzState');
+      const fileName = $('fileName'), avatar = $('avatarPreview'), capturedData = $('capturedData');
+
+      let fileDialogOpen = false;
+      browseBtn?.addEventListener('click', () => { if (fileDialogOpen) return; fileDialogOpen = true; input?.click(); setTimeout(()=>fileDialogOpen=false, 400); });
+      input?.addEventListener('change', e => { const f=e.target.files?.[0]; if(!f){ fileName.textContent='No file chosen'; return; } assignFile(f); });
+
+      function setDrag(on){ dz.classList.toggle('is-drag', !!on); dzGhost.style.opacity = on ? '1' : '0'; }
+      ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev, e=>{e.preventDefault();e.stopPropagation();setDrag(true);dzState.textContent='Drop to upload'}));
+      ['dragleave','dragend','drop'].forEach(ev=>dz.addEventListener(ev, e=>{e.preventDefault();e.stopPropagation();setDrag(false);dzState.textContent='Ready'}));
+      dz.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; if(f) assignFile(f); });
+      dz.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); browseBtn?.click(); }});
+
+          function assignFile(file){
+      if (!file.type?.startsWith('image/')) {
+        fileName.textContent = 'Not an image';
+        return;
+      }
+
+      // Show the editor for the selected/dropped image
+      const fr = new FileReader();
+      fr.onload = ev => {
+        // start the cropper with the file's data URL
+        startEditor(ev.target.result);
+
+        // open modal in editor mode
+        liveSection.hidden = true;
+        editorSection.hidden = false;
+        sheet.setAttribute('aria-hidden', 'false');
+        document.documentElement.style.overflow = 'hidden';
+
+        // we want the CROPPED image to win on submit, so clear file input later
+        // (the "Use Photo" handler already clears input.value and sets capturedData)
+        fileName.textContent = file.name;
+      };
+      fr.readAsDataURL(file);
+
+      // reflect UI state
+      dzState.textContent = 'Ready';
+    }
+
+
+      // ----- Camera + editor (self-contained; styles don’t touch header) -----
+      const sheet = $('cameraSheet'), closeCam = $('closeCamera'), cameraBtn = $('cameraButton');
+      const video = $('camVideo'), camLoader = $('camLoader'), captureBtn = $('captureBtn'), cameraActions = $('cameraActions');
+
+      const editorSection = $('editorSection'), liveSection = $('liveSection');
+      const apCropBox = $('apCropBox'), apEditImg = $('apEditImg'), apZoom = $('apZoom');
+      const apRotateL = $('apRotateL'), apRotateR = $('apRotateR'), apReset = $('apReset'), apBack = $('apBack');
+      const apCanvas = $('apCanvas'), usePhotoBtn = $('usePhotoBtn'); const g = apCanvas.getContext('2d');
+
+      let stream=null, baseDataUrl=null, imgW=0,imgH=0,zoom=1,minZoom=1,maxZoom=3,offsetX=0,offsetY=0,dragging=false,startX=0,startY=0;
+
+      function showSheet(){ sheet.setAttribute('aria-hidden','false'); document.documentElement.style.overflow='hidden'; }
+      function hideSheet(){ sheet.setAttribute('aria-hidden','true'); document.documentElement.style.overflow=''; stopCamera(); }
+      function stopCamera(){ try{ stream?.getTracks().forEach(t=>t.stop()); }catch{} stream=null; try{ video.pause(); video.srcObject=null; video.removeAttribute('src'); video.load(); }catch{} }
+
+      cameraBtn?.addEventListener('click', async ()=>{
+        // secure-context fallback
+        const dev = ['localhost','127.0.0.1','::1'];
+        if (!window.isSecureContext && !dev.includes(location.hostname)) { browseBtn?.click(); return; }
+
+        editorSection.hidden = true; liveSection.hidden = false;
+        showSheet();
+        camLoader.style.display='grid';
+        try{
+          stream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:{ideal:'user'},width:{ideal:720},height:{ideal:720},aspectRatio:{ideal:1}}, audio:false });
+          video.srcObject = stream; await video.play();
+        }catch{ hideSheet(); browseBtn?.click(); }
+        finally{ camLoader.style.display='none'; }
+      });
+
+      closeCam?.addEventListener('click', hideSheet);
+      sheet?.addEventListener('click', e => { if(e.target===sheet) hideSheet(); });
+      document.addEventListener('keydown', e => { if(e.key==='Escape' && sheet?.getAttribute('aria-hidden')==='false') hideSheet(); });
+
+      captureBtn?.addEventListener('click', ()=>{
+        if(!video.videoWidth || !video.videoHeight) return;
+        const vw=video.videoWidth, vh=video.videoHeight;
+        const c=document.createElement('canvas'); c.width=vw; c.height=vh;
+        c.getContext('2d').drawImage(video,0,0,vw,vh);
+        baseDataUrl=c.toDataURL('image/jpeg',0.95);
+        stopCamera();
+
+        // start editor with this frame
+        startEditor(baseDataUrl);
+        liveSection.hidden = true;
+        editorSection.hidden = false;
+      });
+
+      function startEditor(dataUrl){
+        baseDataUrl=dataUrl;
+        apEditImg.src=''; requestAnimationFrame(()=>{ apEditImg.src=dataUrl; });
+        apEditImg.onload=()=>{ imgW=apEditImg.naturalWidth; imgH=apEditImg.naturalHeight; initLayout(); };
+      }
+
+      function initLayout(){
+        const boxSize = apCropBox.getBoundingClientRect().width || 0;
+        const zX = boxSize / imgW, zY = boxSize / imgH;
+        minZoom = Math.max(zX, zY); zoom = Math.max(minZoom, 1);
+        offsetX = (boxSize - imgW*zoom)/2; offsetY = (boxSize - imgH*zoom)/2;
+
+        apZoom.min = String(Math.min(minZoom, maxZoom).toFixed(2));
+        apZoom.max = String(maxZoom);
+        apZoom.value = String(Math.min(Math.max(zoom, minZoom), maxZoom).toFixed(2));
+        render();
+
+        const startDrag=(x,y)=>{ dragging=true; startX=x-offsetX; startY=y-offsetY; };
+        const moveDrag =(x,y)=>{ if(!dragging)return; offsetX=x-startX; offsetY=y-startY; render(); };
+        const endDrag  =()=>{ dragging=false; };
+        apCropBox.onmousedown = e=>{ e.preventDefault(); startDrag(e.clientX,e.clientY); };
+        window.onmousemove   = e=>moveDrag(e.clientX,e.clientY);
+        window.onmouseup     = endDrag;
+        apCropBox.ontouchstart = e=>{ const t=e.touches[0]; startDrag(t.clientX,t.clientY); };
+        apCropBox.ontouchmove  = e=>{ const t=e.touches[0]; moveDrag(t.clientX,t.clientY); };
+        apCropBox.ontouchend   = endDrag;
+        apCropBox.onwheel = (e)=>{ e.preventDefault(); const d=-Math.sign(e.deltaY)*0.08; const prev=zoom;
+          zoom=Math.max(minZoom,Math.min(maxZoom,zoom+d));
+          const r=apCropBox.getBoundingClientRect(), cx=e.clientX-r.left, cy=e.clientY-r.top;
+          offsetX = cx - ((cx - offsetX) * (zoom / prev));
+          offsetY = cy - ((cy - offsetY) * (zoom / prev));
+          apZoom.value=String(zoom.toFixed(2)); render();
+        };
+        apZoom.oninput=()=>{ const prev=zoom; zoom=Math.max(minZoom,Math.min(maxZoom,parseFloat(apZoom.value)||minZoom));
+          const s=apCropBox.getBoundingClientRect().width/2; offsetX = s - ((s - offsetX) * (zoom / prev)); offsetY = s - ((s - offsetY) * (zoom / prev)); render();
+        };
+      }
+
+      function clamp(box, w, h){
+        if(w<=box){ offsetX=(box-w)/2; } else { const min = box-w; offsetX = Math.min(0, Math.max(offsetX, min)); }
+        if(h<=box){ offsetY=(box-h)/2; } else { const min = box-h; offsetY = Math.min(0, Math.max(offsetY, min)); }
+      }
+
+      function render(){
+        const box = apCropBox.getBoundingClientRect().width || 0;
+        const drawW = imgW*zoom, drawH = imgH*zoom;
+        clamp(box, drawW, drawH);
+        apEditImg.style.width = drawW+'px';
+        apEditImg.style.height = drawH+'px';
+        apEditImg.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      }
+
+      async function rotateDataUrl(src, deg){
+        return new Promise((resolve,reject)=>{
+          const img=new Image();
+          img.onload=()=>{
+            const r=(deg%360+360)%360, swap=(r===90||r===270);
+            const w=img.naturalWidth,h=img.naturalHeight,cw=swap?h:w,ch=swap?w:h;
+            const c=document.createElement('canvas'); c.width=cw; c.height=ch; const g=c.getContext('2d');
+            g.translate(cw/2,ch/2); g.rotate(r*Math.PI/180); g.drawImage(img,-w/2,-h/2);
+            resolve(c.toDataURL('image/jpeg',0.95));
+          };
+          img.onerror=reject; img.src=src;
+        });
+      }
+
+      $('apRotateL')?.addEventListener('click', async ()=>{ baseDataUrl = await rotateDataUrl(baseDataUrl,-90); startEditor(baseDataUrl); });
+      $('apRotateR')?.addEventListener('click', async ()=>{ baseDataUrl = await rotateDataUrl(baseDataUrl, 90); startEditor(baseDataUrl); });
+      $('apReset')?.addEventListener('click', ()=> startEditor(baseDataUrl));
+      $('apBack')?.addEventListener('click', ()=>{ editorSection.hidden=true; liveSection.hidden=false; });
+
+      usePhotoBtn?.addEventListener('click', ()=>{
+        const box = apCropBox.getBoundingClientRect().width;
+        const out=512; apCanvas.width=out; apCanvas.height=out;
+        const s=zoom;
+        const srcX=Math.max(0,(-offsetX)/s), srcY=Math.max(0,(-offsetY)/s);
+        const srcW=Math.min(imgW-srcX, box/s), srcH=Math.min(imgH-srcY, box/s);
+        g.fillStyle='#fff'; g.fillRect(0,0,out,out); g.imageSmoothingQuality='high';
+        g.drawImage(apEditImg, srcX,srcY,srcW,srcH, 0,0,out,out);
+        const dataUrl = apCanvas.toDataURL('image/jpeg',0.95);
+
+        capturedData.value = dataUrl;
+        if (input) input.value='';
+        fileName.textContent='Cropped photo';
+        avatar.src = dataUrl;
+        hideSheet();
+      });
+
+    })();
+</script>
+
+<style>
+    :root {
+        --panel: #fff;
+        --ink: #0a0a0a;
+        --muted: #6b6b6b;
+        --line: #e6e6e6;
+        --shadow: 0 8px 24px rgba(0,0,0,.06);
+        --radius: 20px;
+        --radius-sm: 12px
+    }
+
+    /* layout */
+    .profile-shell {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: max(4vh,24px) 16px
+    }
+
+    .profile-card {
+        width: min(860px,100%);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: clamp(20px,3vw,36px)
+    }
+
+    .profile-title {
+        font-weight: 650;
+        letter-spacing: -.02em;
+        font-size: clamp(22px,2.4vw,28px);
+        margin: 0 0 6px
+    }
+
+    .profile-subtitle {
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: .95rem
+    }
+
+    .profile-divider {
+        height: 1px;
+        background: var(--line);
+        border-radius: 1px
+    }
+
+    .profile-form {
+        margin-top: 20px
+    }
+
+    /* avatar & fields */
+    .avatar-block {
+        display: grid;
+        grid-template-columns: 128px 1fr;
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 18px
+    }
+    @@media (max-width:640px) {
+        .avatar-block
+
+    {
+        grid-template-columns: 1fr;
+        gap: 12px
+    }
+
+    }
+
+    /* CHANGED: only this class name to avoid header clashes */
+    .ap-avatar {
+        display: block;
+        width: 128px;
+        height: 128px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        box-shadow: inset 0 2px 8px rgba(0,0,0,.05);
+        background: #fff
+    }
+
+    .field {
+        margin-bottom: 16px
+    }
+
+    .field-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #111;
+        letter-spacing: -.01em
+    }
+
+    .text-input {
+        width: 100%;
+        background: #fff;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px
+    }
+
+        .text-input[readonly] {
+            color: #3a3a3a;
+            background: #fafafa
+        }
+
+    .text-danger {
+        color: #b00000 !important
+    }
+
+    /* dropzone (your original look) */
+    .dropzone {
+        position: relative;
+        margin-top: 6px;
+        border: 1px solid #dcdcdc;
+        border-radius: 18px;
+        background: linear-gradient(180deg,#fff,#fafafa);
+        box-shadow: 0 1px 0 rgba(255,255,255,.9) inset,0 1px 3px rgba(0,0,0,.04) inset;
+        transition: border-color .12s,box-shadow .12s;
+        outline: none
+    }
+
+        .dropzone.is-drag {
+            border-color: #111;
+            box-shadow: 0 0 0 2px #111 inset,0 1px 3px rgba(0,0,0,.04) inset
+        }
+
+    .dz-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px
+    }
+
+    .dz-icon {
+        font-size: 18px;
+        line-height: 1
+    }
+
+    .dz-text {
+        display: grid;
+        gap: 2px
+    }
+
+    .dz-title {
+        font-weight: 600;
+        letter-spacing: -.01em
+    }
+
+    .dz-sub {
+        color: var(--muted);
+        font-size: .9rem
+    }
+
+    .dz-chip {
+        margin-left: auto;
+        border: 1px solid #d6d6d6;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: .8rem;
+        color: #333;
+        background: #f7f7f7
+    }
+
+    .dz-ghost {
+        position: absolute;
+        inset: 0;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: rgba(0,0,0,.04);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .12s
+    }
+
+    .dropzone:focus-visible {
+        box-shadow: 0 0 0 3px rgba(0,0,0,.08)
+    }
+
+    /* file input */
+    .file-input-hidden {
+        position: absolute;
+        left: -9999px
+    }
+
+    .file-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 10px;
+        flex-wrap: wrap
+    }
+
+    .inline-ico {
+        font-size: 16px;
+        line-height: 1;
+        margin-right: 6px
+    }
+
+    .file-name {
+        font-size: .9rem;
+        color: var(--muted);
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap
+    }
+
+    /* buttons */
+    .btn-primary, .btn-ghost {
+        appearance: none;
+        border-radius: 999px;
+        padding: 12px 18px;
+        font-weight: 600;
+        border: 1px solid #111;
+        transition: transform .06s,box-shadow .15s,background-color .15s,color .15s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1
+    }
+
+    .btn-primary {
+        background: #111;
+        color: #fff;
+        border-color: #111;
+        box-shadow: 0 8px 18px rgba(0,0,0,.12)
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 22px rgba(0,0,0,.16)
+        }
+
+    .btn-ghost {
+        background: transparent;
+        color: #111;
+        border-color: #cfcfcf
+    }
+
+        .btn-ghost:hover {
+            border-color: #9a9a9a
+        }
+
+    .icon-btn {
+        background: transparent;
+        border: 1px solid #cfcfcf;
+        color: #111;
+        border-radius: 999px;
+        width: 34px;
+        height: 34px;
+        font-size: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center
+    }
+
+    .monocrome-alert {
+        background: #f7f7f7;
+        border: 1px solid var(--line);
+        color: #111;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-top: 12px
+    }
+
+    /* camera sheet (your original container) */
+    .camera-sheet {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.5);
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .18s;
+        z-index: 2000
+    }
+
+        .camera-sheet[aria-hidden="false"] {
+            opacity: 1;
+            pointer-events: auto
+        }
+
+    .camera-sheet__panel {
+        width: min(560px,96vw);
+        max-height: min(92vh,760px);
+        background: #fff;
+        color: #111;
+        border: 1px solid #e8e8e8;
+        border-radius: 18px;
+        box-shadow: 0 24px 60px rgba(0,0,0,.18);
+        display: flex;
+        flex-direction: column;
+        overflow: auto
+    }
+
+    .camera-sheet__header {
+        position: sticky;
+        top: 0;
+        background: #fff;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-bottom: 1px solid #f0f0f0
+    }
+
+        .camera-sheet__header h2 {
+            font-size: 18px;
+            font-weight: 650;
+            letter-spacing: -.01em;
+            margin: 0
+        }
+
+    .camera-sheet__body {
+        display: grid;
+        gap: 14px;
+        padding: 12px 16px
+    }
+
+    .cam-section {
+        display: grid;
+        gap: 10px
+    }
+
+    .cam-section__title {
+        font-size: .9rem;
+        color: #333;
+        font-weight: 600;
+        letter-spacing: -.01em
+    }
+
+    .camera-frame {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #eee;
+        background: #000;
+        height: clamp(260px,56vh,440px);
+        aspect-ratio: 1/1
+    }
+
+        .camera-frame video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block
+        }
+
+    .cam-loader {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(120deg,rgba(255,255,255,.06),rgba(255,255,255,0),rgba(255,255,255,.06));
+        animation: shimmer 1.2s infinite linear
+    }
+    @@keyframes shimmer {
+        to
+
+    {
+        background-position: 200% 0
+    }
+
+    }
+
+    .square-mask {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        box-shadow: 0 0 0 9999px rgba(0,0,0,.35),0 0 0 2px rgba(255,255,255,.9);
+        border-radius: 10px;
+        margin: 6%
+    }
+
+    .camera-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 4px;
+        flex-wrap: wrap
+    }
+
+    .capture-preview {
+        display: grid;
+        gap: 10px;
+        justify-items: center
+    }
+
+    /* --- Editor toolbar layout (clean rows) --- */
+    .ap-toolbar {
+        display: grid;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .ap-group {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .ap-label {
+        color: #555;
+        font-size: .9rem;
+        font-weight: 600;
+        letter-spacing: -.01em;
+    }
+
+    .btn-sm {
+        padding: 8px 14px;
+        font-size: .95rem;
+        border-radius: 999px;
+    }
+
+    /* wider, consistent slider */
+    .ap-range {
+        width: min(360px, 80vw);
+        height: 6px;
+    }
+
+        /* keep the slider visuals consistent with your theme */
+        .ap-range::-webkit-slider-runnable-track {
+            height: 4px;
+            background: var(--line);
+            border-radius: 999px;
+        }
+
+        .ap-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #111;
+            margin-top: -7px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.2);
+        }
+
+        .ap-range::-moz-range-track {
+            height: 4px;
+            background: var(--line);
+            border-radius: 999px;
+        }
+
+        .ap-range::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 0;
+            background: #111;
+            box-shadow: 0 1px 3px rgba(0,0,0,.2);
+        }
+
+</style>

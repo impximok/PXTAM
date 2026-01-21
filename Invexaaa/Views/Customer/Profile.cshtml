@@ -1,0 +1,837 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model SnomiAssignmentReal.Models.ViewModels.UpdateProfileCusVm
+@{
+    ViewData["Title"] = "Your Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var rewardPoints = ViewBag.RewardPoints is int p ? p : 0;
+    bool isStaff = User.IsInRole("Admin") || User.IsInRole("Staff");
+}
+
+<style>
+    /* ---------- minimal black & white palette ---------- */
+    :root {
+        --ink: #111; /* primary text */
+        --ink-2: #1d1d1f; /* headings */
+        --muted: #6e6e73; /* secondary text */
+        --line: #e5e5ea; /* hairline borders */
+        --bg: #fff; /* surfaces */
+        --bg-alt: #f5f5f7; /* subtle panels */
+        --shadow: 0 12px 34px rgba(0,0,0,.08);
+    }
+
+    /* ---------- page shell ---------- */
+    .wrap {
+        max-width: 760px;
+        margin: 2.25rem auto;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 24px;
+    }
+
+    .title {
+        color: var(--ink-2);
+        font-weight: 720;
+        letter-spacing: -.01em;
+        margin: 0 0 .4rem;
+    }
+
+    .sub {
+        color: var(--muted);
+        margin: 0 0 1.2rem;
+    }
+
+    .profile-avatar {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: var(--bg-alt);
+        border: 1px solid var(--line);
+    }
+
+    /* ---------- drag & drop ---------- */
+    .dropzone {
+        margin-top: .5rem;
+        border-radius: 18px;
+        padding: 16px;
+        background: var(--bg-alt);
+        border: 1px dashed var(--line);
+        transition: border-color .18s, box-shadow .18s, background .18s;
+        cursor: pointer;
+    }
+
+        .dropzone:hover {
+            border-color: var(--ink);
+        }
+
+        .dropzone.is-drag {
+            border-color: var(--ink);
+            box-shadow: inset 0 10px 28px rgba(0,0,0,.05);
+        }
+
+        .dropzone .inner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+    /* black tile + white arrow */
+    .dz-ic {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--ink);
+        color: #fff;
+        font-weight: 700;
+        box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    }
+
+    .dropzone:hover .dz-ic,
+    .dropzone.is-drag .dz-ic {
+        background: #000;
+        color: #fff;
+    }
+
+    .dz-text {
+        flex: 1;
+        color: var(--ink);
+    }
+
+        .dz-text strong {
+            font-weight: 700;
+        }
+
+    .dz-hint {
+        color: var(--muted);
+        font-size: .9rem;
+    }
+
+    .dz-browse {
+        background: var(--ink);
+        color: #fff;
+        border: 1px solid var(--ink);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-weight: 700;
+        transition: background .18s, color .18s, border-color .18s;
+    }
+
+        .dz-browse:hover {
+            background: #000;
+            border-color: #000;
+        }
+
+    /* ---------- buttons (keep your classes; just restyle) ---------- */
+    .btn-pill {
+        border-radius: 999px;
+    }
+
+    .btn {
+        transition: background .18s, color .18s, border-color .18s, box-shadow .18s;
+    }
+
+    .btn-dark {
+        background: var(--ink);
+        color: #fff;
+        border: 1px solid var(--ink);
+    }
+
+        .btn-dark:hover {
+            background: #000;
+            border-color: #000;
+        }
+
+    .btn-outline-dark {
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid var(--line);
+    }
+
+        .btn-outline-dark:hover {
+            background: var(--ink);
+            color: #fff;
+            border-color: var(--ink);
+        }
+
+    /* ---------- modal ---------- */
+    html.no-scroll, body.no-scroll {
+        overflow: hidden !important;
+    }
+
+    .cam-sheet {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        padding: 16px;
+        background: rgba(0,0,0,.35);
+        opacity: 0;
+        pointer-events: auto;
+        transition: opacity .18s ease;
+        z-index: 99999;
+    }
+
+        .cam-sheet[aria-hidden="true"] {
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+    .cam-panel {
+        width: min(560px,96vw);
+        max-height: min(92vh,820px);
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+        padding: 16px;
+        position: relative;
+    }
+
+    .cam-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+        .cam-head h2 {
+            font-size: 18px;
+            font-weight: 650;
+            letter-spacing: -.01em;
+            margin: 0;
+            color: var(--ink-2);
+        }
+
+    .icon-btn {
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        width: 34px;
+        height: 34px;
+        font-size: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .icon-btn:hover {
+            background: var(--bg-alt);
+        }
+
+    .cam-body {
+        display: grid;
+        gap: 12px;
+        grid-template-rows: auto auto auto auto;
+    }
+
+    .cam-frame {
+        position: relative;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: #000;
+        height: clamp(260px,56vh,460px);
+        aspect-ratio: 1/1;
+    }
+
+        .cam-frame video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    /* ---------- editor box ---------- */
+    #editorWrap[hidden] {
+        display: none !important;
+    }
+
+    #cropBox {
+        position: relative;
+        width: min(420px,90vw);
+        aspect-ratio: 1/1;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        touch-action: none;
+        background: #000;
+        margin: 0 auto;
+    }
+
+        #cropBox img {
+            user-select: none;
+            -webkit-user-drag: none;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform-origin: 0 0;
+            will-change: transform;
+        }
+
+    /* ---------- editor controls spacing ---------- */
+    .toolbar {
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+        .toolbar .btn {
+            min-width: 110px;
+        }
+
+    .range-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    #zoomRange {
+        width: 260px;
+        height: 6px;
+    }
+
+    /* compact buttons in modal */
+    .cam-panel .btn.btn-pill {
+        padding: 8px 14px;
+        font-size: .95rem;
+    }
+
+    /* extra vertical space between rows */
+    #editorWrap .range-wrap {
+        margin: 12px auto 6px;
+    }
+
+    #editorWrap .toolbar + .toolbar {
+        margin-top: 14px;
+    }
+
+    /* ---------- slider styling (subtle) ---------- */
+    input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+    }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 4px;
+            background: var(--line);
+            border-radius: 999px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--ink);
+            margin-top: -7px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.2);
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 4px;
+            background: var(--line);
+            border-radius: 999px;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 0;
+            background: var(--ink);
+            box-shadow: 0 1px 3px rgba(0,0,0,.2);
+        }
+</style>
+
+
+<div class="wrap">
+    <h2 class="title">Your profile</h2>
+    <p class="sub">Update your details. ✦</p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <form asp-action="Profile" asp-controller="Customer" method="post" enctype="multipart/form-data" novalidate>
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <img id="avatarPreview" class="profile-avatar" src="@(Model.CurrentPhotoUrl ?? "/images/default-profile.png")" alt="Profile photo" />
+            <div class="flex-grow-1">
+                <label asp-for="ProfileImage" class="form-label mb-1">Profile photo</label>
+
+                <!-- real file input -->
+                <input asp-for="ProfileImage" id="fileInput" type="file" class="visually-hidden" accept="image/*" style="position:absolute;left:-9999px;" />
+                <input type="hidden" asp-for="CapturedImageData" id="capturedData" />
+
+                <!-- drag & drop -->
+                <div id="dropzone" class="dropzone" tabindex="0" aria-label="Drag and drop an image, or browse">
+                    <div class="inner">
+                        <div class="dz-ic" aria-hidden="true">⇧</div>
+                        <div class="dz-text">
+                            <div><strong>Drag & drop</strong> a photo here</div>
+                            <div class="dz-hint">JPG, PNG, GIF or WEBP · up to 2MB</div>
+                        </div>
+                        <button type="button" id="browseBtn" class="dz-browse btn-pill">Browse</button>
+                    </div>
+                </div>
+
+                <div class="mt-2 d-flex align-items-center gap-2">
+                    <button type="button" id="openCamera" class="btn btn-outline-dark btn-pill">Take Photo</button>
+                    <span id="fileName" class="text-muted small">No file chosen</span>
+                </div>
+                <span asp-validation-for="ProfileImage" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="UserName" class="form-label"></label>
+                <input asp-for="UserName" class="form-control" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-dark btn-pill">Save changes</button>
+            <a asp-action="Catalog" asp-controller="Menu" class="btn btn-outline-dark btn-pill">Back to menu</a>
+        </div>
+    </form>
+
+    <div class="card mt-4 border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-2">Rewards</h5>
+            <p class="mb-1"><strong>Current Points:</strong> @rewardPoints</p>
+            <small class="text-muted d-block mb-3">Earn points on orders and redeem them at checkout.</small>
+            @if (isStaff)
+            {
+                <form asp-action="AddPoints" asp-controller="Customer" method="post" class="row gy-2 gx-2 align-items-end">
+                    @Html.AntiForgeryToken()
+                    <div class="col-auto">
+                        <label for="amount" class="form-label mb-0">Add points</label>
+                        <input type="number" name="amount" id="amount" class="form-control" min="1" value="10" />
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-dark btn-pill">Add</button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Camera & Editor modal -->
+<div class="cam-sheet" id="camSheet" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="camTitle">
+    <div class="cam-panel" role="document">
+        <div class="cam-head">
+            <h2 id="camTitle">Edit Photo</h2>
+            <button type="button" class="icon-btn" id="closeCam" aria-label="Close">×</button>
+        </div>
+
+        <div class="cam-body">
+            <!-- Live camera -->
+            <div class="cam-frame" id="cameraFrame" hidden>
+                <video id="camVideo" autoplay playsinline></video>
+                <div class="sq-mask" aria-hidden="true"></div>
+            </div>
+
+            <!-- CAMERA CONTROLS (hide when editing) -->
+            <div class="toolbar" id="cameraActions" hidden>
+                <button type="button" class="btn btn-dark btn-pill" id="captureBtn" disabled>Capture</button>
+            </div>
+
+            <!-- EDITOR -->
+            <div id="editorWrap" class="cap-preview" hidden>
+                <div id="cropBox"><img id="editImg" alt="Editor image"></div>
+
+                <!-- Zoom row -->
+                <div class="range-wrap">
+                    <span class="small text-muted">Zoom</span>
+                    <input id="zoomRange" type="range" min="1" max="3" step="0.01" value="1">
+                </div>
+
+                <!-- Rotate / Reset row -->
+                <div class="toolbar">
+                    <button type="button" class="btn btn-outline-dark btn-pill" id="rotateLeft">⟲ Rotate Left</button>
+                    <button type="button" class="btn btn-outline-dark btn-pill" id="rotateRight">⟳ Rotate Right</button>
+                    <button type="button" class="btn btn-outline-dark btn-pill" id="resetBtn">Reset</button>
+                </div>
+
+                <!-- Back / Use row -->
+                <div class="toolbar">
+                    <button type="button" class="btn btn-outline-dark btn-pill" id="editBackBtn">Back</button>
+                    <button type="button" class="btn btn-dark btn-pill" id="editUseBtn">Use Photo</button>
+                </div>
+            </div>
+
+
+
+            <canvas id="capCanvas" width="512" height="512" hidden></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        (function () {
+          'use strict';
+
+          // Prevent page navigation on accidental window-level drop
+          window.addEventListener('dragover', e => e.preventDefault());
+          window.addEventListener('drop',     e => e.preventDefault());
+
+          const $  = (id)=>document.getElementById(id);
+          const qs = (sel,root=document)=>root.querySelector(sel);
+
+          const input=$('fileInput'), browseBtn=$('browseBtn'), dz=$('dropzone'), fileName=$('fileName'),
+                avatar=$('avatarPreview'), capturedData=$('capturedData');
+
+          const openCam=$('openCamera'), camSheet=$('camSheet'), camTitle=$('camTitle'), closeCam=$('closeCam');
+          const cameraFrame=$('cameraFrame'), video=$('camVideo'), cameraActions=$('cameraActions'), captureBtn=$('captureBtn');
+          const capCanvas=$('capCanvas'), ctx=capCanvas.getContext('2d');
+
+          const editorWrap=$('editorWrap'), cropBox=$('cropBox'), editImg=$('editImg'),
+                zoomRange=$('zoomRange'), rotateLeft=$('rotateLeft'), rotateRight=$('rotateRight'),
+                resetBtn=$('resetBtn'), editBackBtn=$('editBackBtn'), editUseBtn=$('editUseBtn');
+
+                  let stream=null, ready=false, mode='idle';
+
+        // crop state
+        let imgW=0,imgH=0,zoom=1,minZoom=1,maxZoom=3,offsetX=0,offsetY=0,dragging=false,startX=0,startY=0;
+        let baseDataUrl=null;
+
+        // prevents the OS file dialog from popping right after a drop
+        let suppressNextClick = false;
+
+
+          function lockScroll(on){ document.documentElement.classList.toggle('no-scroll', !!on); document.body.classList.toggle('no-scroll', !!on); }
+          function showSheet(){ camSheet.style.display='grid'; camSheet.style.opacity=1; camSheet.setAttribute('aria-hidden','false'); lockScroll(true); }
+          function hideSheet(){ camSheet.setAttribute('aria-hidden','true'); lockScroll(false); stopCamera(); camSheet.style.display='none'; camSheet.style.opacity=0; mode='idle'; }
+
+          function stopCamera(){ try{ stream?.getTracks().forEach(t=>t.stop()); }catch{} stream=null; try{ video.pause(); video.srcObject=null; video.removeAttribute('src'); setTimeout(()=>{try{video.load();}catch{}},50);}catch{} }
+
+          closeCam?.addEventListener('click', hideSheet);
+          camSheet?.addEventListener('click', (e)=>{ if(e.target===camSheet) hideSheet(); });
+          document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && camSheet.getAttribute('aria-hidden')==='false') hideSheet(); });
+          const form=qs('form'); if(form) ['submit','reset'].forEach(ev=>form.addEventListener(ev, hideSheet));
+
+          // --- Camera ---
+          video?.addEventListener('loadedmetadata', ()=>{ ready=true; captureBtn.disabled=false; });
+
+          async function startCamera(){
+            ready=false; captureBtn.disabled=true;
+            stopCamera();
+            await new Promise(r=>setTimeout(r,120));
+            stream = await (navigator.mediaDevices?.getUserMedia?.({
+              video:{ facingMode:{ideal:'user'}, width:{ideal:720}, height:{ideal:720}, aspectRatio:{ideal:1} },
+              audio:false
+            }) ?? Promise.reject());
+            video.muted=true; video.setAttribute('playsinline',''); video.srcObject=stream; await video.play().catch(()=>{});
+            captureBtn.disabled=false;
+          }
+
+          openCam?.addEventListener('click', async ()=>{
+            mode='camera';
+            cameraFrame.hidden=false; cameraActions.hidden=false;
+            editorWrap.hidden=true;
+            const devHosts=['localhost','127.0.0.1','::1'];
+            if(!window.isSecureContext && !devHosts.includes(location.hostname)) { openFilePicker(); return; }
+            if(!navigator.mediaDevices?.getUserMedia) { openFilePicker(); return; }
+            showSheet();
+            try{ await startCamera(); }catch{ hideSheet(); openFilePicker(); }
+          });
+
+          captureBtn?.addEventListener('click', ()=>{
+            if(mode!=='camera' || !ready) return;
+            const vw=video.videoWidth, vh=video.videoHeight; if(!vw||!vh) return;
+            const c=document.createElement('canvas'); c.width=vw; c.height=vh;
+            c.getContext('2d').drawImage(video,0,0,vw,vh);
+            const dataUrl=c.toDataURL('image/jpeg',0.95);
+            stopCamera();
+            cameraFrame.hidden=true; cameraActions.hidden=true;
+            startEditor(dataUrl);
+          });
+
+                  // --- File picker & DnD ---
+        function openFilePicker(){
+          // Trigger the file dialog FIRST (keeps the user-gesture)
+          if (input) {
+            input.value = '';     // allow re-select same file
+            input.click();
+          }
+          // If the modal is open (came from camera), close it
+          if (camSheet.getAttribute('aria-hidden') === 'false') {
+            hideSheet();
+          }
+        }
+
+        browseBtn?.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openFilePicker();
+        });
+
+        // A synthetic click can fire right after a DROP on the dropzone.
+        // Ignore that one so the OS picker doesn't pop.
+        dz?.addEventListener('click', (e) => {
+          // If the click was on the real Browse button, let that handler run
+          if (e.target.closest('#browseBtn')) return;
+
+          if (suppressNextClick) {
+            e.preventDefault();
+            e.stopPropagation();
+            suppressNextClick = false;   // consume the post-drop click
+            return;
+          }
+
+          openFilePicker();
+        });
+
+        dz?.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openFilePicker();
+          }
+        });
+
+        function setDrag(on){ dz?.classList.toggle('is-drag', !!on); }
+
+        ['dragenter','dragover'].forEach(ev =>
+          dz?.addEventListener(ev, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+            setDrag(true);
+          })
+        );
+
+        ['dragleave','dragend'].forEach(ev =>
+          dz?.addEventListener(ev, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDrag(false);
+          })
+        );
+
+        dz?.addEventListener('drop', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setDrag(false);
+
+          const file = (e.dataTransfer?.files || [])[0];
+          if (file) handleFile(file);
+
+          // Prevent the post-drop synthetic click from opening the picker
+          suppressNextClick = true;
+          setTimeout(() => (suppressNextClick = false), 400);
+        });
+
+        input?.addEventListener('change', (e) => {
+          const f = e.target.files && e.target.files[0];
+          if (!f) {
+            if (fileName) fileName.textContent = 'No file chosen';
+            return;
+          }
+          handleFile(f);
+        });
+
+        function handleFile(file){
+          const ok = /^image\/(png|jpe?g|gif|webp)$/i.test(file.type || '');
+          if (!ok) {
+            alert('Please use JPG, PNG, GIF or WEBP (max 2MB).');
+            return;
+          }
+          if (fileName) fileName.textContent = file.name;
+
+          const fr = new FileReader();
+          fr.onload = (ev) => {
+            mode = 'file';
+            stopCamera();                 // make sure camera is off
+            cameraFrame.hidden = true;
+            cameraActions.hidden = true;
+            startEditor(ev.target.result); // opens the editor modal
+          };
+          fr.readAsDataURL(file);
+        }
+
+
+          // --- Editor (crop/zoom/rotate) ---
+          function resetEditorState(){
+            editImg.style.width=''; editImg.style.height=''; editImg.style.transform='translate(0px,0px)';
+            imgW=imgH=0; zoom=1; minZoom=1; offsetX=offsetY=0; dragging=false;
+          }
+
+          function startEditor(dataUrl){
+            mode='file';
+            baseDataUrl=dataUrl;
+            resetEditorState();
+            cameraFrame.hidden=true; cameraActions.hidden=true;
+            editorWrap.hidden=false; showSheet();
+
+            // force proper onload in some browsers
+            editImg.src=''; requestAnimationFrame(()=>{ editImg.src=dataUrl; });
+
+            editImg.onload=()=>{
+              imgW=editImg.naturalWidth||0; imgH=editImg.naturalHeight||0;
+              if(!imgW||!imgH) return;
+              initLayout();
+            };
+          }
+
+          function initLayout(){
+            const boxSize = cropBox.getBoundingClientRect().width || 0;
+            if(!boxSize){ requestAnimationFrame(initLayout); return; }
+
+            const zX = boxSize / imgW, zY = boxSize / imgH;
+            minZoom  = Math.max(zX, zY);        // cover the square
+            zoom     = Math.max(minZoom, 1);    // at least 1x
+
+            offsetX  = (boxSize - imgW*zoom)/2;
+            offsetY  = (boxSize - imgH*zoom)/2;
+
+            zoomRange.min = String(Math.min(minZoom, maxZoom).toFixed(2));
+            zoomRange.max = String(maxZoom);
+            zoomRange.value = String(Math.min(Math.max(zoom, minZoom), maxZoom).toFixed(2));
+
+            render();
+
+            // Drag/pan
+            const startDrag=(x,y)=>{ dragging=true; startX=x-offsetX; startY=y-offsetY; };
+            const moveDrag =(x,y)=>{ if(!dragging)return; offsetX=x-startX; offsetY=y-startY; render(); };
+            const endDrag  =()=>{ dragging=false; };
+
+            cropBox.onmousedown = e=>{ e.preventDefault(); startDrag(e.clientX,e.clientY); };
+            window.onmousemove   = e=>moveDrag(e.clientX,e.clientY);
+            window.onmouseup     = endDrag;
+
+            cropBox.ontouchstart = e=>{ const t=e.touches[0]; startDrag(t.clientX,t.clientY); };
+            cropBox.ontouchmove  = e=>{ const t=e.touches[0]; moveDrag(t.clientX,t.clientY); };
+            cropBox.ontouchend   = endDrag;
+
+            // Wheel zoom
+            cropBox.onwheel = (e)=>{
+              e.preventDefault();
+              const delta = -Math.sign(e.deltaY) * 0.08;
+              const prev=zoom;
+              zoom = Math.max(minZoom, Math.min(maxZoom, zoom+delta));
+              // zoom around cursor
+              const rect=cropBox.getBoundingClientRect();
+              const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+              offsetX = cx - ((cx - offsetX) * (zoom / prev));
+              offsetY = cy - ((cy - offsetY) * (zoom / prev));
+              zoomRange.value=String(zoom.toFixed(2));
+              render();
+            };
+
+            zoomRange.oninput=()=>{
+              const prev=zoom;
+              zoom = Math.max(minZoom, Math.min(maxZoom, parseFloat(zoomRange.value)||minZoom));
+              const cx=boxSize/2, cy=boxSize/2;
+              offsetX = cx - ((cx - offsetX) * (zoom / prev));
+              offsetY = cy - ((cy - offsetY) * (zoom / prev));
+              render();
+            };
+          }
+
+          function clampOffsets(boxSize, drawW, drawH){
+            // Keep image centered when smaller; clamp when larger (prevents black gaps)
+            if(drawW <= boxSize){ offsetX = (boxSize - drawW)/2; }
+            else { const minX = boxSize - drawW; offsetX = Math.min(0, Math.max(offsetX, minX)); }
+            if(drawH <= boxSize){ offsetY = (boxSize - drawH)/2; }
+            else { const minY = boxSize - drawH; offsetY = Math.min(0, Math.max(offsetY, minY)); }
+          }
+
+          function render(){
+            const boxSize = cropBox.getBoundingClientRect().width || 0;
+            if(!boxSize||!imgW||!imgH) return;
+            zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+
+            const drawW = imgW*zoom, drawH = imgH*zoom;
+            clampOffsets(boxSize, drawW, drawH);
+
+            editImg.style.width  = drawW+'px';
+            editImg.style.height = drawH+'px';
+            editImg.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+          }
+
+          async function rotateDataUrl(src, deg){
+            return new Promise((resolve,reject)=>{
+              const img=new Image();
+              img.onload=()=>{
+                const r=(deg%360+360)%360, swap=(r===90||r===270);
+                const w=img.naturalWidth,h=img.naturalHeight,cw=swap?h:w,ch=swap?w:h;
+                const c=document.createElement('canvas'); c.width=cw; c.height=ch; const g=c.getContext('2d');
+                g.translate(cw/2,ch/2); g.rotate(r*Math.PI/180); g.drawImage(img,-w/2,-h/2);
+                resolve(c.toDataURL('image/jpeg',0.95));
+              };
+              img.onerror=reject; img.src=src;
+            });
+          }
+
+          rotateLeft?.addEventListener('click', async ()=>{ baseDataUrl = await rotateDataUrl(baseDataUrl,-90); startEditor(baseDataUrl); });
+          rotateRight?.addEventListener('click', async ()=>{ baseDataUrl = await rotateDataUrl(baseDataUrl, 90); startEditor(baseDataUrl); });
+          resetBtn?.addEventListener('click', ()=> startEditor(baseDataUrl));
+
+          function exportCrop(){
+            const boxSize = cropBox.getBoundingClientRect().width;
+            const out=512; capCanvas.width=out; capCanvas.height=out;
+
+            const s=zoom;
+            const srcX=Math.max(0,(-offsetX)/s), srcY=Math.max(0,(-offsetY)/s);
+            const srcW=Math.min(imgW-srcX, boxSize/s), srcH=Math.min(imgH-srcY, boxSize/s);
+
+            ctx.fillStyle='#fff'; ctx.fillRect(0,0,out,out); ctx.imageSmoothingQuality='high';
+            ctx.drawImage(editImg, srcX,srcY,srcW,srcH, 0,0,out,out);
+            return capCanvas.toDataURL('image/jpeg',0.95);
+          }
+
+          editBackBtn?.addEventListener('click', ()=>{
+            if(mode==='camera'){ editorWrap.hidden=true; cameraFrame.hidden=false; cameraActions.hidden=false; startCamera().catch(()=>{}); }
+            else hideSheet();
+          });
+
+          editUseBtn?.addEventListener('click', ()=>{
+            const dataUrl = exportCrop();
+            capturedData.value = dataUrl;
+            if(input) input.value='';
+            if(fileName) fileName.textContent='Cropped photo';
+            if(avatar) avatar.src=dataUrl;
+            hideSheet();
+          });
+
+        })();
+    </script>
+}

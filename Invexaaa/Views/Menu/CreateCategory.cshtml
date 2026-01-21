@@ -1,0 +1,41 @@
+﻿@model SnomiAssignmentReal.Models.Category
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Create Category";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-4" style="max-width:740px;">
+    <div class="card p-4 rounded-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h4 mb-0">Create Category</h2>
+            <a asp-action="Categories" class="btn btn-outline-dark rounded-pill">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <form asp-action="CreateCategory" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+            <div class="mb-3">
+                <label asp-for="CategoryName" class="form-label fw-semibold">Name</label>
+                <input asp-for="CategoryName" class="form-control" />
+                <span asp-validation-for="CategoryName" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="CategoryDescription" class="form-label fw-semibold">Description (optional)</label>
+                <textarea asp-for="CategoryDescription" rows="2" class="form-control"></textarea>
+                <span asp-validation-for="CategoryDescription" class="text-danger small"></span>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button class="btn btn-dark rounded-pill"><i class="bi bi-save"></i> Save</button>
+                <a asp-action="Categories" class="btn btn-outline-dark rounded-pill">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

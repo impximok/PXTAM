@@ -1,0 +1,685 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.AspNetCore.Http
+@using System.IO
+@using System.Linq
+
+@{
+    Layout = null;
+
+    // auth/roles
+    var isAuth = User?.Identity?.IsAuthenticated == true;
+    // Guest only when NOT authenticated. If authenticated, clear any stale guest flag.
+    var isGuest = !isAuth;
+    if (isAuth) { Context.Session.Remove("IsGuest"); }
+
+    bool isAdmin = isAuth && (User.IsInRole("Admin") || User.IsInRole("UR100"));
+    bool isStaff = isAuth && (User.IsInRole("Staff") || User.IsInRole("UR101"));
+    bool isCustomer = isAuth && User.IsInRole("Customer");
+
+    var lastOrderId = Context.Session.GetString("LastOrderId");
+    var sessionUserName = Context.Session.GetString("CustomerUserName");
+
+    // display name
+    var profileName = isAuth
+        ? (!string.IsNullOrWhiteSpace(sessionUserName) ? sessionUserName : (User.Identity!.Name ?? "User"))
+        : "Guest";
+
+    // claims / vb / session photos for signed-in users
+    var claimPhoto = User.FindFirst("photo")?.Value;
+    var sessionPhoto = Context.Session.GetString("CustomerPhotoUrl");
+    var vbPhoto = ViewBag.ProfilePhotoUrl as string;
+
+    // ---- sticky guest avatar per session (auto-detect files) ----
+    const string GuestPfpSessKey = "GuestAvatarUrl";
+    var guestPfp = Context.Session.GetString(GuestPfpSessKey);
+
+    if (string.IsNullOrWhiteSpace(guestPfp))
+    {
+        var folder = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "images", "guest");
+        var allowed = new[] { ".png", ".jpg", ".jpeg", ".webp", ".gif" };
+
+        var files = System.IO.Directory.Exists(folder)
+            ? System.IO.Directory.EnumerateFiles(folder)
+                      .Where(p => allowed.Contains(System.IO.Path.GetExtension(p).ToLower()))
+                      .Select(p => "/images/guest/" + System.IO.Path.GetFileName(p))
+                      .ToList()
+            : new List<string>();
+
+        guestPfp = files.Count > 0
+            ? files[new Random().Next(files.Count)]
+            : Url.Content("~/images/default-profile.jpg"); // fallback
+
+        Context.Session.SetString(GuestPfpSessKey, guestPfp);
+    }
+
+    // chosen profile photo
+    // Priority: ViewBag > Session > Claim > fallback by role
+    var profilePhoto =
+        isGuest ? guestPfp :
+        (!string.IsNullOrWhiteSpace(vbPhoto) ? vbPhoto
+         : !string.IsNullOrWhiteSpace(sessionPhoto) ? sessionPhoto
+         : !string.IsNullOrWhiteSpace(claimPhoto) ? claimPhoto
+         : (isAdmin ? "/images/admin.jpg"
+            : (isStaff ? "/images/staff1.jpg" : "/images/default-profile.jpg")));
+
+    // initials
+    string InitialsOf(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "U";
+        var p = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (p.Length == 1) return p[0].Substring(0, Math.Min(2, p[0].Length)).ToUpperInvariant();
+        return (p[0][0].ToString() + p[^1][0].ToString()).ToUpperInvariant();
+    }
+    var initials = InitialsOf(profileName);
+
+    // home targets
+    var isStaffOrAdmin = isAdmin || isStaff;
+    var homeController = isStaffOrAdmin ? "Admin" : "Menu";
+    var homeAction = isStaffOrAdmin ? "Dashboard" : "Catalog";
+
+    // profile targets
+    var profileCtrl = isStaffOrAdmin ? "Account" : "Customer";
+    var profileAction = isStaffOrAdmin ? "UpdateProfile" : "Profile";
+
+    // slogan
+    var slogan = (ViewBag.Slogan as string) ?? "Inventory, Precisely.";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Invexa</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+        :root {
+            --ink: #000;
+            --paper: #fff;
+            --line: #e9e9e9;
+            --ring: rgba(0,0,0,.06);
+            --outer-pad: 1.5cm;
+        }
+
+        body.snomi-ppg-body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: Inter,-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ==== HEADER ==== */
+        .snomi-header {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            background: rgba(255,255,255,.98);
+            backdrop-filter: saturate(180%) blur(8px);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .snomi-header-inner {
+            padding: 10px var(--outer-pad);
+            min-height: 64px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-logo {
+            height: 42px; /* smaller, cleaner */
+            width: auto;
+            filter: grayscale(1) contrast(1.05);
+            transition: transform .2s ease;
+        }
+
+        .brand-link:hover .brand-logo {
+            transform: scale(1.02);
+        }
+
+        .brand-stack {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            line-height: 1.1;
+        }
+
+
+        .brand-main {
+            font-weight: 700;
+            font-size: 1.22rem;
+        }
+
+        .brand-slogan {
+            font-weight: 500;
+            font-size: .78rem;
+            letter-spacing: .02em;
+            color: #666;
+            margin-top: 2px;
+        }
+
+
+        .profile-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--paper);
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 1px 0 var(--ring);
+        }
+
+            .profile-pill:hover {
+                background: #fafafa;
+                border-color: #d6d6d6;
+            }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: .95rem;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--line);
+        }
+
+        .avatar-fallback {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .8rem;
+            background: #111;
+            color: #fff;
+            border: 1px solid #111;
+        }
+
+        /* ==== NAV ==== */
+        .snomi-nav {
+            position: sticky;
+            top: 78px;
+            z-index: 1020;
+            background: var(--paper);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .snomi-nav-inner {
+            padding: 8px var(--outer-pad);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link-min {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--ink);
+            font-weight: 500;
+            transition: background .15s ease,color .15s ease;
+            white-space: nowrap;
+        }
+
+            .nav-link-min:hover {
+                background: var(--ink);
+                color: var(--paper);
+            }
+
+            .nav-link-min.dropdown-toggle::after {
+                display: none !important;
+            }
+
+        .dashboard-dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
+
+        .dashboard-menu {
+            border-radius: 12px;
+            padding: 8px 0;
+            min-width: 220px;
+            border: 1px solid var(--line);
+        }
+
+            .dashboard-menu .dropdown-item {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 16px;
+                font-weight: 500;
+                color: #222;
+                transition: background .2s ease,color .2s ease;
+            }
+
+                .dashboard-menu .dropdown-item:hover {
+                    background: #111;
+                    color: #fff;
+                    border-radius: 8px;
+                }
+
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #111;
+            background: #fff;
+            color: #111;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+            .logout-btn:hover {
+                background: #111;
+                color: #fff;
+            }
+
+        /* ==== FOOTER ==== */
+        .snomi-ppg-footer {
+            background: #fff;
+            border-top: 2px solid #000;
+            text-align: center;
+            padding: .75rem 0;
+            font-size: .95rem;
+        }
+
+            .snomi-ppg-footer p {
+                margin: 0;
+                line-height: 1.5;
+            }
+
+        .footer-nav-link {
+            color: #000 !important;
+            text-decoration: underline !important;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+
+        /* ==== MODAL (Minimal Sheet Style) ==== */
+        .modal-sheet .modal-dialog {
+            max-width: 520px;
+            margin: 1.5rem auto;
+        }
+
+        @@media (max-width: 576px) {
+            .modal-sheet .modal-dialog {
+                margin: 0;
+                min-height: 100%;
+                display: flex;
+                align-items: flex-end; /* bottom sheet on mobile */
+            }
+        }
+
+        .modal-sheet .modal-content {
+            border-radius: 20px;
+            border: 1px solid #e6e6e6;
+            box-shadow: 0 24px 80px rgba(0,0,0,.12);
+            overflow: hidden;
+            transform: translateY(6px);
+            transition: transform .22s ease, opacity .22s ease;
+        }
+
+        .modal.show .modal-sheet .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-sheet .modal-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 12px;
+            border: 0;
+            padding: 22px 22px 6px 22px;
+        }
+
+        .modal-sheet .modal-title {
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -.01em;
+            font-size: 1.28rem;
+        }
+
+        .modal-sheet .btn-close {
+            margin: -4px -4px 0 0;
+            opacity: .55;
+        }
+
+            .modal-sheet .btn-close:hover {
+                opacity: .85;
+            }
+
+        .modal-subtitle {
+            color: #6b6b6b;
+            font-size: .95rem;
+            line-height: 1.55;
+            margin: 0 22px 6px 22px;
+        }
+
+        .modal-sheet .modal-body {
+            padding: 8px 22px 0 22px;
+            color: #222;
+            font-size: 1.02rem;
+            line-height: 1.65;
+        }
+
+        .modal-sheet .modal-footer {
+            border: 0;
+            padding: 18px 16px 20px 16px;
+        }
+
+        /* Lock glyph circle */
+        .lock-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid #e6e6e6;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+
+            .lock-circle svg {
+                width: 16px;
+                height: 16px;
+            }
+
+        /* ==== ACTION BUTTONS ==== */
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: .78rem 1.35rem;
+            font-weight: 800;
+            letter-spacing: .01em;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+
+        .btn-primary-bw {
+            background: #111 !important;
+            border: 1px solid #111 !important;
+            color: #fff !important;
+            box-shadow: none;
+            opacity: 1;
+        }
+
+            .btn-primary-bw:hover {
+                background: #000 !important;
+                transform: translateY(-1px);
+                box-shadow: 0 8px 18px rgba(0,0,0,.18);
+            }
+
+        .btn-ghost-bw {
+            background: #fff !important;
+            border: 1.5px solid #111 !important;
+            color: #111 !important;
+            font-weight: 700;
+        }
+
+            .btn-ghost-bw:hover {
+                background: #111 !important;
+                color: #fff !important;
+            }
+
+        .btn-pill:focus-visible {
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(0,0,0,.18);
+        }
+
+        @@media (max-width: 576px) {
+            .actions {
+                flex-direction: column;
+            }
+
+                .actions .btn-pill {
+                    width: 100%;
+                }
+        }
+
+        .snomi-ppg-container {
+            flex: 1 1 auto; /* push footer to the bottom on short pages */
+        }
+
+        .snomi-ppg-footer .container {
+            padding-left: var(--outer-pad);
+            padding-right: var(--outer-pad);
+        }
+    </style>
+
+</head>
+<body class="snomi-ppg-body">
+    @if (ViewBag.HideHeader == null || ViewBag.HideHeader != true)
+    {
+        <!-- HEADER -->
+        <header class="snomi-header">
+            <div class="snomi-header-inner">
+                <a asp-controller="@homeController" asp-action="@homeAction" class="brand-link" aria-label="Snömi Café Home">
+                    <img src="/images/InvexaLogoCropped.png" alt="Snomi Logo" class="brand-logo" />
+                    <span class="brand-stack">
+
+                        <span class="brand-slogan">@slogan</span>
+                    </span>
+                </a>
+                <div></div>
+
+                <!-- Profile pill -->
+                <div>
+                    @if (isAuth)
+                    {
+                        var imgOk = !string.IsNullOrWhiteSpace(profilePhoto);
+                        <a asp-controller="@profileCtrl" asp-action="@profileAction" class="profile-pill" title="Update Profile">
+                            <span class="profile-name">@profileName</span>
+                            @if (imgOk)
+                            {
+                                <img src="@Url.Content(profilePhoto)" asp-append-version="true"
+                                     alt="Profile" class="avatar"
+                                     onerror="this.replaceWith(createInitials('@initials'));" />
+                            }
+                            else
+                            {
+                                <span class="avatar-fallback">@initials</span>
+                            }
+                        </a>
+                    }
+                    else
+                    {
+                        var imgOk = !string.IsNullOrWhiteSpace(profilePhoto);
+                        <a href="#" class="profile-pill" title="Login required"
+                           data-bs-toggle="modal" data-bs-target="#guestLoginModal">
+                            <span class="profile-name">@profileName</span>
+                            @if (imgOk)
+                            {
+                                <img src="@Url.Content(profilePhoto)" asp-append-version="true"
+                                     alt="Guest Profile" class="avatar"
+                                     onerror="this.replaceWith(createInitials('@initials'));" />
+                            }
+                            else
+                            {
+                                <span class="avatar-fallback">@initials</span>
+                            }
+                        </a>
+                    }
+                </div>
+            </div>
+        </header>
+
+        <!-- Guest must log in Modal (minimalist) -->
+        <div class="modal fade modal-sheet" id="guestLoginModal" tabindex="-1"
+             aria-labelledby="guestLoginLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="d-flex align-items-center">
+                            <span class="lock-circle" aria-hidden="true">
+                                <!-- thin lock icon -->
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="10" width="16" height="10" rx="2"></rect>
+                                    <path d="M8 10V7a4 4 0 1 1 8 0v3"></path>
+                                </svg>
+                            </span>
+                            <h5 class="modal-title mb-0" id="guestLoginLabel">Login required</h5>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <p class="modal-subtitle">
+                        You’re browsing as a guest.
+                    </p>
+
+                    <div class="modal-body">
+                        Log in to view and update your profile.
+                    </div>
+
+                    <div class="modal-footer">
+                        <div class="actions">
+                            <a asp-controller="Customer" asp-action="Login"
+                               class="btn btn-pill btn-primary-bw">Login</a>
+
+                            <button type="button" class="btn btn-pill btn-ghost-bw" data-bs-dismiss="modal">
+                                Continue as guest
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAV -->
+        <nav class="snomi-nav" role="navigation" aria-label="Primary">
+            <div class="snomi-nav-inner">
+                <div class="nav-row">
+                    @if (isStaffOrAdmin)
+                    {
+                        <!-- Dashboard DROPDOWN (hover) -->
+                        <div class="dropdown dashboard-dropdown">
+                            <a href="#" class="nav-link-min dropdown-toggle" id="dashDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-list"></i> Dashboard
+                            </a>
+                            <ul class="dropdown-menu shadow dashboard-menu" aria-labelledby="dashDropdown">
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2 me-2"></i> Overview</a></li>
+                                <li><a class="dropdown-item" asp-controller="@profileCtrl" asp-action="@profileAction"><i class="bi bi-person-lines-fill me-2"></i> Update Profile</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                @if (isAdmin)
+                                {
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageCustomers"><i class="bi bi-people me-2"></i> Manage Customers</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Report"><i class="bi bi-graph-up me-2"></i> Reports</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Menu" asp-action="Index"><i class="bi bi-basket me-2"></i> Manage Menu</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                }
+                                <li><a class="dropdown-item" asp-controller="Order" asp-action="ManageOrders"><i class="bi bi-card-checklist me-2"></i> Manage Orders</a></li>
+                                <li><a class="dropdown-item" asp-controller="Order" asp-action="ManageTracks"><i class="bi bi-box-seam me-2"></i> Track Orders</a></li>
+                                <li><a class="dropdown-item" asp-controller="Order" asp-action="ManageOrderHistory"><i class="bi bi-receipt me-2"></i> Order History</a></li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="nav-link-min" asp-controller="Menu" asp-action="Catalog"><i class="bi bi-list"></i> Menu</a>
+                        <a class="nav-link-min" asp-controller="Order" asp-action="Cart">Cart</a>
+
+                        @if (isAuth && isCustomer)
+                        {
+                            <a class="nav-link-min" asp-controller="Order" asp-action="MyOrders">My Orders</a>
+                        }
+                        @if (!string.IsNullOrEmpty(lastOrderId))
+                        {
+                            <a class="nav-link-min" asp-controller="Order" asp-action="Track" asp-route-id="@lastOrderId">Track</a>
+                        }
+                    }
+                </div>
+
+                <div class="ms-auto">
+                    @if (isAuth && (isCustomer || isAdmin || isStaff))
+                    {
+                        var ctrlForLogout = (isStaffOrAdmin) ? "Account" : "Customer";
+                        <form asp-controller="@ctrlForLogout" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="logout-btn">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    }
+                    else if (!isAuth && !isGuest)
+                    {
+                        <a asp-controller="Customer" asp-action="Login" class="logout-btn">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    }
+                </div>
+            </div>
+        </nav>
+    }
+
+    <main class="snomi-ppg-container container">
+        @RenderBody()
+    </main>
+
+    <footer class="snomi-ppg-footer">
+        <div class="container">
+            <p>Snömi Café &copy; @DateTime.Now.Year — Dine In With A Dash Of Sugar, Spice &amp; Everything Nice!</p>
+            <ul class="list-inline mb-0">
+                <li class="list-inline-item">
+                    <a asp-controller="Home" asp-action="About" class="footer-nav-link">About</a>
+                </li>
+                <li class="list-inline-item"><a asp-controller="Home" asp-action="Contact" class="footer-nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        function createInitials(text) {
+            const span = document.createElement('span');
+            span.className = 'avatar-fallback';
+            span.textContent = text || 'U';
+            return span;
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

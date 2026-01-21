@@ -1,0 +1,500 @@
+﻿@model SnomiAssignmentReal.Models.CustomerOrder
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Checkout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string chosen = (ViewBag.PaymentMethod as string) ?? "";
+    int tableNoValue = ViewBag.TableNo is int t ? t : 0;
+
+    // Member points (set by controller on GET and on redisplay)
+    int memberPts = ViewBag.MemberPoints is int mp ? mp : 0;
+    bool canRedeem = memberPts > 0;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+<div class="container py-5">
+    <h2 class="mb-4"><i class="bi bi-credit-card me-2"></i> Checkout</h2>
+
+    @* Global validation summary (shows when POST fails) *@
+    @if (ViewData.ModelState.ErrorCount > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            <div asp-validation-summary="All"></div>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Left: Order Summary -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-dark text-white rounded-top-4">
+                    <h5 class="mb-0"><i class="bi bi-bag-check"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Unit</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                decimal total = 0m;
+                                foreach (var d in Model.CustomerOrderDetails)
+                                {
+                                    var basePrice = d.MenuItem?.MenuItemUnitPrice ?? 0m;
+                                    var customTotal = d.AppliedCustomizations?.Sum(c => c.CustomizationAdditionalPrice) ?? 0m;
+                                    var unitPrice = basePrice + customTotal;
+                                    var subTotal = unitPrice * d.OrderedQuantity;
+                                    total += subTotal;
+                                }
+                            }
+                            @foreach (var d in Model.CustomerOrderDetails)
+                            {
+                                var basePrice = d.MenuItem?.MenuItemUnitPrice ?? 0m;
+                                var customTotal = d.AppliedCustomizations?.Sum(c => c.CustomizationAdditionalPrice) ?? 0m;
+                                var unitPrice = basePrice + customTotal;
+                                var subTotal = unitPrice * d.OrderedQuantity;
+
+                                <tr>
+                                    <td>
+                                        <strong>@d.MenuItem?.MenuItemName</strong><br />
+                                        <small class="text-muted">
+                                            @if (d.AppliedCustomizations != null && d.AppliedCustomizations.Any())
+                                            {
+                                                @string.Join(", ",
+                                                d.AppliedCustomizations.Select(c =>
+                                                c.CustomizationAdditionalPrice > 0
+                                                ? $"{c.CustomizationName} (+{c.CustomizationAdditionalPrice:C})"
+                                                : c.CustomizationName
+                                                )
+                                                                                )
+                                                                                }
+                                            else
+                                            {
+                                                @:No customizations
+                                            }
+                                        </small>
+                                    </td>
+
+                                <td class="text-center">@d.OrderedQuantity</td>
+                                <td class="text-end">@unitPrice.ToString("C")</td>
+                                <td class="text-end">@subTotal.ToString("C")</td>
+                            </tr>
+                                                        }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Subtotal:</th>
+                                <th class="text-end fs-5" id="subtotalCell" data-subtotal="@total">@total.ToString("C")</th>
+                            </tr>
+                            <tr id="discountRow" class="d-none">
+                                <th colspan="3" class="text-end">Discount (points):</th>
+                                <th class="text-end text-success" id="discountCell">- RM 0.00</th>
+                            </tr>
+                            <tr id="netRow" class="d-none">
+                                <th colspan="3" class="text-end">Net to Pay:</th>
+                                <th class="text-end fs-5" id="netCell">@total.ToString("C")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <small class="text-muted">Any points redemption is previewed on the right and reflected here.</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Payment + Rewards + Table -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-dark text-white rounded-top-4">
+                    <h5 class="mb-0"><i class="bi bi-wallet2"></i> Payment Details</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Checkout" asp-controller="Order" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        <!-- Rewards (members only) -->
+                        @if (User.Identity.IsAuthenticated && User.IsInRole("Customer"))
+                        {
+                            <div class="mb-3 border rounded p-3">
+                                <label class="form-label mb-1"><i class="bi bi-stars"></i> Use Reward Points</label>
+
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <small class="@(canRedeem ? "text-muted" : "text-danger")">
+                                        Balance: <strong>@memberPts pts</strong> • Rate: <strong>100 pts = RM 1</strong> • Cap: <strong>50% of subtotal</strong>
+                                    </small>
+                                </div>
+
+                                <div class="input-group">
+                                    <span class="input-group-text">Points</span>
+                                    <input type="number"
+                                           class="form-control"
+                                           name="pointsToRedeem"
+                                           id="pointsToRedeem"
+                                           min="0"
+                                           @(canRedeem ? $"max=\"{memberPts}\"" : "")
+                                           value="0"
+                                           inputmode="numeric"
+                                           @(canRedeem ? "" : "disabled") />
+                                </div>
+
+                                <small id="pointsHint"
+                                       class="d-block mt-1 @(canRedeem ? "text-muted" : "text-danger")">
+                                    @(canRedeem
+                                                                    ? "Enter how many points to use. We’ll cap it automatically at 50% of subtotal."
+                                                                    : "You don’t have enough points to redeem.")
+                            </small>
+
+                                <!-- Client-side over-balance error -->
+                                <div id="pointsClientError" class="text-danger small d-none">
+                                    You can redeem up to @memberPts points.
+                                </div>
+
+                                @Html.ValidationMessage("pointsToRedeem", null, new { @class = "text-danger small d-block mt-1" })
+                            </div>
+                                                }
+
+                        <!-- Payment Method -->
+                        <div class="mb-3">
+                            <label class="form-label">Select Payment Method</label>
+                            <select class="form-select" id="paymentMethod" name="paymentMethod" required>
+                                <option value="">-- Choose one --</option>
+                                <option value="Cash" selected="@(string.Equals(chosen, "Cash", StringComparison.OrdinalIgnoreCase) ? "selected" : "")">Cash</option>
+                                <option value="Card" selected="@(string.Equals(chosen, "Card", StringComparison.OrdinalIgnoreCase) ? "selected" : "")">Card</option>
+                                <option value="E-Wallet" selected="@(string.Equals(chosen, "E-Wallet", StringComparison.OrdinalIgnoreCase) ? "selected" : "")">E-Wallet</option>
+                                <option value="QR" selected="@(string.Equals(chosen, "QR", StringComparison.OrdinalIgnoreCase) ? "selected" : "")">QR Pay</option>
+                            </select>
+                            <div class="invalid-feedback">Please choose a payment method.</div>
+                            @Html.ValidationMessage("paymentMethod", null, new { @class = "text-danger small d-block mt-1" })
+                        </div>
+
+                        <!-- Card fields -->
+                        <div id="cardFields" class="border rounded p-3 mb-3 d-none">
+                            <div class="mb-2">
+                                <label class="form-label">Cardholder Name</label>
+                                <input type="text" class="form-control" name="cardName" />
+                                <div class="invalid-feedback" id="cardNameErr"></div>
+                                @Html.ValidationMessage("cardName", null, new { @class = "text-danger small d-block mt-1" })
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Card Number</label>
+                                <input type="text" class="form-control" name="cardNumber" placeholder="#### #### #### ####" />
+                                <div class="invalid-feedback" id="cardNumberErr"></div>
+                                @Html.ValidationMessage("cardNumber", null, new { @class = "text-danger small d-block mt-1" })
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label">Expiry (MM/YY)</label>
+                                    <input type="text" class="form-control" name="cardExp" placeholder="MM/YY" />
+                                    <div class="invalid-feedback" id="cardExpErr"></div>
+                                    @Html.ValidationMessage("cardExp", null, new { @class = "text-danger small d-block mt-1" })
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">CVV</label>
+                                    <input type="password" class="form-control" name="cardCvv" maxlength="4" />
+                                    <div class="invalid-feedback" id="cardCvvErr"></div>
+                                    @Html.ValidationMessage("cardCvv", null, new { @class = "text-danger small d-block mt-1" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- E-Wallet fields -->
+                        <div id="ewalletFields" class="border rounded p-3 mb-3 d-none">
+                            <div class="mb-2">
+                                <label class="form-label">E-Wallet Provider</label>
+                                <select class="form-select" name="ewalletProvider">
+                                    <option value="">-- Select --</option>
+                                    <option value="GrabPay">GrabPay</option>
+                                    <option value="Touch 'n Go">Touch 'n Go</option>
+                                    <option value="Boost">Boost</option>
+                                </select>
+                                <div class="invalid-feedback" id="ewalletProviderErr"></div>
+                                @Html.ValidationMessage("ewalletProvider", null, new { @class = "text-danger small d-block mt-1" })
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Mobile Number</label>
+                                <input type="tel" class="form-control" name="ewalletMobile" placeholder="+60..." />
+                                <div class="invalid-feedback" id="ewalletMobileErr"></div>
+                                @Html.ValidationMessage("ewalletMobile", null, new { @class = "text-danger small d-block mt-1" })
+                            </div>
+                        </div>
+
+
+                        <!-- Table No (optional) -->
+                        <div class="mb-3">
+                            <label class="form-label">Table Number (for dine-in)</label>
+                            <input type="number" class="form-control" name="tableNo" min="0" max="100" value="@tableNoValue" />
+                            <small class="text-muted">Leave as 0 if takeaway.</small>
+                            @Html.ValidationMessage("tableNo", null, new { @class = "text-danger small d-block mt-1" })
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100 rounded-pill">
+                            <i class="bi bi-check-circle"></i> Confirm & Place Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const sel  = document.getElementById('paymentMethod');
+            const card = document.getElementById('cardFields');
+            const ew   = document.getElementById('ewalletFields');
+
+            function togglePayFields() {
+                const v = sel.value;
+                card.classList.toggle('d-none', v !== 'Card');
+                ew.classList.toggle('d-none', v !== 'E-Wallet');
+            }
+            sel?.addEventListener('change', togglePayFields);
+            togglePayFields();
+
+            // Bootstrap-style client validation
+            const form = document.querySelector('form.needs-validation');
+            form.addEventListener('submit', function (e) {
+                if (!sel.value) sel.classList.add('is-invalid'); else sel.classList.remove('is-invalid');
+                if (!form.checkValidity()) {
+                    e.preventDefault(); e.stopPropagation();
+                    form.classList.add('was-validated');
+                    const firstInvalid = form.querySelector('.is-invalid, .field-validation-error');
+                    firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, false);
+
+            // ===== Rewards preview + over-balance validation =====
+            const subtotalCell = document.getElementById('subtotalCell');
+            const discountRow  = document.getElementById('discountRow');
+            const discountCell = document.getElementById('discountCell');
+            const netRow       = document.getElementById('netRow');
+            const netCell      = document.getElementById('netCell');
+            const pointsInput  = document.getElementById('pointsToRedeem');
+            const pointsErr    = document.getElementById('pointsClientError');
+
+            const memberBalance = Number("@memberPts") || 0;
+
+            function parseSubtotal() { return Number(subtotalCell?.dataset?.subtotal || "0"); }
+            function fmtRM(n) { return "RM " + n.toFixed(2); }
+
+            function updatePreviewAndValidate() {
+                if (!pointsInput) return;
+
+                const subtotal = parseSubtotal();
+                let typed = parseInt(pointsInput.value || "0", 10);
+                if (isNaN(typed) || typed < 0) typed = 0;
+
+                // Show client error if they exceed balance
+                const overBalance = typed > memberBalance;
+                if (overBalance) {
+                    pointsInput.classList.add('is-invalid');
+                    pointsInput.setCustomValidity('exceeds-balance');
+                    pointsErr?.classList.remove('d-none');
+                } else {
+                    pointsInput.classList.remove('is-invalid');
+                    pointsInput.setCustomValidity('');
+                    pointsErr?.classList.add('d-none');
+                }
+
+                // For preview, clamp to balance (don’t change their input)
+                const effectivePts = Math.min(typed, memberBalance);
+
+                // 100 pts = RM 1
+                let discount = effectivePts / 100.0;
+
+                // Cap to 50% of subtotal and never exceed subtotal
+                const cap = Math.round((subtotal * 0.5) * 100) / 100;
+                discount = Math.min(discount, cap, subtotal);
+
+                const net = Math.max(0, subtotal - discount);
+
+                const show = discount > 0.0001;
+                discountRow.classList.toggle('d-none', !show);
+                netRow.classList.toggle('d-none', !show);
+                discountCell.textContent = "- " + fmtRM(discount);
+                netCell.textContent = fmtRM(net);
+            }
+
+            pointsInput?.addEventListener('input', updatePreviewAndValidate);
+            updatePreviewAndValidate();
+
+            // If balance is zero, force 0 on submit
+            form?.addEventListener('submit', function () {
+                if (memberBalance <= 0 && pointsInput) {
+                    pointsInput.value = "0";
+                    pointsInput.setCustomValidity('');
+                }
+            });
+        })();
+    </script>
+    <script>
+        // live sanitize: keep letters for data-allow="letters", digits for "digits", phone for "+digits"
+        document.addEventListener('input', (e) => {
+          const el = e.target;
+          const mode = el.getAttribute('data-allow');
+          if (!mode) return;
+
+          const caret = el.selectionStart;
+          let v = el.value, nv = v;
+
+          if (mode === 'letters') nv = v.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' .-]/g, '');
+          if (mode === 'digits')  nv = v.replace(/\D/g, '');
+          if (mode === 'phone')   nv = v.replace(/(?!^\+)\D/g, ''); // allow leading +
+
+          if (nv !== v) {
+            el.value = nv;
+            try { el.setSelectionRange(caret - (v.length - nv.length), caret - (v.length - nv.length)); } catch {}
+          }
+        }, { passive: true });
+    </script>
+    <script>
+        (function () {
+          const form = document.querySelector('form.needs-validation');
+
+          // helpers
+          const $ = (sel, base=document) => base.querySelector(sel);
+          const val = name => (form.elements[name]?.value || "").trim();
+
+          // field refs
+          const f = {
+            method: form.elements["paymentMethod"],
+            cardName: form.elements["cardName"],
+            cardNumber: form.elements["cardNumber"],
+            cardExp: form.elements["cardExp"],
+            cardCvv: form.elements["cardCvv"],
+            ewalletProvider: form.elements["ewalletProvider"],
+            ewalletMobile: form.elements["ewalletMobile"]
+          };
+
+          const err = {
+            cardName: $("#cardNameErr"),
+            cardNumber: $("#cardNumberErr"),
+            cardExp: $("#cardExpErr"),
+            cardCvv: $("#cardCvvErr"),
+            ewalletProvider: $("#ewalletProviderErr"),
+            ewalletMobile: $("#ewalletMobileErr")
+          };
+
+          // regexes (same rules as server)
+          const re = {
+            name: /^[\p{L}\p{M}' .-]{2,50}$/u,
+            digits12to19: /^\d{12,19}$/,
+            exp: /^(0[1-9]|1[0-2])\/\d{2}$/,
+            cvv: /^\d{3,4}$/,
+            phone: /^\+?\d{9,15}$/
+          };
+
+          function setInvalid(input, msg, elErr) {
+            input?.classList.add('is-invalid');
+            input?.setCustomValidity('invalid');
+            if (elErr) elErr.textContent = msg || "Invalid value.";
+          }
+          function clearInvalid(input, elErr) {
+            input?.classList.remove('is-invalid');
+            input?.setCustomValidity('');
+            if (elErr) elErr.textContent = "";
+          }
+
+          // validators: return true if OK
+          function validateCardName() {
+            if (!f.cardName) return true;
+            const v = val("cardName");
+            if (!v) { setInvalid(f.cardName, "Cardholder name is required.", err.cardName); return false; }
+            if (!re.name.test(v)) { setInvalid(f.cardName, "Name must be letters only (2–50 characters).", err.cardName); return false; }
+            clearInvalid(f.cardName, err.cardName); return true;
+          }
+          function validateCardNumber() {
+            if (!f.cardNumber) return true;
+            const v = val("cardNumber").replace(/\s+/g, "");
+            if (!v) { setInvalid(f.cardNumber, "Card number is required.", err.cardNumber); return false; }
+            if (!re.digits12to19.test(v)) { setInvalid(f.cardNumber, "Enter a valid card number (12–19 digits).", err.cardNumber); return false; }
+            clearInvalid(f.cardNumber, err.cardNumber); return true;
+          }
+                  function validateCardExp() {
+            if (!f.cardExp) return true;
+            const v = val("cardExp");
+
+            // Check MM/YY format first
+            if (!re.exp.test(v)) {
+                setInvalid(f.cardExp, "Use MM/YY format.", err.cardExp);
+                return false;
+            }
+
+            // ===== NEW: Check if expired =====
+            const [MM, YY] = v.split('/');
+            const expDate = new Date(2000 + Number(YY), Number(MM), 0); // last day of expiry month
+
+            if (expDate < new Date()) {
+                setInvalid(f.cardExp, "This card is expired.", err.cardExp);
+                return false;
+            }
+
+            // If everything OK
+            clearInvalid(f.cardExp, err.cardExp);
+            return true;
+        }
+
+          function validateCardCvv() {
+            if (!f.cardCvv) return true;
+            const v = val("cardCvv");
+            if (!re.cvv.test(v)) { setInvalid(f.cardCvv, "CVV must be 3–4 digits.", err.cardCvv); return false; }
+            clearInvalid(f.cardCvv, err.cardCvv); return true;
+          }
+          function validateEwalletProvider() {
+            if (!f.ewalletProvider) return true;
+            const v = val("ewalletProvider");
+            if (!v) { setInvalid(f.ewalletProvider, "Choose an e-wallet provider.", err.ewalletProvider); return false; }
+            clearInvalid(f.ewalletProvider, err.ewalletProvider); return true;
+          }
+          function validateEwalletMobile() {
+            if (!f.ewalletMobile) return true;
+            const v = val("ewalletMobile");
+            if (!re.phone.test(v)) { setInvalid(f.ewalletMobile, "Enter a valid mobile number (9–15 digits).", err.ewalletMobile); return false; }
+            clearInvalid(f.ewalletMobile, err.ewalletMobile); return true;
+          }
+
+          // validate on blur (don’t block typing)
+          f.cardName?.addEventListener('blur', validateCardName);
+          f.cardNumber?.addEventListener('blur', validateCardNumber);
+          f.cardExp?.addEventListener('blur', validateCardExp);
+          f.cardCvv?.addEventListener('blur', validateCardCvv);
+          f.ewalletProvider?.addEventListener('blur', validateEwalletProvider);
+          f.ewalletMobile?.addEventListener('blur', validateEwalletMobile);
+
+          // hook into your existing submit handler
+          form.addEventListener('submit', (e) => {
+            const method = val('paymentMethod');
+
+            let ok = true;
+            if (!method) { f.method.classList.add('is-invalid'); ok = false; }
+            else { f.method.classList.remove('is-invalid'); }
+
+            if (method === 'Card') {
+              ok = validateCardName() && ok;
+              ok = validateCardNumber() && ok;
+              ok = validateCardExp() && ok;
+              ok = validateCardCvv() && ok;
+            }
+            if (method === 'E-Wallet') {
+              ok = validateEwalletProvider() && ok;
+              ok = validateEwalletMobile() && ok;
+            }
+
+            if (!ok) {
+              e.preventDefault(); e.stopPropagation();
+              const first = form.querySelector('.is-invalid');
+              first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, { capture: true });
+        })();
+    </script>
+
+}

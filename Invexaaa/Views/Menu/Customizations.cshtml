@@ -1,0 +1,89 @@
+﻿@model List<SnomiAssignmentReal.Models.OrderCustomizationSettings>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var item = ViewBag.MenuItem as SnomiAssignmentReal.Models.MenuItem;
+    ViewData["Title"] = "MenuItemCustomizations · " + (item?.MenuItemName ?? "");
+}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Manage Menu</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Customizations</li>
+        </ol>
+    </nav>
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-success">@TempData["Info"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">@item?.MenuItemName</h3>
+            <small class="text-muted">Item: @item?.MenuItemId · Category: @item?.CategoryId</small>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@item?.MenuItemId" class="btn btn-outline-dark rounded-pill">Edit Item</a>
+            <a asp-action="CreateCustomization" asp-route-menuItemId="@item?.MenuItemId" class="btn btn-dark rounded-pill">Add Customization</a>
+        </div>
+    </div>
+
+    <div class="card" style="border:1px solid #e5e7eb; border-radius:1rem;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 18%;">Customization ID</th>
+                            <th style="width: 20%;">Name</th>
+                            <th style="width: 32%;">Description</th>
+                            <th style="width: 12%;">Price (RM)</th>
+                            <th style="width: 13%;">Eligible Category</th>
+                            <th style="width: 5%;" class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr><td colspan="6" class="text-center text-muted py-4">No customizations yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var c in Model)
+                            {
+                                <tr>
+                                    <td class="text-muted small">@c.MenuItemCustomizationId</td>
+                                    <td class="fw-semibold">@c.CustomizationName</td>
+                                    <td class="text-muted">@c.CustomizationDescription</td>
+                                    <td>@c.CustomizationAdditionalPrice.ToString("0.00")</td>
+                                    <td class="text-muted">@c.EligibleCategoryId</td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <a asp-action="EditCustomization" asp-route-id="@c.MenuItemCustomizationId"
+                                               class="btn btn-sm btn-outline-dark rounded-pill"><i class="bi bi-pencil-square"></i></a>
+
+                                            <form asp-action="DeleteCustomization" asp-route-id="@c.MenuItemCustomizationId" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Delete this customization?');">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

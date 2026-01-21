@@ -1,0 +1,71 @@
+﻿@model List<SnomiAssignmentReal.Models.OrderCustomizationSettings>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var item = ViewBag.MenuItem as SnomiAssignmentReal.Models.MenuItem;
+    ViewData["Title"] = "Add From Library · " + (item?.MenuItemName ?? "");
+}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" />
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Manage Menu</a></li>
+            <li class="breadcrumb-item"><a asp-action="Customizations" asp-route-menuItemId="@item?.MenuItemId">Customizations</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add From Library</li>
+        </ol>
+    </nav>
+
+    <div class="card p-4" style="border:1px solid #e5e7eb; border-radius:1rem;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="mb-0">Add From Library</h3>
+                <small class="text-muted">Item: @item?.MenuItemName (@item?.MenuItemId)</small>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-secondary mb-0">Nothing to add — this item already has all matching customizations.</div>
+        }
+        else
+        {
+            <form asp-action="AddFromLibrary" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="menuItemId" value="@item?.MenuItemId" />
+
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:5%;"></th>
+                                <th style="width:25%;">Name</th>
+                                <th style="width:40%;">Description</th>
+                                <th style="width:15%;">Price</th>
+                                <th style="width:15%;">Eligible Cat.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model)
+                            {
+                                <tr>
+                                    <td><input type="checkbox" class="form-check-input" name="pickIds" value="@c.MenuItemCustomizationId" /></td>
+                                    <td class="fw-semibold">@c.CustomizationName</td>
+                                    <td class="text-muted">@c.CustomizationDescription</td>
+                                    <td>RM @c.CustomizationAdditionalPrice.ToString("0.00")</td>
+                                    <td class="text-muted">@c.EligibleCategoryId</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-dark rounded-pill" type="submit"><i class="bi bi-plus-circle"></i> Add Selected</button>
+                    <a asp-action="Customizations" asp-route-menuItemId="@item?.MenuItemId" class="btn btn-outline-dark rounded-pill">Cancel</a>
+                </div>
+            </form>
+        }
+    </div>
+</div>
