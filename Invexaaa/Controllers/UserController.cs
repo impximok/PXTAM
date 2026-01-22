@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Invexaaa.Data;
+using Invexaaa.Helpers; // <-- hCaptcha verifier
+using Invexaaa.Models.Invexa;
+using Invexaaa.Models.ViewModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Memory;
-using System.Security.Claims;
-using Invexaaa.Data;
-using Invexaaa.Models.Invexa;
-using Invexaaa.Helpers; // <-- hCaptcha verifier
 using Microsoft.Extensions.Configuration;
+using System.Security.Claims;
 
 namespace Invexaaa.Controllers
 {
@@ -38,6 +39,104 @@ namespace Invexaaa.Controllers
             _configuration = configuration;
             _hCaptcha = hCaptcha;
         }
+
+        [AllowAnonymous]
+        [HttpGet("Register")]
+        public IActionResult Register()
+        {
+            ViewBag.HCaptchaSiteKey = _configuration["Captcha:hCaptcha:SiteKey"];
+            return View();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("Register")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            ViewBag.HCaptchaSiteKey = _configuration["Captcha:hCaptcha:SiteKey"];
+
+            // ===== hCaptcha =====
+            var token = Request.Form["h-captcha-response"].ToString();
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            if (string.IsNullOrWhiteSpace(token) ||
+                !await _hCaptcha.VerifyAsync(token, ip))
+            {
+                ModelState.AddModelError(string.Empty, "Captcha verification failed.");
+                return View(model);
+            }
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            // ===== Email exists =====
+            bool exists = await _context.Users
+                .AnyAsync(u => u.UserEmail == model.UserEmail.ToLower());
+
+            if (exists)
+            {
+                ModelState.AddModelError(nameof(model.UserEmail), "Email already exists.");
+                return View(model);
+            }
+
+            /* ================= IMAGE HANDLING ================= */
+
+            string? imagePath = null;
+
+            // 📸 Camera image (base64)
+            if (!string.IsNullOrWhiteSpace(model.CapturedImageData))
+            {
+                var base64 = model.CapturedImageData.Split(',')[1];
+                var bytes = Convert.FromBase64String(base64);
+
+                var fileName = $"{Guid.NewGuid()}.jpg";
+                var savePath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot/images/users",
+                    fileName
+                );
+
+                await System.IO.File.WriteAllBytesAsync(savePath, bytes);
+                imagePath = $"/images/users/{fileName}";
+            }
+            // 📁 Uploaded file
+            else if (model.ProfileImage != null)
+            {
+                var ext = Path.GetExtension(model.ProfileImage.FileName);
+                var fileName = $"{Guid.NewGuid()}{ext}";
+                var savePath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot/images/users",
+                    fileName
+                );
+
+                using var stream = new FileStream(savePath, FileMode.Create);
+                await model.ProfileImage.CopyToAsync(stream);
+
+                imagePath = $"/images/users/{fileName}";
+            }
+
+            /* ================= SAVE USER ================= */
+
+            var user = new User
+            {
+                UserFullName = model.UserFullName,
+                UserEmail = model.UserEmail.ToLower(),
+                UserPhone = model.UserPhone,
+                UserRole = model.UserRole,
+                UserStatus = "Active",
+                UserPasswordHash = PasswordHasher.HashPassword(model.Password),
+                UserProfileImageUrl = imagePath,
+                UserCreatedAt = DateTime.Now
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Account created successfully. Please log in.";
+            return RedirectToAction("Login");
+        }
+
 
         // ========================= LOGIN =========================
         [AllowAnonymous]
