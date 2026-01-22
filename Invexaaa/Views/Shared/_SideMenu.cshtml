@@ -1,0 +1,231 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+<style>
+    /* =====================================================
+       INVEXA SIDE MENU – CLEAN ICON ALIGNMENT
+    ===================================================== */
+
+    .invexa-side {
+        width: 72px;
+        background: #fff;
+        border-right: 1px solid #e5e7eb;
+        padding: 12px 8px;
+        display: flex;
+        flex-direction: column;
+        transition: width .25s ease;
+    }
+
+        /* Hover / lock expand */
+        .invexa-side:hover,
+        .invexa-side.expanded {
+            width: 260px;
+        }
+
+    /* Toggle button */
+    .invexa-side-toggle {
+        height: 44px;
+        width: 44px;
+        margin: 0 auto 16px;
+        background: none;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .invexa-side-toggle:hover {
+            background: #f0f0f0;
+        }
+
+    /* Logo */
+    .invexa-side-logo {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    /* Menu links */
+    .invexa-side-link {
+        height: 48px;
+        width: 100%;
+        margin-bottom: 6px;
+        border-radius: 14px;
+        text-decoration: none;
+        color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center; /* icon-only center */
+        gap: 12px;
+        transition: background .15s ease;
+        position: relative;
+    }
+
+        /* Icon */
+        .invexa-side-link i {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        /* Hover / active */
+        .invexa-side-link:hover,
+        .invexa-side-link.active {
+            background: #f2f2f2;
+        }
+
+    /* Text */
+    .invexa-side-text {
+        font-size: 14px;
+    }
+
+    /* EXPANDED STATE */
+    .invexa-side:hover .invexa-side-link,
+    .invexa-side.expanded .invexa-side-link {
+        justify-content: flex-start;
+        padding: 0 14px;
+    }
+
+    .invexa-side:hover .invexa-side-text,
+    .invexa-side.expanded .invexa-side-text {
+        display: inline;
+    }
+
+    /* Hide text when collapsed */
+    .invexa-side:not(:hover):not(.expanded) .invexa-side-text,
+    .invexa-side:not(:hover):not(.expanded) .invexa-side-section,
+    .invexa-side:not(:hover):not(.expanded) .invexa-side-logo span {
+        display: none;
+    }
+
+    /* Section labels */
+    .invexa-side-section {
+        margin: 14px 0 6px;
+        padding-left: 14px;
+        font-size: 11px;
+        color: #6b7280;
+        text-transform: uppercase;
+    }
+
+</style>
+
+<aside class="invexa-side" id="invexaSideMenu">
+
+    <!-- TOGGLE (LOCK) -->
+    <button class="invexa-side-toggle"
+            onclick="toggleInvexaSide()"
+            aria-label="Toggle menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <!-- LOGO -->
+    <div class="invexa-side-logo">
+        <i class="bi bi-box"></i>
+        <span>Invexa</span>
+    </div>
+
+    <!-- MAIN -->
+    <a asp-controller="Dashboard" asp-action="Index"
+       class="invexa-side-link @(currentController == "Dashboard" ? "active" : "")">
+        <i class="bi bi-speedometer2"></i>
+        <span class="invexa-side-text">Dashboard</span>
+    </a>
+
+    <!-- MANAGE ITEMS -->
+    <a asp-controller="Item" asp-action="ItemIndex"
+       class="invexa-side-link @(currentController == "Item" ? "active" : "")">
+        <i class="bi bi-box-seam"></i>
+        <span class="invexa-side-text">Manage Items</span>
+    </a>
+
+    <a asp-controller="Category" asp-action="CategoryIndex"
+       class="invexa-side-link @(currentController == "Category" ? "active" : "")">
+        <i class="bi bi-tags"></i>
+        <span class="invexa-side-text">Maintain Category</span>
+    </a>
+
+    <a asp-controller="Supplier" asp-action="SupplierIndex"
+       class="invexa-side-link @(currentController == "Supplier" ? "active" : "")">
+        <i class="bi bi-truck"></i>
+        <span class="invexa-side-text">Maintain Supplier</span>
+    </a>
+
+    <a asp-controller="Stock" asp-action="StockIndex"
+       class="invexa-side-link @(currentController == "Stock" ? "active" : "")">
+        <i class="bi bi-boxes"></i>
+        <span class="invexa-side-text">Maintain Stock</span>
+    </a>
+
+
+
+    <a asp-controller="Inventory" asp-action="Index"
+       class="invexa-side-link @(currentController == "Inventory" ? "active" : "")">
+        <i class="bi bi-box-seam"></i>
+        <span class="invexa-side-text">Inventory</span>
+    </a>
+
+    <a asp-controller="Expiry" asp-action="Index"
+       class="invexa-side-link @(currentController == "Expiry" ? "active" : "")">
+        <i class="bi bi-hourglass-split"></i>
+        <span class="invexa-side-text">Expiry Tracking</span>
+    </a>
+
+    <a asp-controller="Forecast" asp-action="Index"
+       class="invexa-side-link @(currentController == "Forecast" ? "active" : "")">
+        <i class="bi bi-graph-up"></i>
+        <span class="invexa-side-text">Forecasting</span>
+    </a>
+
+    <a asp-controller="Alerts" asp-action="Index"
+       class="invexa-side-link @(currentController == "Alerts" ? "active" : "")">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span class="invexa-side-text">Alerts</span>
+    </a>
+
+    <a asp-controller="Reports" asp-action="Index"
+       class="invexa-side-link @(currentController == "Reports" ? "active" : "")">
+        <i class="bi bi-file-earmark-text"></i>
+        <span class="invexa-side-text">Reports</span>
+    </a>
+
+    <div class="invexa-side-section">System</div>
+
+    <a asp-controller="Help" asp-action="Index" class="invexa-side-link">
+        <i class="bi bi-question-circle"></i>
+        <span class="invexa-side-text">Help</span>
+    </a>
+
+    <a asp-controller="Feedback" asp-action="Index" class="invexa-side-link">
+        <i class="bi bi-chat-dots"></i>
+        <span class="invexa-side-text">Feedback</span>
+    </a>
+
+    <a asp-controller="Account" asp-action="Logout" class="invexa-side-link">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="invexa-side-text">Logout</span>
+    </a>
+
+</aside>
+
+<script>
+    function toggleInvexaSide() {
+        document
+            .getElementById("invexaSideMenu")
+            .classList.toggle("expanded");
+    }
+</script>

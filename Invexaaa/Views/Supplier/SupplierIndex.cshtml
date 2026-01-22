@@ -1,0 +1,153 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<Invexaaa.Models.Invexa.Supplier>
+
+@{
+    ViewData["Title"] = "Maintain Supplier";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-semibold">Maintain Supplier</h3>
+
+        <a asp-action="Create" class="btn btn-outline-secondary">
+            <i class="bi bi-plus-lg"></i>
+        </a>
+    </div>
+
+    <!-- FILTER BAR (same style as Category) -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+
+                <!-- Search -->
+                <div class="col-md-3">
+                    <label class="form-label small">Search</label>
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Supplier name / phone" />
+                </div>
+
+                <!-- Status -->
+                <div class="col-md-3">
+                    <label class="form-label small">Status</label>
+                    <select class="form-select">
+                        <option value="">All</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Sort -->
+                <div class="col-md-3">
+                    <label class="form-label small">Sort</label>
+                    <select class="form-select">
+                        <option>Name (A–Z)</option>
+                        <option>Name (Z–A)</option>
+                        <option>Lead Time (Low–High)</option>
+                        <option>Lead Time (High–Low)</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-md-3 d-flex gap-2">
+                    <button class="btn btn-secondary w-100">Filter</button>
+                    <button class="btn btn-outline-secondary w-100">Reset</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SUPPLIER TABLE -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-secondary small">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Contact</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Lead Time</th>
+                        <th>Status</th>
+                        <th style="width:180px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td>@s.SupplierID</td>
+                            <td>@s.SupplierName</td>
+                            <td>@s.SupplierContactPerson</td>
+                            <td>@s.SupplierPhone</td>
+                            <td>@s.SupplierEmail</td>
+                            <td>@s.SupplierLeadTimeDays</td>
+                            <td>
+                                @if (s.SupplierStatus == "Active")
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td class="d-flex gap-1">
+
+                                <!-- EDIT -->
+                                <a asp-action="Edit"
+                                   asp-route-id="@s.SupplierID"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                <!-- TOGGLE STATUS -->
+                                <form asp-action="ToggleStatus"
+                                      asp-route-id="@s.SupplierID"
+                                      method="post"
+                                      class="d-inline">
+                                    @Html.AntiForgeryToken()
+
+                                    @if (s.SupplierStatus == "Active")
+                                    {
+                                        <button class="btn btn-sm btn-outline-warning"
+                                                title="Deactivate">
+                                            <i class="bi bi-slash-circle"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-success"
+                                                title="Activate">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                    }
+                                </form>
+
+                                <!-- DELETE -->
+                                <form asp-action="Delete"
+                                      asp-route-id="@s.SupplierID"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Delete this supplier permanently?');">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

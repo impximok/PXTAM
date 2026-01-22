@@ -1,0 +1,137 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<Invexaaa.Models.ViewModels.StockViewModel>
+
+@{
+    ViewData["Title"] = "Manage Stock";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form asp-action="BatchAdjust" method="post" id="batchForm">
+    @Html.AntiForgeryToken()
+
+    <div class="container-fluid">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-semibold">Manage Stock</h3>
+
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    onclick="submitBatchAdjust()">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </div>
+
+        <!-- TABLE -->
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-secondary small">
+                        <tr>
+                            <th style="width:40px">
+                                <input type="checkbox" onclick="toggleAll(this)" />
+                            </th>
+                            <th>Item</th>
+                            <th>ID</th>
+                            <th>Category</th>
+                            <th>Available</th>
+                            <th>Status</th>
+                            <th>Updated</th>
+                            <th style="width:120px">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var s in Model)
+                        {
+                            <tr>
+                                <!-- CHECKBOX -->
+                                <td>
+                                    <input type="checkbox"
+                                           name="selectedInventoryIds"
+                                           value="@s.InventoryID" />
+                                </td>
+
+                                <!-- ITEM (IMAGE + NAME) -->
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@(string.IsNullOrEmpty(s.ItemImageUrl)
+                                                                                         ? "/images/placeholder.png"
+                                                                                         : s.ItemImageUrl)"
+                                         class="rounded border"
+                                         style="width:40px;height:40px;object-fit:cover" />
+
+                                        <div>
+                                            <div class="fw-semibold">@s.ItemName</div>
+                                            <div class="text-muted small">
+                                                @s.CategoryName
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- ID -->
+                                <td>@s.ItemID</td>
+
+                                <!-- CATEGORY -->
+                                <td>@s.CategoryName</td>
+
+                                <!-- AVAILABLE -->
+                                <td class="fw-semibold">@s.AvailableQuantity</td>
+
+                                <!-- STATUS -->
+                                <td>
+                                @if (s.StockStatus == "In Stock")
+                                    {
+                                        <span class="badge bg-success">In Stock</span>
+                                    }
+                                    else if (s.StockStatus == "Low Stock")
+                                    {
+                                        <span class="badge bg-warning">Low Stock</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Out of Stock</span>
+                                    }
+                                </td>
+
+                                <!-- UPDATED -->
+                                <td>@s.LastUpdated.ToString("dd/MM/yyyy")</td>
+
+                                <!-- ACTION -->
+                                <td>
+                                    <a asp-action="Adjust"
+                                       asp-route-inventoryId="@s.InventoryID"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Adjust
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<script>
+    function submitBatchAdjust() {
+        const checked = document.querySelectorAll(
+            'input[name="selectedInventoryIds"]:checked'
+        );
+        if (checked.length === 0) {
+            alert("Please select at least one item.");
+            return;
+        }
+        document.getElementById("batchForm").submit();
+    }
+
+    function toggleAll(source) {
+        document.querySelectorAll(
+            'input[name="selectedInventoryIds"]'
+        ).forEach(cb => cb.checked = source.checked);
+    }
+</script>

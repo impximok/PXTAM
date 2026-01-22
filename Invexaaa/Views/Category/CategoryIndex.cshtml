@@ -1,0 +1,155 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<Invexaaa.Models.Invexa.Category>
+
+@{
+    ViewData["Title"] = "Maintain Category";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="container-fluid">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-semibold">Maintain Category</h3>
+
+        <!-- Add Category -->
+        <a asp-action="Create" class="btn btn-outline-secondary">
+            <i class="bi bi-plus-lg"></i>
+        </a>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+
+                <!-- Search -->
+                <div class="col-md-3">
+                    <label class="form-label small">Search</label>
+                    <input type="text" class="form-control" placeholder="Category name" />
+                </div>
+
+                <!-- Status -->
+                <div class="col-md-3">
+                    <label class="form-label small">Status</label>
+                    <select class="form-select">
+                        <option value="">All</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Sort -->
+                <div class="col-md-3">
+                    <label class="form-label small">Sort</label>
+                    <select class="form-select">
+                        <option>Name (A–Z)</option>
+                        <option>Name (Z–A)</option>
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-md-3 d-flex gap-2">
+                    <button class="btn btn-secondary w-100">Filter</button>
+                    <button class="btn btn-outline-secondary w-100">Reset</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY TABLE -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-secondary small">
+                    <tr>
+                        <th style="width:40px">
+                            <input type="checkbox" />
+                        </th>
+                        <th>ID</th>
+                        <th>Category Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th style="width:140px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><input type="checkbox" /></td>
+                            <td>@item.CategoryID</td>
+                            <td>@item.CategoryName</td>
+                            <td>@item.CategoryDescription</td>
+                            <td>
+                                @if (item.CategoryStatus == "Active")
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td class="d-flex gap-1">
+
+                                <!-- EDIT -->
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.CategoryID"
+                                   class="btn btn-sm btn-outline-primary"
+                                   title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                <!-- TOGGLE ACTIVE / INACTIVE -->
+                                <form asp-action="ToggleStatus"
+                                      asp-route-id="@item.CategoryID"
+                                      method="post"
+                                      class="d-inline">
+                                    @Html.AntiForgeryToken()
+
+                                    @if (item.CategoryStatus == "Active")
+                                    {
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-warning"
+                                                title="Deactivate">
+                                            <i class="bi bi-slash-circle"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-success"
+                                                title="Activate">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                    }
+                                </form>
+
+                                <!-- DELETE -->
+                                <form asp-action="Delete"
+                                      asp-route-id="@item.CategoryID"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to permanently delete this category?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger"
+                                            title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+
+            </table>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,54 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Invexaaa.Models.Invexa.Inventory
+
+@{
+    ViewData["Title"] = "Adjust Stock";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <h3 class="fw-semibold mb-4">Adjust Stock</h3>
+
+    <div class="card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <form asp-action="Adjust" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="inventoryId" value="@Model.InventoryID" />
+
+                <div class="mb-3">
+                    <label class="form-label">Current Quantity</label>
+                    <input class="form-control" value="@Model.InventoryTotalQuantity" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">New Quantity</label>
+                    <input name="newQuantity"
+                           type="number"
+                           min="0"
+                           class="form-control"
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Reason</label>
+                    <textarea name="reason"
+                              class="form-control"
+                              maxlength="255"
+                              required></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary">Save</button>
+                    <a asp-action="StockIndex" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
