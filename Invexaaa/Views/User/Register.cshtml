@@ -1,58 +1,355 @@
-﻿@model Invexaaa.Models.Invexa.User
+﻿@model Invexaaa.Models.ViewModels.RegisterViewModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-
 @{
-    ViewData["Title"] = "Create User";
+    ViewData["Title"] = "Register";
     ViewBag.HideHeader = true;
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var siteKey = ViewBag.HCaptchaSiteKey as string ?? "";
 }
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css">
 
 <div class="page">
     <div class="sheet">
-
-        <h2>Create New User</h2>
-        <p class="muted">Admin can create Manager or Staff accounts</p>
-
-        <form asp-action="Register" method="post" novalidate>
+        <form asp-action="Register" asp-controller="User" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
 
-            <div asp-validation-summary="All" class="val mb16"></div>
+            <div class="grid">
 
-            <div class="group">
-                <label class="label">Full Name</label>
-                <input asp-for="UserFullName" class="input" />
-                <span asp-validation-for="UserFullName" class="val"></span>
+                <!-- ================= LEFT ================= -->
+                <section class="panel">
+                    <h5 class="title">Profile Photo</h5>
 
-                <label class="label">Email</label>
-                <input asp-for="UserEmail" class="input" />
-                <span asp-validation-for="UserEmail" class="val"></span>
+                    <div class="avatar" id="avatarBox">
+                        <img id="profilePreview" />
+                        <video id="camVideo" autoplay playsinline hidden></video>
+                        <span class="avatar-ph">Preview</span>
+                    </div>
 
-                <label class="label">Phone</label>
-                <input asp-for="UserPhone" class="input" />
-                <span asp-validation-for="UserPhone" class="val"></span>
+                    <input asp-for="ProfileImage" id="ProfileImage" type="file" accept="image/*" hidden />
+                    <input asp-for="CapturedImageData" id="CapturedImageData" type="hidden" />
 
-                <label class="label">Role</label>
-                <select asp-for="UserRole" class="input">
-                    <option value="Staff">Staff</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Admin">Admin</option>
-                </select>
+                    <!-- Drag & Drop -->
+                    <div id="dropzone" class="dropzone">
+                        Drag & drop image here<br />
+                        or click Upload
+                    </div>
 
-                <label class="label">Password</label>
-                <input asp-for="UserPasswordHash" type="password" class="input" />
-                <span asp-validation-for="UserPasswordHash" class="val"></span>
+                    <div class="actions">
+                        <button type="button" class="btn" id="btnUpload">Upload</button>
+                        <button type="button" class="btn" id="btnCamera">Camera</button>
+                        <button type="button" class="btn solid" id="btnCapture">Capture</button>
+                    </div>
+
+                    <span asp-validation-for="ProfileImage" class="val"></span>
+                </section>
+
+                <!-- ================= RIGHT ================= -->
+                <section class="panel">
+                    <h3 class="title-xl">Create account</h3>
+
+                    <div asp-validation-summary="All" class="val"></div>
+
+                    <label>Full Name</label>
+                    <input asp-for="UserFullName" class="input" />
+
+                    <label>Email</label>
+                    <input asp-for="UserEmail" class="input" />
+
+                    <div class="row">
+                        <div>
+                            <label>Password</label>
+                            <div class="password">
+                                <input asp-for="Password" id="Password" type="password" class="input" />
+                                <button type="button" class="eye" data-target="Password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label>Confirm</label>
+                            <div class="password">
+                                <input asp-for="ConfirmPassword" id="ConfirmPassword" type="password" class="input" />
+                                <button type="button" class="eye" data-target="ConfirmPassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label>Phone</label>
+                    <input asp-for="UserPhone" class="input" />
+
+                    <label>Role</label>
+                    <select asp-for="UserRole" class="input">
+                        <option value="Staff">Staff</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+
+                    <div class="captcha">
+                        <div class="h-captcha" data-sitekey="@siteKey"></div>
+                    </div>
+
+                    <button type="submit" class="btn solid w100">Create Account</button>
+
+                    <div class="back">
+                        <a asp-action="Login" asp-controller="User">← Back to Login</a>
+                    </div>
+                </section>
+
             </div>
-
-            <button type="submit" class="btn solid w100 mt16">Create User</button>
-
-            @if (TempData["Success"] != null)
-            {
-                <p class="muted mt12">@TempData["Success"]</p>
-            }
         </form>
     </div>
 </div>
 
+<!-- ================= IMAGE EDITOR ================= -->
+<div id="editorModal" class="editor hidden">
+    <div class="editor-box">
+        <canvas id="editorCanvas" width="300" height="300"></canvas>
+
+        <input type="range" id="zoom" min="1" max="3" step="0.01" value="1">
+
+        <div class="editor-actions">
+            <button type="button" class="btn" id="rotateLeft">⟲</button>
+            <button type="button" class="btn" id="rotateRight">⟳</button>
+            <button type="button" class="btn solid" id="useImage">Use</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page {
+        padding: 40px
+    }
+
+    .sheet {
+        max-width: 1100px;
+        margin: auto
+    }
+
+    .grid {
+        display: grid;
+        gap: 30px
+    }
+    @@media(min - width:980px) {
+        .grid
+
+    {
+        grid-template-columns: 420px 1fr
+    }
+
+    }
+
+    .panel {
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        padding: 24px
+    }
+
+    .avatar {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: #eee;
+        margin: 20px auto;
+        position: relative;
+        overflow: hidden
+    }
+
+        .avatar img, .avatar video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+    .avatar-ph {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: #777
+    }
+
+    .dropzone {
+        border: 2px dashed #aaa;
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer
+    }
+
+        .dropzone.drag {
+            background: #f5f5f5
+        }
+
+    .actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 10px
+    }
+
+    .input {
+        width: 100%;
+        height: 46px;
+        border-radius: 12px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 12px
+    }
+
+    .row {
+        display: grid;
+        gap: 16px
+    }
+    @@media(min - width:720px) {
+        .row
+
+    {
+        grid-template-columns: 1fr 1fr
+    }
+
+    }
+
+    .password {
+        position: relative
+    }
+
+    .eye {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: 0
+    }
+
+    .btn {
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: 1px solid #000;
+        background: #fff
+    }
+
+        .btn.solid {
+            background: #000;
+            color: #fff
+        }
+
+    .w100 {
+        width: 100%
+    }
+
+    .val {
+        color: #d11;
+        font-size: 12px
+    }
+
+    .back {
+        text-align: center;
+        margin-top: 12px
+    }
+
+    .editor {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.5);
+        display: grid;
+        place-items: center
+    }
+
+        .editor.hidden {
+            display: none
+        }
+
+    .editor-box {
+        background: #fff;
+        padding: 20px;
+        border-radius: 16px
+    }
+
+    .editor-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 10px
+    }
+</style>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+
+    <script>
+        const dz=document.getElementById('dropzone');
+        const file=document.getElementById('ProfileImage');
+        const img=document.getElementById('profilePreview');
+        const video=document.getElementById('camVideo');
+        const hidden=document.getElementById('CapturedImageData');
+        let stream=null,angle=0,zoom=1,baseImg=new Image();
+
+        dz.onclick=()=>file.click();
+        dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag')}
+        dz.ondragleave=()=>dz.classList.remove('drag')
+        dz.ondrop=e=>{
+         e.preventDefault();dz.classList.remove('drag');
+         file.files=e.dataTransfer.files;loadFile(file.files[0])
+        }
+        file.onchange=e=>loadFile(e.target.files[0]);
+
+        function loadFile(f){
+         const r=new FileReader();
+         r.onload=()=>openEditor(r.result);
+         r.readAsDataURL(f);
+        }
+
+        document.getElementById('btnCamera').onclick=async()=>{
+         stream=await navigator.mediaDevices.getUserMedia({video:true});
+         video.srcObject=stream;video.hidden=false;img.hidden=true;
+        }
+
+        document.getElementById('btnCapture').onclick=()=>{
+         const c=document.createElement('canvas');
+         c.width=video.videoWidth;c.height=video.videoHeight;
+         c.getContext('2d').drawImage(video,0,0);
+         openEditor(c.toDataURL());
+         stream.getTracks().forEach(t=>t.stop());
+         video.hidden=true;
+        }
+
+        function openEditor(src){
+         document.getElementById('editorModal').classList.remove('hidden');
+         baseImg.onload=draw;baseImg.src=src;
+        }
+
+        function draw(){
+         const c=document.getElementById('editorCanvas');
+         const g=c.getContext('2d');
+         g.clearRect(0,0,300,300);
+         g.save();
+         g.translate(150,150);
+         g.rotate(angle*Math.PI/180);
+         g.scale(zoom,zoom);
+         g.drawImage(baseImg,-150,-150,300,300);
+         g.restore();
+        }
+
+        zoom.oninput=e=>{zoom=e.target.value;draw();}
+        rotateLeft.onclick=()=>{angle-=90;draw()}
+        rotateRight.onclick=()=>{angle+=90;draw()}
+        useImage.onclick=()=>{
+         hidden.value=editorCanvas.toDataURL();
+         img.src=hidden.value;img.hidden=false;
+         editorModal.classList.add('hidden');
+        }
+
+        document.querySelectorAll('.eye').forEach(b=>{
+         b.onclick=()=>{
+          const i=document.getElementById(b.dataset.target);
+          i.type=i.type==='password'?'text':'password';
+         }
+        });
+    </script>
 }

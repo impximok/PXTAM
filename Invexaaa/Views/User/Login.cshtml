@@ -11,13 +11,13 @@
 <div class="auth-wrap">
     <div class="auth-card" role="region" aria-labelledby="authTitle">
         <div class="auth-head">
-            <h1 id="authTitle">Invexa Login</h1>
+            <h1 id="authTitle">Login</h1>
             <p>Admin, Manager & Staff only</p>
         </div>
 
         @if (isPost && hasModelErrors)
         {
-            <div class="auth-alert" role="alert">
+            <div class="auth-alert" role="alert" aria-live="polite">
                 <div asp-validation-summary="ModelOnly"></div>
             </div>
         }
@@ -32,6 +32,7 @@
                        type="email"
                        class="input"
                        placeholder="staff@invexa.com"
+                       aria-required="true"
                        required />
             </div>
 
@@ -44,13 +45,46 @@
                            type="password"
                            class="input"
                            placeholder="••••••••"
+                           aria-required="true"
                            required />
+
                     <button type="button"
                             id="togglePassword"
                             class="toggle"
-                            aria-label="Show/Hide password"
+                            aria-label="Show or hide password"
                             tabindex="-1">
-                        👁
+
+                        <!-- Eye open -->
+                        <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg"
+                             width="20" height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+
+                        <!-- Eye closed -->
+                        <svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg"
+                             width="20" height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round"
+                             style="display:none;">
+                            <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20
+                                     C7 20 2.73 16.11 1 12
+                                     a21.82 21.82 0 0 1 5.06-6.88" />
+                            <path d="M3 3l18 18" />
+                            <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4
+                                     c5 0 9.27 3.89 11 8
+                                     a21.82 21.82 0 0 1-2.16 3.19" />
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -63,6 +97,21 @@
             <button type="submit" class="btn btn-primary">Log In</button>
         </form>
 
+        <!-- Divider -->
+        <div class="sep" aria-hidden="true"></div>
+
+        <!-- Register CTA -->
+        <div class="register-cta" aria-live="polite">
+            <p class="register-text">
+                Don’t have an account?
+                <a asp-controller="User"
+                   asp-action="Register"
+                   class="link-register">
+                    Register here
+                </a>
+            </p>
+        </div>
+
         <div class="back">
             <a href="~/" class="link">← Back to Home</a>
         </div>
@@ -74,14 +123,16 @@
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 
     <script>
-        // Password show / hide
         const pwd = document.getElementById('Password');
         const btn = document.getElementById('togglePassword');
+        const eyeOpen = document.getElementById('eyeOpen');
+        const eyeClosed = document.getElementById('eyeClosed');
 
         btn?.addEventListener('click', () => {
-            const isPwd = pwd.type === 'password';
-            pwd.type = isPwd ? 'text' : 'password';
-            btn.textContent = isPwd ? '🙈' : '👁';
+            const isPassword = pwd.type === 'password';
+            pwd.type = isPassword ? 'text' : 'password';
+            eyeOpen.style.display = isPassword ? 'none' : 'block';
+            eyeClosed.style.display = isPassword ? 'block' : 'none';
         });
 
         // Prevent double submit
@@ -94,3 +145,155 @@
         });
     </script>
 }
+
+<style>
+    :root {
+        --bg: #f5f5f7;
+        --card: #ffffff;
+        --ink: #0a0a0a;
+        --muted: #6b6b6b;
+        --line: #e6e6e6;
+        --radius: 18px;
+        --shadow: 0 8px 30px rgba(0,0,0,.06);
+        --danger: #7a1f1f;
+        --danger-bg: #fdecec;
+        --danger-br: #f0c2c2;
+    }
+
+    html, body {
+        background: var(--bg) !important;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .auth-wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+    }
+
+    .auth-card {
+        width: min(500px, 100%);
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 32px 28px;
+    }
+
+    .auth-head {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+        .auth-head h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .auth-head p {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+    .auth-alert {
+        border: 1px solid var(--danger-br);
+        background: var(--danger-bg);
+        color: var(--danger);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 16px;
+    }
+
+    .auth-form {
+        display: grid;
+        gap: 16px;
+    }
+
+    .field label {
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .input {
+        width: 100%;
+        height: 50px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        padding: 0 14px;
+        font-size: 15px;
+    }
+
+    .input-with-toggle {
+        position: relative;
+    }
+
+    .toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #666;
+    }
+
+        .toggle:hover {
+            color: #000;
+        }
+
+    .captcha-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 8px 0;
+    }
+
+    .btn {
+        height: 48px;
+        border-radius: 999px;
+        font-weight: 600;
+        border: 2px solid #000;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #000;
+        color: #fff;
+    }
+
+        .btn-primary:hover {
+            background: #fff;
+            color: #000;
+        }
+
+    .sep {
+        height: 1px;
+        background: var(--line);
+        margin: 18px 0 14px;
+    }
+
+    .register-cta {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .register-text {
+        font-size: 14px;
+        color: var(--muted);
+    }
+
+    .link-register {
+        font-weight: 600;
+        text-decoration: underline;
+        color: #000;
+    }
+
+    .back {
+        text-align: center;
+        margin-top: 12px;
+    }
+</style>

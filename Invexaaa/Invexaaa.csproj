@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\Invexa\ViewModels\" />
     <Folder Include="wwwroot\images\users\" />
     <Folder Include="wwwroot\sounds\" />
   </ItemGroup>
