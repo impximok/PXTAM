@@ -12,7 +12,7 @@
     <div class="auth-card" role="region" aria-labelledby="authTitle">
         <div class="auth-head">
             <h1 id="authTitle">Login</h1>
-            <p>Admin, Manager & Staff only</p>
+            <p>Authorized personnel access only.</p>
         </div>
 
         @if (isPost && hasModelErrors)
@@ -27,7 +27,7 @@
 
             <!-- Email -->
             <div class="field">
-                <label>Email address</label>
+                <label>Email Address</label>
                 <input name="email"
                        type="email"
                        class="input"
@@ -47,6 +47,8 @@
                            placeholder="••••••••"
                            aria-required="true"
                            required />
+                    
+
 
                     <button type="button"
                             id="togglePassword"
@@ -86,6 +88,9 @@
                                      a21.82 21.82 0 0 1-2.16 3.19" />
                         </svg>
                     </button>
+                </div>
+                <div class="forgot-wrap">
+                    <a href="#" class="forgot-link">Forgot password?</a>
                 </div>
             </div>
 
@@ -196,6 +201,7 @@
         .auth-head p {
             font-size: 14px;
             color: var(--muted);
+            margin-bottom: 30px
         }
 
     .auth-alert {
@@ -213,10 +219,13 @@
     }
 
     .field label {
-        font-weight: 600;
+        font-size: 13px;
+        font-weight: 500;
+        color: #000;
         margin-bottom: 6px;
         display: block;
     }
+
 
     .input {
         width: 100%;
@@ -247,10 +256,10 @@
         }
 
     .captcha-wrap {
-        display: flex;
-        justify-content: center;
-        padding: 8px 0;
+        margin-top: 6px;
+        margin-bottom: 12px;
     }
+
 
     .btn {
         height: 48px;
@@ -263,12 +272,23 @@
     .btn-primary {
         background: #000;
         color: #fff;
+        border: 1px solid #000;
     }
 
-        .btn-primary:hover {
-            background: #fff;
-            color: #000;
+    .btn-primary:hover {
+        background: #fff;
+        color: #000;
+        border-color: #000; /* force black */
+    }
+
+        /* Pressed (mouse down) → dark grey */
+        .btn-primary:active,
+        .btn-primary.active {
+            background-color: #2b2b2b !important; /* dark grey */
+            border-color: #2b2b2b !important;
+            color: #fff !important;
         }
+
 
     .sep {
         height: 1px;
@@ -287,13 +307,89 @@
     }
 
     .link-register {
+        font-size: 14px;
         font-weight: 600;
         text-decoration: underline;
         color: #000;
+    }
+
+    .link-register:hover {
+       color: #2563eb; /* blue on hover */
     }
 
     .back {
         text-align: center;
         margin-top: 12px;
     }
+
+    .back .link {
+        color: #000;     
+        font-size: 14px;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+
+    .back .link:hover {
+        color: #2563eb;           /* blue on hover */
+        text-decoration: underline;
+    }
+
+    .forgot-wrap {
+        text-align: right;
+        margin-top: 6px;
+    }
+
+    .forgot-link {
+        font-size: 13px;
+        color: #000;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+        .forgot-link:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+    /* =====================================
+       LOGIN BUTTON – PRIMARY (REVERSE HOVER)
+       ===================================== */
+
+    /* Default */
+    .auth-card .btn.btn-primary {
+        background-color: #000 !important;
+        border: 1px solid #000 !important;
+        color: #fff !important;
+        box-shadow: none !important;
+    }
+
+        /* Hover → reverse */
+        .auth-card .btn.btn-primary:hover {
+            background-color: #fff !important;
+            border-color: #000 !important;
+            color: #000 !important;
+        }
+
+        }
+
+        /* After click / focus → back to default, no blue */
+        .auth-card .btn.btn-primary:focus,
+        .auth-card .btn.btn-primary:focus-visible,
+        .auth-card .btn-check:focus + .btn-primary,
+        .auth-card .btn-check:checked + .btn-primary {
+            background-color: #000 !important;
+            border-color: #000 !important;
+            color: #fff !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+    /* Remove mobile blue tap highlight */
+    .auth-card .btn.btn-primary {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+
+
+
 </style>
