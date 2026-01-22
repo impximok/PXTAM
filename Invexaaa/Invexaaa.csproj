@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="wwwroot\images\users\" />
     <Folder Include="wwwroot\sounds\" />
   </ItemGroup>
 
@@ -27,6 +26,7 @@
     </PackageReference>
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="Rotativa.AspNetCore" Version="1.4.0" />
+    <PackageReference Include="ZXing.Net" Version="0.16.11" />
   </ItemGroup>
 
 </Project>

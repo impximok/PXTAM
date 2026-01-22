@@ -1,0 +1,172 @@
+﻿@model IEnumerable<Invexaaa.Models.ViewModels.ItemCardViewModel>
+
+@{
+    ViewData["Title"] = "Manage Items";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* 🔥 CRITICAL FIX: ensure header is clickable */
+    .page-header {
+        position: relative;
+        z-index: 1000;
+        pointer-events: auto;
+    }
+
+    /* Prevent cards/forms from overlapping header */
+    .card,
+    .row,
+    .container-fluid {
+        position: relative;
+    }
+</style>
+
+<div class="container-fluid">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4 page-header">
+        <h2 class="fw-bold">Manage Items</h2>
+
+        <!-- HARD GUARANTEED CLICKABLE BUTTON -->
+        <a href="/Item/CreateItem"
+           class="btn btn-primary"
+           style="pointer-events:auto;">
+            <i class="bi bi-plus-circle"></i> Add New Item
+        </a>
+    </div>
+
+    <!-- BARCODE SCAN BOX -->
+    <form method="get"
+          action="/Item/Scan"
+          class="card p-3 mb-4"
+          style="max-width:420px;">
+        <label class="form-label fw-semibold">
+            Scan Barcode
+        </label>
+
+        <input type="text"
+               name="code"
+               autofocus
+               placeholder="Scan barcode here..."
+               class="form-control"
+               style="font-size:1rem;" />
+
+        <small class="text-muted mt-1">
+            Use a barcode scanner or phone camera
+        </small>
+    </form>
+
+
+    <!-- FILTER BAR -->
+    <form method="get"
+          action="/Item/ItemIndex"
+          class="card p-3 mb-4">
+
+        <div class="row g-3 align-items-end">
+
+            <!-- Search -->
+            <div class="col-md-4">
+                <label class="form-label">Item</label>
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       placeholder="Search by name or barcode"
+                       value="@Context.Request.Query["search"]" />
+            </div>
+
+            <!-- Category -->
+            <div class="col-md-3">
+                <label class="form-label">Category</label>
+                <select name="categoryId" class="form-select">
+                    <option value="">All Categories</option>
+                    @foreach (var c in ViewBag.Categories)
+                    {
+                        <option value="@c.CategoryID"
+                                selected="@(Context.Request.Query["categoryId"] == c.CategoryID.ToString())">
+                            @c.CategoryName
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    @foreach (var s in ViewBag.StatusList)
+                    {
+                        <option value="@s"
+                                selected="@(Context.Request.Query["status"] == s)">
+                            @s
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-dark">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+            </div>
+
+        </div>
+    </form>
+
+    <!-- ITEM GRID -->
+    <div class="row g-4">
+
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center text-muted py-5">
+                <h5>No items found</h5>
+                <p>Try adjusting your search or filters.</p>
+            </div>
+        }
+        else
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    @Html.Partial("_ItemCard", item)
+                </div>
+            }
+        }
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="d-flex justify-content-between align-items-center mt-4">
+
+        <small class="text-muted">
+            Showing @Model.Count() items
+        </small>
+
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled">
+                    <a class="page-link">Previous</a>
+                </li>
+                <li class="page-item active">
+                    <a class="page-link">1</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link">2</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link">Next</a>
+                </li>
+            </ul>
+        </nav>
+
+    </div>
+
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <script>
+        alert("@TempData["Success"]");
+    </script>
+}

@@ -1,0 +1,99 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Invexaaa.Models.Invexa.Supplier
+
+@{
+    ViewData["Title"] = "Create Supplier";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <h3 class="fw-semibold mb-4">Create Supplier</h3>
+
+    <div class="card">
+        <div class="card-body">
+
+            <!-- MODEL-LEVEL ERRORS -->
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Supplier Name -->
+                <div class="mb-3">
+                    <label asp-for="SupplierName" class="form-label"></label>
+                    <input asp-for="SupplierName" class="form-control" />
+                    <span asp-validation-for="SupplierName" class="text-danger"></span>
+                </div>
+
+                <!-- Contact Person -->
+                <div class="mb-3">
+                    <label asp-for="SupplierContactPerson" class="form-label"></label>
+                    <input asp-for="SupplierContactPerson" class="form-control" />
+                    <span asp-validation-for="SupplierContactPerson" class="text-danger"></span>
+                </div>
+
+                <!-- Phone (NUMBERS ONLY) -->
+                <div class="mb-3">
+                    <label asp-for="SupplierPhone" class="form-label"></label>
+                    <input asp-for="SupplierPhone"
+                           class="form-control"
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           oninput="this.value = this.value.replace(/[^0-9]/g,'')" />
+                    <span asp-validation-for="SupplierPhone" class="text-danger"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label asp-for="SupplierEmail" class="form-label"></label>
+                    <input asp-for="SupplierEmail" type="email" class="form-control" />
+                    <span asp-validation-for="SupplierEmail" class="text-danger"></span>
+                </div>
+
+                <!-- Address -->
+                <div class="mb-3">
+                    <label asp-for="SupplierAddress" class="form-label"></label>
+                    <textarea asp-for="SupplierAddress" class="form-control"></textarea>
+                    <span asp-validation-for="SupplierAddress" class="text-danger"></span>
+                </div>
+
+                <!-- Lead Time (NON-NEGATIVE NUMBER) -->
+                <div class="mb-3">
+                    <label asp-for="SupplierLeadTimeDays" class="form-label"></label>
+                    <input asp-for="SupplierLeadTimeDays"
+                           type="number"
+                           min="0"
+                           class="form-control" />
+                    <span asp-validation-for="SupplierLeadTimeDays" class="text-danger"></span>
+                </div>
+
+                <!-- Status -->
+                <div class="mb-4">
+                    <label asp-for="SupplierStatus" class="form-label"></label>
+                    <select asp-for="SupplierStatus" class="form-select">
+                        <option value="">-- Select Status --</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                    <span asp-validation-for="SupplierStatus" class="text-danger"></span>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <a asp-action="SupplierIndex" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

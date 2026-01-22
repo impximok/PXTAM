@@ -1,0 +1,226 @@
+﻿@model Invexaaa.Models.ViewModels.ItemDetailViewModel
+
+@{
+    ViewData["Title"] = "Item Detail";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .item-detail-container {
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        gap: 30px;
+        padding: 25px;
+    }
+
+    /* LEFT SIDE */
+    .image-panel {
+        background: #fff;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    }
+
+    .main-image {
+        width: 100%;
+        height: 300px;
+        border-radius: 12px;
+        border: 2px solid #0d6efd;
+        object-fit: contain;
+        background: #f5f5f5;
+    }
+
+    .thumb-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    .thumb {
+        width: 90px;
+        height: 70px;
+        background: #e0e0e0;
+        border-radius: 8px;
+    }
+
+    .barcode {
+        margin-top: 15px;
+        text-align: center;
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    /* RIGHT SIDE */
+    .detail-panel {
+        background: #fff;
+        border-radius: 14px;
+        padding: 25px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    }
+
+    .item-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+
+    .meta {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .divider {
+        border-top: 1px solid #e0e0e0;
+        margin: 15px 0;
+    }
+
+    .desc {
+        font-size: 0.9rem;
+        color: #444;
+        line-height: 1.6;
+    }
+
+    /* TABLE */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        font-size: 0.85rem;
+    }
+
+    th, td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+    }
+
+    th {
+        background: #f1f1f1;
+        font-weight: 600;
+    }
+
+    .badge-ok {
+        background: #d1e7dd;
+        color: #0f5132;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+    }
+
+    .badge-warn {
+        background: #fff3cd;
+        color: #664d03;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+    }
+
+    .badge-danger {
+        background: #f8d7da;
+        color: #842029;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+    }
+
+    @@media (max-width: 900px) {
+        .item-detail-container
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    }
+</style>
+
+<div class="item-detail-container">
+
+    <!-- LEFT : IMAGE -->
+    <div class="image-panel">
+        <img class="main-image"
+             src="@(string.IsNullOrWhiteSpace(Model.ImageUrl)
+                                              ? "/images/no-image.png"
+                                              : Model.ImageUrl)" />
+
+        <div class="thumb-row">
+            <div class="thumb"></div>
+            <div class="thumb"></div>
+        </div>
+
+        <div class="barcode">
+            @if (!string.IsNullOrWhiteSpace(Model.ItemBarcode))
+            {
+                <img src="@Url.Action("Generate", "Barcode", new { code = Model.ItemBarcode })"
+                     style="width:200px;" />
+                <div>@Model.ItemBarcode</div>
+            }
+            else
+            {
+                <span class="text-muted">No barcode available</span>
+            }
+        </div>
+
+    </div>
+
+    <!-- RIGHT : DETAILS -->
+    <div class="detail-panel">
+
+        <div class="item-title">@Model.ItemName</div>
+
+        <div class="meta">
+            Category: @Model.CategoryName &nbsp; | &nbsp;
+            Balance: @Model.CurrentBalance <br />
+            Reorder Level: @Model.ReorderLevel
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="desc">
+            <strong>Unit:</strong> @Model.UnitOfMeasure <br />
+            <strong>Buy Price:</strong> RM @Model.BuyPrice.ToString("0.00") <br />
+            <strong>Sell Price:</strong> RM @Model.SellPrice.ToString("0.00") <br />
+            <strong>Status:</strong> @Model.Status
+        </div>
+
+        <div class="divider"></div>
+
+        <h6 class="fw-semibold">Batch Information</h6>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Batch No</th>
+                    <th>Expiry Date</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model.Batches)
+                {
+                    <tr>
+                        <td>@b.BatchNo</td>
+                        <td>@b.ExpiryDate.ToString("dd/MM/yyyy")</td>
+                        <td>@b.Quantity</td>
+                        <td>
+                            @if (b.BatchStatus == "Near Expiry")
+                            {
+                                <span class="badge-warn">Near Expiry</span>
+                            }
+                            else if (b.BatchStatus == "Reorder")
+                            {
+                                <span class="badge-danger">Reorder</span>
+                            }
+                            else
+                            {
+                                <span class="badge-ok">OK</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
