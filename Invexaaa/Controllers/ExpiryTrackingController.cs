@@ -16,12 +16,12 @@ namespace Invexaaa.Controllers
             _context = context;
         }
 
-        public IActionResult Index(
-            string? search,
-            int? categoryId,
-            string? expiryStatus,
-            string? expiryRange
-        )
+        public IActionResult ExpiryTrackingIndex(
+    string? search,
+    int? categoryId,
+    string? expiryStatus,
+    string? expiryRange
+)
         {
             var today = DateTime.Today;
 
@@ -37,19 +37,20 @@ namespace Invexaaa.Controllers
                     BatchNumber = batch.BatchNumber,
                     Quantity = batch.BatchQuantity,
                     ExpiryDate = batch.BatchExpiryDate,
-                    ExpiryStatus = batch.BatchExpiryDate < today
-                        ? "Expired"
-                        : batch.BatchExpiryDate <= today.AddDays(30)
-                            ? "Near Expiry"
-                            : "Safe"
+                    ExpiryStatus =
+                        batch.BatchExpiryDate < today ? "Expired" :
+                        batch.BatchExpiryDate <= today.AddDays(30) ? "Near Expiry" :
+                        "Safe"
                 };
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(x => x.ItemName.Contains(search));
 
             if (categoryId.HasValue)
-                query = query.Where(x => x.CategoryName != null && _context.Categories
-                    .Any(c => c.CategoryID == categoryId && c.CategoryName == x.CategoryName));
+                query = query.Where(x =>
+                    _context.Categories.Any(c =>
+                        c.CategoryID == categoryId &&
+                        c.CategoryName == x.CategoryName));
 
             if (!string.IsNullOrEmpty(expiryStatus))
                 query = query.Where(x => x.ExpiryStatus == expiryStatus);
@@ -63,5 +64,6 @@ namespace Invexaaa.Controllers
 
             return View(query.OrderBy(x => x.ExpiryDate).ToList());
         }
+
     }
 }
