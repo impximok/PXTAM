@@ -11,7 +11,12 @@
 
 <div class="page">
     <div class="sheet">
-        <form asp-action="Register" asp-controller="User" method="post" enctype="multipart/form-data">
+        <form asp-action="Register"
+              asp-controller="User"
+              method="post"
+              enctype="multipart/form-data"
+              novalidate>
+
             @Html.AntiForgeryToken()
 
             <div class="grid">
@@ -28,6 +33,7 @@
                             <video id="camVideo" autoplay playsinline hidden></video>
                             <span class="avatar-ph">Preview</span>
                         </div>
+
 
                         <div class="segmented">
                             <div class="seg-indicator"></div>
@@ -57,28 +63,34 @@
                     </div>
 
                     <!-- Keep capture button (sample doesn’t show it, but you can keep) -->
-                    <div class="actions">
-                        <button type="button" class="btn solid btn-primary-size" id="btnCapture">
-                            Capture
-                        </button>
+                    <span asp-validation-for="ProfileImage" class="val"></span>
 
+                    <div class="panel-footer">
+                        <div class="actions">
+                            <button type="button" class="btn solid primary-action" id="btnCapture">Capture</button>
+                        </div>
                     </div>
 
-                    <span asp-validation-for="ProfileImage" class="val"></span>
                 </section>
 
 
                 <!-- ================= RIGHT ================= -->
                 <section class="panel">
                     <h3 class="title-xl">Create account</h3>
+                    <p class="avatarNote">Fill in your details to create a new account.</p>
 
 
 
                     <label>Full Name</label>
                     <input asp-for="UserFullName" class="input" />
+                    <span asp-validation-for="UserFullName" class="val"></span>
+
 
                     <label>Email Address</label>
-                    <input asp-for="UserEmail" class="input" />
+                    <input asp-for="UserEmail" class="input" type="text" />
+                    <span asp-validation-for="UserEmail" class="val"></span>
+
+
 
                     <div class="row">
                         <div>
@@ -89,6 +101,7 @@
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
+                            <span asp-validation-for="Password" class="val"></span>
                         </div>
 
                         <div>
@@ -99,6 +112,7 @@
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
+                            <span asp-validation-for="ConfirmPassword" class="val"></span>
                         </div>
                     </div>
 
@@ -106,6 +120,8 @@
                         <div>
                             <label>Phone Number</label>
                             <input asp-for="UserPhone" class="input" />
+                            <span asp-validation-for="UserPhone" class="val"></span>
+
                         </div>
 
                         <div>
@@ -126,6 +142,7 @@
 
                             <!-- hidden input for form submit -->
                             <input type="hidden" name="UserRole" id="UserRole" value="Staff" />
+                            <span asp-validation-for="UserRole" class="val"></span>
                         </div>
                     </div>
 
@@ -134,14 +151,18 @@
                     <div class="captcha">
                         <div class="h-captcha" data-sitekey="@siteKey"></div>
                     </div>
-                    <button type="submit" class="btn solid w100 btn-primary-size">
-                        Create Account
-                    </button>
+                    <div class="panel-footer">
+                        <div class="actions">
+                            <button type="submit" class="btn solid w100 btn-primary-size create-btn">
+                                Create Account
+                            </button>
+                        </div>
 
-
-                    <div class="back">
-                        <a asp-action="Login" asp-controller="User">← Back to Login</a>
+                        <div class="back">
+                            <a asp-action="Login" asp-controller="User">← Back to Login</a>
+                        </div>
                     </div>
+
                 </section>
 
             </div>
@@ -223,12 +244,18 @@
     .panel {
         border: 1px solid #ddd;
         border-radius: 20px;
-        padding: 32px 24px 28px; /* ⬅ more space on top */
+        padding: 40px 24px 28px; /* ⬅ more space on top */
         background: #fff;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .panel-footer {
+        margin-top: auto;
     }
 
         .panel:first-child {
-            padding-bottom: 48px;
+            padding-bottom: 76px;
         }
 
 
@@ -244,8 +271,8 @@
     }
 
     .title-xl {
-        font-size: 26px;
-        font-weight: 700;
+        font-size: 30px;
+        font-weight: 800;
         letter-spacing: -0.3px;
         color: #111;
         margin-bottom: 30px; /* ⬅ was 20px */
@@ -265,18 +292,22 @@
     }
 
 
+
+
     /* ====== ROW (PASSWORD + CONFIRM) ====== */
     .row {
         display: grid;
-        gap: 16px;
-        grid-template-columns: 1fr; /* mobile */
+        gap: 16px; /* ⬅ reduce horizontal space */
+        grid-template-columns: 1fr;
     }
+
 
     @@media (min-width: 720px) {
         .row
 
     {
-        grid-template-columns: 1fr 1fr; /* desktop */
+            grid-template-columns: 1fr 1fr;
+            column-gap: 12px; /* ⬅ tighter columns */
     }
 
     }
@@ -356,6 +387,14 @@
             .btn.solid.w100 {
                 font-weight: 600; /* ⬅ slightly bolder (recommended) */
             }
+    /* shared primary action width */
+    .primary-action {
+        width: 360px; /* 👈 adjust once, affects both */
+        max-width: 100%;
+        height: 48px;
+        font-size: 15px;
+        font-weight: 600;
+    }
 
 
     .w100 {
@@ -363,15 +402,52 @@
     }
 
     .actions {
-        display: flex;
         justify-content: center;
-        margin-top: 22px;
+        margin-top: 24px; /* keep nice spacing, not 60px */
     }
 
-    .val {
-        color: #d11;
-        font-size: 12px;
+    .create-btn {
+        width: 100%;
+        margin-top: 0px;
     }
+
+
+
+    /* inline validation error */
+    .val {
+        display: block;
+        margin-top: -12px;
+        margin-bottom: 14px;
+        font-size: 12px;
+        color: #d11;
+        font-weight: 500;
+    }
+
+    /* red border on invalid input */
+    .input.input-validation-error {
+        border-color: #d11;
+    }
+
+    /* ✅ Focus style like your screenshot */
+    .input:focus,
+    .input:focus-visible {
+        outline: none;
+        border: 2px solid #000;
+    }
+
+    /* ✅ Make sure invalid stays red even on focus */
+    .input.input-validation-error {
+        border-color: #d11;
+        box-shadow: none;
+    }
+
+        .input.input-validation-error:focus,
+        .input.input-validation-error:focus-visible {
+            border-color: #d11;
+            box-shadow: 0 0 0 4px rgba(209,17,17,0.12); /* red ring when invalid */
+        }
+
+
 
     .back {
         text-align: center;
@@ -549,8 +625,11 @@
         }
 
     #btnCapture {
-        min-width: 180px; /* ✅ matches visual weight */
+        height: 48px;
+        font-size: 15px;
+        font-weight: 600;
     }
+
 
 
     /* ========================= */
@@ -572,6 +651,7 @@
         overflow: hidden;
         position: relative;
         margin-bottom: 22px; /* ⬅ spacing before Upload / Camera */
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
 
 
@@ -584,6 +664,30 @@
             outline-offset: 4px;
         }
 
+        /* hover + keyboard focus */
+        .avatar:hover,
+        .avatar:focus-visible {
+            transform: translateY(-2px);
+            border-color: rgba(0,0,0,0.18);
+            box-shadow: 0 10px 26px rgba(0,0,0,0.10);
+        }
+
+        /* subtle dark overlay on hover */
+        .avatar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.06);
+            opacity: 0;
+            transition: opacity .18s ease;
+            pointer-events: none;
+        }
+
+        .avatar:hover::after,
+        .avatar:focus-visible::after {
+            opacity: 1;
+        }
 
 
         .avatar img,
@@ -826,8 +930,8 @@
     /* --- Primary button spacing + size --- */
     .btn.solid.w100 {
         margin-top: 6px; /* slight breathing room */
-        height: 54px; /* less “fat”, still premium */
-        font-size: 16px;
+        height: 48px; /* ⬅ was 54px */
+        font-size: 15px; /* ⬅ slightly smaller */
     }
 
     /* --- Back link spacing --- */
@@ -894,6 +998,9 @@
         height: 100%;
         display: block;
         border-radius: 0; /* optional */
+
+
+
     }
 </style>
 
