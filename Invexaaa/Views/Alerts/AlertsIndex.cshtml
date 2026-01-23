@@ -1,0 +1,287 @@
+﻿@model Invexaaa.Models.ViewModels.AlertsDashboardViewModel
+
+@{
+    ViewData["Title"] = "Alerts & Notifications";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="page-title">Alerts</h2>
+
+<div class="alerts-grid">
+
+    <!-- ========== EXPIRED ========== -->
+    <section class="alerts-column">
+        <header class="column-header">
+            <span>Expired</span>
+            <i class="bi bi-x-circle"></i>
+        </header>
+
+        <div class="column-body">
+            @if (!Model.ExpiredItems.Any())
+            {
+                <div class="empty">No expired batches</div>
+            }
+            else
+            {
+                @foreach (var item in Model.ExpiredItems)
+                {
+                    <div class="card">
+                        <div class="card-title">
+                            Batch @item.BatchNumber
+                        </div>
+
+                        <div class="card-meta">
+                            ID @item.BatchID · Qty @item.Quantity
+                        </div>
+
+                        <div class="card-meta subtle">
+                            Expired @item.ExpiryDate.ToShortDateString()
+                        </div>
+
+                        <a asp-controller="Stock"
+                           asp-action="StockBatchDetails"
+                           asp-route-id="@item.BatchID"
+                           class="action">
+                            View batch →
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+
+    <!-- ========== NEAR EXPIRY ========== -->
+    <section class="alerts-column">
+        <header class="column-header">
+            <span>Near Expiry</span>
+            <i class="bi bi-hourglass"></i>
+        </header>
+
+        <div class="column-body">
+            @if (!Model.NearExpiryItems.Any())
+            {
+                <div class="empty">Nothing expiring soon</div>
+            }
+            else
+            {
+                @foreach (var item in Model.NearExpiryItems)
+                {
+                    <div class="card">
+                        <div class="card-title">
+                            Batch @item.BatchNumber
+                        </div>
+
+                        <div class="card-meta">
+                            ID @item.BatchID · Qty @item.Quantity
+                        </div>
+
+                        <div class="card-meta subtle">
+                            Expires @item.ExpiryDate.ToShortDateString()
+                        </div>
+
+                        <a asp-controller="Stock"
+                           asp-action="StockBatchDetails"
+                           asp-route-id="@item.BatchID"
+                           class="action">
+                            Manage →
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+
+    <!-- ========== LOW STOCK ========== -->
+    <section class="alerts-column">
+        <header class="column-header">
+            <span>Low Stock</span>
+            <i class="bi bi-box"></i>
+        </header>
+
+        <div class="column-body">
+            @if (!Model.LowStockItems.Any())
+            {
+                <div class="empty">Stock levels healthy</div>
+            }
+            else
+            {
+                @foreach (var item in Model.LowStockItems)
+                {
+                    <div class="card">
+                        <div class="card-title">
+                            @item.ItemName
+                        </div>
+
+                        <div class="card-meta">
+                            Item ID @item.ItemID
+                        </div>
+
+                        <div class="card-meta subtle">
+                            Stock @item.TotalQuantity · Updated @item.LastUpdated.ToShortDateString()
+                        </div>
+
+                        <a asp-controller="Inventory"
+                           asp-action="InventoryDetails"
+                           asp-route-id="@item.InventoryID"
+                           class="action">
+                            View inventory →
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+
+    <!-- ========== REORDER ========== -->
+    <section class="alerts-column">
+        <header class="column-header">
+            <span>Reorder</span>
+            <i class="bi bi-arrow-repeat"></i>
+        </header>
+
+        <div class="column-body">
+            @if (!Model.ReorderItems.Any())
+            {
+                <div class="empty">No reorder required</div>
+            }
+            else
+            {
+                @foreach (var item in Model.ReorderItems)
+                {
+                    <div class="card">
+                        <div class="card-title">
+                            @item.ItemName
+                        </div>
+
+                        <div class="card-meta">
+                            Balance @item.CurrentBalance · Reorder @item.ReorderLevel
+                        </div>
+
+                        <div class="card-meta subtle">
+                            Safety stock @item.SafetyStock
+                        </div>
+
+                        <a asp-controller="Stock"
+                           asp-action="AddStockBatch"
+                           asp-route-itemId="@item.ItemID"
+                           class="action">
+                            Restock →
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+
+</div>
+
+<style>
+    /* ========= PAGE ========= */
+
+    .page-title {
+        font-weight: 600;
+        margin-bottom: 24px;
+        letter-spacing: -0.3px;
+    }
+
+    /* ========= GRID ========= */
+
+    .alerts-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+
+    /* ========= COLUMNS ========= */
+
+    .alerts-column {
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        background: #fff;
+        height: 72vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .column-header {
+        padding: 14px 18px;
+        font-size: 13px;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f1f5f9;
+        color: #111;
+    }
+
+        .column-header i {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+    .column-body {
+        padding: 16px;
+        overflow-y: auto;
+    }
+
+    /* ========= CARDS ========= */
+
+    .card {
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: #fafafa;
+        border: 1px solid #ededed;
+        margin-bottom: 14px;
+    }
+
+    .card-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .card-meta {
+        font-size: 12px;
+        color: #111;
+    }
+
+        .card-meta.subtle {
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+    /* ========= ACTION ========= */
+
+    .action {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #000;
+        text-decoration: none;
+    }
+
+        .action:hover {
+            text-decoration: underline;
+        }
+
+    /* ========= EMPTY ========= */
+
+    .empty {
+        font-size: 13px;
+        color: #9ca3af;
+        text-align: center;
+        margin-top: 32px;
+    }
+
+    /* ========= SCROLL ========= */
+
+    .column-body::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .column-body::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 8px;
+    }
+</style>

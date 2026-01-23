@@ -1,54 +1,195 @@
-﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-@model Invexaaa.Models.Invexa.Inventory
+﻿@model Invexaaa.Models.ViewModels.AddStockBatchViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Adjust Stock";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
+<style>
+    .adjust-stock-page {
+        max-width: 640px;
+    }
 
-    <h3 class="fw-semibold mb-4">Adjust Stock</h3>
+    label {
+        font-weight: 500;
+    }
 
-    <div class="card">
-        <div class="card-body">
+    .info-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 14px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 18px;
+    }
 
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+    }
 
-            <form asp-action="Adjust" method="post">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="inventoryId" value="@Model.InventoryID" />
+    .info-label {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 4px;
+    }
 
-                <div class="mb-3">
-                    <label class="form-label">Current Quantity</label>
-                    <input class="form-control" value="@Model.InventoryTotalQuantity" readonly />
-                </div>
+    .field-error {
+        color: #dc2626;
+        font-size: 13px;
+        margin-top: 4px;
+    }
 
-                <div class="mb-3">
-                    <label class="form-label">New Quantity</label>
-                    <input name="newQuantity"
-                           type="number"
-                           min="0"
-                           class="form-control"
-                           required />
-                </div>
+    .alert-note {
+        font-size: 13px;
+    }
 
-                <div class="mb-3">
-                    <label class="form-label">Reason</label>
-                    <textarea name="reason"
-                              class="form-control"
-                              maxlength="255"
-                              required></textarea>
-                </div>
+    .readonly-input {
+        background: #f9fafb;
+        font-weight: 600;
+        text-align: center;
+    }
+</style>
 
-                <div class="d-flex gap-2">
-                    <button class="btn btn-primary">Save</button>
-                    <a asp-action="StockIndex" class="btn btn-outline-secondary">Cancel</a>
-                </div>
+<div class="container-fluid adjust-stock-page">
 
-            </form>
+    <h3 class="mb-1">Adjust Stock</h3>
+    <div class="text-muted mb-3">@Model.ItemName (@Model.ItemUnitOfMeasure)</div>
 
-        </div>
+    <div class="alert alert-warning alert-note">
+        Use this function only to correct stock discrepancies
+        (damage, miscount, system correction).
     </div>
 
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <form asp-action="AdjustStock" method="post" id="adjustForm">
+        @Html.AntiForgeryToken()
+
+        @foreach (var id in Model.InventoryIds)
+        {
+            <input type="hidden" name="InventoryIds" value="@id" />
+        }
+
+        <!-- STOCK POLICY INFO -->
+        <div class="info-grid">
+            <div>
+                <div class="info-box" id="currentQty">@Model.CurrentQuantity</div>
+                <div class="info-label">Current Qty</div>
+            </div>
+
+            <div>
+                <div class="info-box">
+                    @Model.ItemReorderLevel
+                </div>
+                <div class="info-label">Reorder Level</div>
+            </div>
+
+            <div>
+                <div class="info-box">@Model.SafetyStock</div>
+                <div class="info-label">Safety Stock</div>
+            </div>
+
+            <div>
+                <div class="info-box">@Model.ReorderPoint</div>
+                <div class="info-label">Reorder Point</div>
+            </div>
+        </div>
+
+        @if (Model.CurrentQuantity <= Model.SafetyStock)
+        {
+            <div class="alert alert-danger alert-note">
+                ⚠ Stock is below safety stock. Immediate action recommended.
+            </div>
+        }
+        else if (Model.CurrentQuantity <= Model.ItemReorderLevel)
+        {
+            <div class="alert alert-warning alert-note">
+                ⚠ Stock is below reorder level.
+            </div>
+        }
+
+        <!-- ADJUST BY -->
+        <div class="mb-3">
+            <label>Adjust By (＋ / −)</label>
+            <input asp-for="AdjustBy"
+                   type="number"
+                   class="form-control"
+                   id="adjustBy" />
+            <span asp-validation-for="AdjustBy" class="field-error"></span>
+            <div class="field-error" id="adjustError"></div>
+        </div>
+
+        <!-- NEW QUANTITY -->
+        <div class="mb-3">
+            <label>New Quantity</label>
+            <input asp-for="Quantity"
+                   class="form-control readonly-input"
+                   id="newQty"
+                   readonly />
+        </div>
+
+        <!-- EXPIRY REFERENCE -->
+        <div class="mb-3">
+            <label>Expiry Reference Date</label>
+            <input asp-for="ExpiryDate"
+                   type="date"
+                   class="form-control"
+                   min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
+            <span asp-validation-for="ExpiryDate" class="field-error"></span>
+        </div>
+
+        <!-- NOTE -->
+        <div class="mb-3">
+            <label>Adjustment Note</label>
+            <textarea asp-for="AdjustmentNote"
+                      class="form-control"
+                      rows="3"
+                      maxlength="255"
+                      placeholder="E.g. Damaged items, stock recount, system correction"></textarea>
+            <span asp-validation-for="AdjustmentNote" class="field-error"></span>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary">
+                Save Adjustment
+            </button>
+            <a asp-action="StockIndex"
+               class="btn btn-outline-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const currentQty = parseInt(document.getElementById("currentQty").innerText);
+        const adjustBy = document.getElementById("adjustBy");
+        const newQty = document.getElementById("newQty");
+        const adjustError = document.getElementById("adjustError");
+
+        function recalc() {
+            const delta = parseInt(adjustBy.value || 0);
+            const result = currentQty + delta;
+
+            if (result < 0) {
+                adjustError.innerText = "Adjustment would result in negative stock.";
+                newQty.value = "";
+            } else {
+                adjustError.innerText = "";
+                newQty.value = result;
+            }
+        }
+
+        adjustBy.addEventListener("input", recalc);
+        recalc();
+    </script>
+}

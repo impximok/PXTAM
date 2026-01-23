@@ -7,6 +7,12 @@
     var isPost = string.Equals(Context.Request.Method, "POST", StringComparison.OrdinalIgnoreCase);
     var hasModelErrors = !ViewData.ModelState.IsValid;
 }
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-success text-center">
+        @TempData["Info"]
+    </div>
+}
 
 <div class="auth-wrap">
     <div class="auth-card" role="region" aria-labelledby="authTitle">
@@ -90,7 +96,10 @@
                     </button>
                 </div>
                 <div class="forgot-wrap">
-                    <a href="#" class="forgot-link">Forgot password?</a>
+                    <a asp-action="ForgotPassword" asp-controller="User">
+                        Forgot password?
+                    </a>
+
                 </div>
             </div>
 

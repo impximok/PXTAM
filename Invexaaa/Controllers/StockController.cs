@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Invexaaa.Data;
+﻿using Invexaaa.Data;
 using Invexaaa.Models.Invexa;
 using Invexaaa.Models.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Invexaaa.Controllers
 {
@@ -14,12 +14,12 @@ namespace Invexaaa.Controllers
             _context = context;
         }
 
-        // =========================
-        // MANAGE STOCK (INDEX)
-        // =========================
+        // =====================================================
+        // MANAGE STOCK
+        // =====================================================
         public IActionResult StockIndex()
         {
-            var stockList =
+            var list =
                 from inv in _context.Inventories
                 join item in _context.Items on inv.ItemID equals item.ItemID
                 join cat in _context.Categories on item.CategoryID equals cat.CategoryID
@@ -30,120 +30,198 @@ namespace Invexaaa.Controllers
                     ItemName = item.ItemName,
                     CategoryName = cat.CategoryName,
                     AvailableQuantity = inv.InventoryTotalQuantity,
-
-                    ItemImageUrl = item.ItemImageUrl, // ✅ added
-
+                    ItemImageUrl = item.ItemImageUrl,
                     StockStatus =
                         inv.InventoryTotalQuantity == 0 ? "Out of Stock" :
-                        inv.InventoryTotalQuantity <= 10 ? "Low Stock" :
+                        inv.InventoryTotalQuantity <= item.ItemReorderLevel ? "Low Stock" :
                         "In Stock",
-
                     LastUpdated = inv.InventoryLastUpdated
                 };
 
-            return View("StockIndex", stockList.ToList());
+            return View(list.ToList());
         }
 
-
-
-        // =========================
-        // SINGLE ADJUST (GET)
-        // =========================
-        public IActionResult Adjust(int inventoryId)
+        // =====================================================
+        // ADD STOCK (GET – SINGLE)
+        // =====================================================
+        public IActionResult AddStockBatch(int inventoryId)
         {
-            var inv = _context.Inventories.Find(inventoryId);
-            if (inv == null) return NotFound();
-
-            return View("AdjustStock", inv);
+            return View(new AddStockBatchViewModel
+            {
+                InventoryIds = new List<int> { inventoryId }
+            });
         }
 
-        // =========================
-        // SINGLE ADJUST (POST)
-        // =========================
+        // =====================================================
+        // ADD STOCK (GET – BULK)
+        // =====================================================
+        public IActionResult AddStockBatchBulk(string inventoryIds)
+        {
+            return View("AddStockBatch", new AddStockBatchViewModel
+            {
+                InventoryIds = inventoryIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList()
+            });
+        }
+
+        // =====================================================
+        // ADD STOCK (POST)
+        // =====================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Adjust(int inventoryId, int newQuantity, string reason)
+        public IActionResult AddStockBatch(AddStockBatchViewModel vm)
         {
-            if (newQuantity < 0)
+            if (vm.InventoryIds == null || !vm.InventoryIds.Any())
+                ModelState.AddModelError("", "No inventory selected.");
+
+            if (vm.Quantity <= 0)
+                ModelState.AddModelError("Quantity", "Quantity must be greater than 0.");
+
+            if (!vm.ExpiryDate.HasValue || vm.ExpiryDate.Value <= DateTime.Today)
+                ModelState.AddModelError("ExpiryDate", "Expiry date must be a future date.");
+
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            foreach (var inventoryId in vm.InventoryIds)
             {
-                ModelState.AddModelError("", "Quantity cannot be negative.");
+                var inv = _context.Inventories.Find(inventoryId);
+                if (inv == null) continue;
+
+                // ✅ SYSTEM-GENERATED BATCH NUMBER
+                var batchNo = $"BATCH-{DateTime.Now:yyyyMMdd}-{Guid.NewGuid():N}".Substring(0, 20);
+
+                _context.StockBatches.Add(new StockBatch
+                {
+                    ItemID = inv.ItemID,
+                    BatchNumber = batchNo,
+                    BatchQuantity = vm.Quantity,
+                    BatchExpiryDate = vm.ExpiryDate.Value,
+                    BatchReceivedDate = DateTime.Now,
+                    BatchStatus = "Safe"
+                });
+
+                inv.InventoryTotalQuantity += vm.Quantity;
+                inv.InventoryLastUpdated = DateTime.Now;
+
+                _context.StockTransactions.Add(new StockTransaction
+                {
+                    ItemID = inv.ItemID,
+                    TransactionType = "IN",
+                    TransactionQuantity = vm.Quantity,
+                    TransactionRemark = $"Stock received ({batchNo})"
+                });
             }
 
-            var inv = _context.Inventories.Find(inventoryId);
-            if (inv == null) return NotFound();
+            _context.SaveChanges();
+
+            // ✅ SUCCESS MESSAGE
+            TempData["SuccessMessage"] =
+                vm.InventoryIds.Count > 1
+                    ? "Stock successfully added to selected items."
+                    : "Stock successfully added.";
+
+            return RedirectToAction(nameof(StockIndex));
+        }
+
+        // =====================================================
+        // ADJUST STOCK (GET)
+        // =====================================================
+        public IActionResult AdjustStock(int inventoryId)
+        {
+            var vm =
+                (from inv in _context.Inventories
+                 join item in _context.Items on inv.ItemID equals item.ItemID
+                 where inv.InventoryID == inventoryId
+                 select new AddStockBatchViewModel
+                 {
+                     InventoryIds = new List<int> { inventoryId },
+
+                     CurrentQuantity = inv.InventoryTotalQuantity,
+                     Quantity = inv.InventoryTotalQuantity,
+
+                     ItemName = item.ItemName,
+                     ItemUnitOfMeasure = item.ItemUnitOfMeasure,
+                     ItemReorderLevel = item.ItemReorderLevel,
+                     SafetyStock = item.SafetyStock,
+                     ReorderPoint = item.ReorderPoint
+                 }).FirstOrDefault();
+
+            if (vm == null)
+                return NotFound();
+
+            return View(vm);
+        }
+
+        // =====================================================
+        // ADJUST STOCK (POST)
+        // =====================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AdjustStock(AddStockBatchViewModel vm)
+        {
+            if (vm.InventoryIds == null || !vm.InventoryIds.Any())
+                ModelState.AddModelError("", "No inventory selected.");
+
+            var newQuantity = vm.CurrentQuantity + vm.AdjustBy;
+
+            if (newQuantity < 0)
+                ModelState.AddModelError("AdjustBy", "Resulting quantity cannot be negative.");
+
+            if (string.IsNullOrWhiteSpace(vm.AdjustmentNote))
+                ModelState.AddModelError("AdjustmentNote", "Adjustment note is required.");
 
             if (!ModelState.IsValid)
             {
-                return View("AdjustStock", inv);
+                vm.Quantity = vm.CurrentQuantity;
+                return View(vm);
             }
+
+            var inventoryId = vm.InventoryIds.First();
+            var inv = _context.Inventories.Find(inventoryId);
+            if (inv == null) return NotFound();
+
+            // ✅ CREATE ADJUSTMENT (ID auto-generated by DB)
+            var adjustment = new StockAdjustment
+            {
+                AdjustmentDate = DateTime.Now,
+                AdjustmentReason = vm.AdjustmentNote,
+                AdjustmentStatus = "Approved",
+                CreatedByUserID = 1 // TODO: replace with logged-in user
+            };
+
+            _context.StockAdjustments.Add(adjustment);
+            _context.SaveChanges();
+
+            var diff = newQuantity - inv.InventoryTotalQuantity;
+
+            _context.StockAdjustmentDetails.Add(new StockAdjustmentDetail
+            {
+                AdjustmentID = adjustment.AdjustmentID,
+                ItemID = inv.ItemID,
+                QuantityBefore = inv.InventoryTotalQuantity,
+                QuantityAfter = newQuantity,
+                QuantityDifference = diff
+            });
 
             inv.InventoryTotalQuantity = newQuantity;
             inv.InventoryLastUpdated = DateTime.Now;
 
-            _context.SaveChanges();
-            return RedirectToAction(nameof(StockIndex));
-        }
-
-        // =========================
-        // BATCH ADJUST (GET)
-        // =========================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult BatchAdjust(List<int> selectedInventoryIds)
-        {
-            if (selectedInventoryIds == null || !selectedInventoryIds.Any())
-                return RedirectToAction(nameof(StockIndex));
-
-            var inventories = _context.Inventories
-                .Where(i => selectedInventoryIds.Contains(i.InventoryID))
-                .ToList();
-
-            return View("BatchAdjustStock", inventories);
-        }
-
-        // =========================
-        // BATCH ADJUST (POST)
-        // =========================
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult ConfirmBatchAdjust(
-            List<int> inventoryIds,
-            string adjustmentType,
-            int quantity,
-            string reason)
-        {
-            if (quantity <= 0)
+            _context.StockTransactions.Add(new StockTransaction
             {
-                ModelState.AddModelError("", "Quantity must be greater than zero.");
-            }
-
-            var inventories = _context.Inventories
-                .Where(i => inventoryIds.Contains(i.InventoryID))
-                .ToList();
-
-            if (!ModelState.IsValid)
-            {
-                return View("BatchAdjustStock", inventories);
-            }
-
-            foreach (var inv in inventories)
-            {
-                if (adjustmentType == "IN")
-                {
-                    inv.InventoryTotalQuantity += quantity;
-                }
-                else // OUT
-                {
-                    if (inv.InventoryTotalQuantity < quantity)
-                        continue;
-
-                    inv.InventoryTotalQuantity -= quantity;
-                }
-
-                inv.InventoryLastUpdated = DateTime.Now;
-            }
+                ItemID = inv.ItemID,
+                TransactionType = "ADJUST",
+                TransactionQuantity = diff,
+                TransactionRemark = $"Manual adjustment (ADJ-{adjustment.AdjustmentID})"
+            });
 
             _context.SaveChanges();
+
+            // ✅ SUCCESS MESSAGE
+            TempData["SuccessMessage"] = "Stock adjustment recorded successfully.";
+
             return RedirectToAction(nameof(StockIndex));
         }
     }

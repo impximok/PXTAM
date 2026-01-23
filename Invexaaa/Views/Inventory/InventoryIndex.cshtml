@@ -1,0 +1,102 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<Invexaaa.Models.ViewModels.InventoryOverviewViewModel>
+
+@{
+    ViewData["Title"] = "Inventory Overview";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .inventory-health {
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 13px;
+    }
+
+    .health-healthy {
+        background: #e6f7ec;
+        color: #15803d;
+    }
+
+    .health-low {
+        background: #fff7ed;
+        color: #b45309;
+    }
+
+    .health-critical {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+</style>
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-semibold">Inventory Overview</h3>
+        <span class="text-muted small">
+            Management & Planning View
+        </span>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-secondary small">
+                    <tr>
+                        <th>Item</th>
+                        <th>Total Quantity</th>
+                        <th>Health</th>
+                        <th>Last Updated</th>
+                        <th style="width:140px">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var inv in Model)
+                    {
+                        var healthClass =
+                        inv.HealthStatus == "Healthy" ? "health-healthy" :
+                        inv.HealthStatus == "Low" ? "health-low" :
+                        "health-critical";
+
+                        <tr>
+                            <td class="fw-semibold">@inv.ItemName</td>
+
+                            <td>@inv.TotalQuantity</td>
+
+                            <td>
+                                <span class="inventory-health @healthClass">
+                                    @inv.HealthStatus
+                                </span>
+                            </td>
+
+                            <td>@inv.LastUpdated.ToString("dd/MM/yyyy")</td>
+
+                            <td>
+                                <a asp-controller="Stock"
+                                   asp-action="StockIndex"
+                                   class="btn btn-sm btn-outline-primary">
+                                    View Stock
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.querySelectorAll("tr").forEach(row => {
+        if (row.innerText.includes("Critical")) {
+            row.style.backgroundColor = "#fff5f5";
+        }
+        if (row.innerText.includes("Low")) {
+            row.style.backgroundColor = "#fffaf0";
+        }
+    });
+</script>

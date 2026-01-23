@@ -1,0 +1,90 @@
+﻿@model Invexaaa.Models.ViewModels.AddStockBatchViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Add Stock";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .add-stock-page {
+        max-width: 560px;
+    }
+
+    label {
+        font-weight: 500;
+    }
+
+    .field-error {
+        color: #dc2626;
+        font-size: 13px;
+    }
+
+    .hint-text {
+        font-size: 13px;
+        color: #6b7280;
+    }
+</style>
+
+<div class="container-fluid add-stock-page">
+
+    <h3 class="mb-2">Add Stock (With Expiry)</h3>
+
+    @if (Model.InventoryIds.Count > 1)
+    {
+        <div class="alert alert-info small">
+            Adding stock to <strong>@Model.InventoryIds.Count</strong> items
+        </div>
+    }
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <form asp-action="AddStockBatch" method="post">
+        @Html.AntiForgeryToken()
+
+        @foreach (var id in Model.InventoryIds)
+        {
+            <input type="hidden" name="InventoryIds" value="@id" />
+        }
+
+        <!-- QUANTITY -->
+        <div class="mb-3">
+            <label>Quantity to Add</label>
+            <input asp-for="Quantity"
+                   type="number"
+                   min="1"
+                   class="form-control"
+                   required />
+            <span asp-validation-for="Quantity" class="field-error"></span>
+        </div>
+
+        <!-- EXPIRY -->
+        <div class="mb-3">
+            <label>Expiry Date</label>
+            <input asp-for="ExpiryDate"
+                   type="date"
+                   class="form-control"
+                   min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
+                   required />
+            <span asp-validation-for="ExpiryDate" class="field-error"></span>
+
+            <div class="hint-text">
+                Batch number will be generated automatically by the system.
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary">
+                Save Stock
+            </button>
+            <a asp-action="StockIndex" class="btn btn-outline-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

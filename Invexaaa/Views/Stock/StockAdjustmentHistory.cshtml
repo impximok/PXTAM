@@ -1,0 +1,66 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<Invexaaa.Models.ViewModels.StockAdjustmentHistoryViewModel>
+
+@{
+    ViewData["Title"] = "Stock Adjustment History";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-semibold">Stock Adjustment History</h3>
+        <span class="text-muted small">Audit Trail (Read Only)</span>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-secondary small">
+                    <tr>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Before</th>
+                        <th>After</th>
+                        <th>Diff</th>
+                        <th>Status</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var h in Model)
+                    {
+                        var diffClass =
+                        h.QuantityDifference > 0 ? "text-success" :
+                        h.QuantityDifference < 0 ? "text-danger" :
+                        "text-muted";
+
+                        <tr>
+                            <td>@h.AdjustmentDate.ToString("dd/MM/yyyy")</td>
+                            <td class="fw-semibold">@h.ItemName</td>
+                            <td>@h.QuantityBefore</td>
+                            <td>@h.QuantityAfter</td>
+                            <td class="@diffClass">
+                                @h.QuantityDifference
+                            </td>
+                            <td>
+                                <span class="badge
+                                    @(h.AdjustmentStatus == "Approved" ? "bg-success" :
+                                                                        h.AdjustmentStatus == "Pending" ? "bg-warning" :
+                                                                        "bg-secondary")">
+                                @h.AdjustmentStatus
+                            </span>
+                        </td>
+                        <td class="text-muted small">
+                            @h.AdjustmentReason
+                        </td>
+                    </tr>
+                                        }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+</div>
