@@ -1,0 +1,180 @@
+﻿@model List<Invexaaa.Models.Invexa.ExpiryTrackingViewModel>
+
+@{
+    ViewData["Title"] = "Expiry Tracking";
+}
+
+<style>
+    .expiry-container {
+        background: #ffffff;
+        padding: 24px;
+        border-radius: 12px;
+    }
+
+        .expiry-container h2 {
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+    .filter-box {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+        .filter-box input,
+        .filter-box select,
+        .filter-box button {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .filter-box button {
+            background-color: #6c757d;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+            .filter-box button:hover {
+                background-color: #5a6268;
+            }
+
+    .expiry-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .expiry-table th,
+        .expiry-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .expiry-table th {
+            background-color: #f4f4f4;
+            font-weight: 600;
+        }
+
+    .status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+        .status.safe {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status.nearexpiry {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status.expired {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+    .empty-row {
+        text-align: center;
+        color: #888;
+        padding: 20px;
+    }
+</style>
+
+<div class="expiry-container">
+
+    <h2>Expiry Tracking</h2>
+
+    <form method="get" class="filter-box">
+        <input type="text" name="search" placeholder="Search item name..." />
+
+        <select name="categoryId">
+            <option value="">Category</option>
+            @foreach (var c in ViewBag.Categories)
+            {
+                <option value="@c.CategoryID">@c.CategoryName</option>
+            }
+        </select>
+
+        <select name="expiryStatus">
+            <option value="">Expiry Status</option>
+            <option value="Safe">Safe</option>
+            <option value="Near Expiry">Near Expiry</option>
+            <option value="Expired">Expired</option>
+        </select>
+
+        <select name="expiryRange">
+            <option value="">Expiry Date Range</option>
+            <option value="7">Next 7 Days</option>
+            <option value="30">Next 30 Days</option>
+        </select>
+
+        <button type="submit">Filter</button>
+    </form>
+
+    <table class="expiry-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item Name</th>
+                <th>Category</th>
+                <th>Batch No</th>
+                <th>Quantity</th>
+                <th>Expiry Date</th>
+                <th>Expiry Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.BatchID</td>
+                        <td>@item.ItemName</td>
+                        <td>@item.CategoryName</td>
+                        <td>@item.BatchNumber</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.ExpiryDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <span class="status @item.ExpiryStatus.Replace(" ", "").ToLower()">
+                                @item.ExpiryStatus
+                            </span>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="empty-row">
+                        No expiry records found.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+
+<script>
+    // Optional future JS hooks (kept simple on purpose)
+    // Example: auto-submit on dropdown change
+    /*
+    document.querySelectorAll('.filter-box select').forEach(select => {
+        select.addEventListener('change', () => {
+            select.form.submit();
+        });
+    });
+    */
+</script>

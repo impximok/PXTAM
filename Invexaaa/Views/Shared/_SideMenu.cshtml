@@ -171,7 +171,11 @@
         <span class="invexa-side-text">Maintain Stock</span>
     </a>
 
-
+    <a asp-controller="Expiry" asp-action="ExpiryTrackingIndex"
+       class="invexa-side-link @(currentController == "Expiry" ? "active" : "")">
+        <i class="bi bi-hourglass-split"></i>
+        <span class="invexa-side-text">Expiry Tracking</span>
+    </a>
 
     <a asp-controller="Inventory" asp-action="Index"
        class="invexa-side-link @(currentController == "Inventory" ? "active" : "")">
@@ -179,11 +183,7 @@
         <span class="invexa-side-text">Inventory</span>
     </a>
 
-    <a asp-controller="Expiry" asp-action="Index"
-       class="invexa-side-link @(currentController == "Expiry" ? "active" : "")">
-        <i class="bi bi-hourglass-split"></i>
-        <span class="invexa-side-text">Expiry Tracking</span>
-    </a>
+   
 
     <a asp-controller="Forecast" asp-action="Index"
        class="invexa-side-link @(currentController == "Forecast" ? "active" : "")">
