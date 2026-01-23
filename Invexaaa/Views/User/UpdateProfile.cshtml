@@ -1,20 +1,19 @@
-﻿@*
-@model Invexaaa.Models.ViewModels.UpdateProfileViewModel
+﻿@model Invexaaa.Models.ViewModels.UpdateProfileViewModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Update Profile";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    string filePath = Model.ProfileImageUrl;
-    string urlPath = filePath?.StartsWith("wwwroot", StringComparison.OrdinalIgnoreCase) == true
-        ? "~/" + filePath.Substring("wwwroot/".Length)
-        : (filePath ?? "~/images/default-profile.png");
+    string urlPath = string.IsNullOrWhiteSpace(Model.ProfileImageUrl)
+        ? "/images/default-profile.png"
+        : Model.ProfileImageUrl;
 
     string cacheBust = DateTime.UtcNow.Ticks.ToString();
 }
 
-<div class="profile-shell">
+<!-- IMPORTANT: NO CENTERING WRAPPER -->
+<div class="profile-page">
 
     <div class="profile-card">
         <!-- HEADER -->
@@ -31,9 +30,9 @@
         }
 
         <form asp-action="UpdateProfile"
+              asp-controller="User"
               method="post"
               enctype="multipart/form-data"
-              class="profile-form"
               novalidate>
 
             @Html.AntiForgeryToken()
@@ -43,9 +42,9 @@
             <section class="avatar-block">
                 <div class="avatar-wrap">
                     <img id="avatarPreview"
-                         src="@Url.Content(urlPath)?v=@cacheBust"
-                         alt="Profile picture"
-                         class="ap-avatar" />
+                         src="@urlPath?v=@cacheBust"
+                         class="ap-avatar"
+                         alt="Profile picture" />
                 </div>
 
                 <div class="avatar-meta">
@@ -68,9 +67,7 @@
                                 <div class="dz-title">Upload a photo</div>
                                 <div class="dz-sub">PNG / JPG · Max 2MB</div>
                             </div>
-                            <span class="dz-chip" id="dzState">Ready</span>
                         </div>
-                        <div class="dz-ghost" id="dzGhost">Drop image</div>
                     </div>
 
                     <div class="file-actions">
@@ -142,25 +139,17 @@
 }
 
 <style>
-    :root {
-        --line: #e6e6e6;
-        --ink: #111;
-        --muted: #6b7280;
-        --radius: 18px;
-    }
-
-    /* PAGE WRAPPER */
-    .profile-shell {
+    /* PAGE FLOW — works with sidebar */
+    .profile-page {
         max-width: 900px;
-        margin: 0 auto;
-        padding: 24px 16px 60px;
+        margin: 0;
     }
 
     /* CARD */
     .profile-card {
         background: #fff;
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
+        border: 1px solid #e6e6e6;
+        border-radius: 16px;
         padding: 32px;
     }
 
@@ -175,18 +164,18 @@
     }
 
     .profile-subtitle {
-        color: var(--muted);
+        color: #6b7280;
     }
 
-    /* AVATAR SECTION */
+    /* AVATAR */
     .avatar-block {
         display: grid;
         grid-template-columns: 140px 1fr;
         gap: 24px;
         padding: 20px;
         background: #fafafa;
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
+        border-radius: 14px;
+        border: 1px solid #e6e6e6;
         margin-bottom: 28px;
     }
 
@@ -198,19 +187,14 @@
         text-align: center;
     }
 
-    .avatar-wrap {
-        display: flex;
-        justify-content: center;
-    }
-
     }
 
     .ap-avatar {
         width: 128px;
         height: 128px;
         border-radius: 50%;
+        border: 1px solid #ddd;
         object-fit: cover;
-        border: 1px solid var(--line);
     }
 
     /* FORM */
@@ -228,12 +212,8 @@
         width: 100%;
         padding: 12px 14px;
         border-radius: 12px;
-        border: 1px solid var(--line);
+        border: 1px solid #ccc;
     }
-
-        .text-input[readonly] {
-            background: #f9f9f9;
-        }
 
     /* ACTIONS */
     .actions {
@@ -242,7 +222,7 @@
         gap: 12px;
         padding-top: 20px;
         margin-top: 28px;
-        border-top: 1px solid var(--line);
+        border-top: 1px solid #e6e6e6;
     }
 
     @@media (max-width: 640px) {
@@ -254,6 +234,7 @@
 
     }
 
+    /* BUTTONS */
     .btn-primary {
         background: #111;
         color: #fff;
@@ -272,9 +253,8 @@
     /* ALERT */
     .monocrome-alert {
         background: #f7f7f7;
-        border: 1px solid var(--line);
+        border: 1px solid #e6e6e6;
         padding: 10px;
         border-radius: 12px;
     }
 </style>
-*@

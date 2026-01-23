@@ -9,7 +9,7 @@
 
 <style>
     /* =====================================================
-       INVEXA SIDE MENU – CLEAN ICON ALIGNMENT
+       INVEXA SIDE MENU
     ===================================================== */
 
     .invexa-side {
@@ -71,19 +71,16 @@
         color: #000;
         display: flex;
         align-items: center;
-        justify-content: center; /* icon-only center */
+        justify-content: center;
         gap: 12px;
         transition: background .15s ease;
         position: relative;
     }
 
-        /* Icon */
         .invexa-side-link i {
             font-size: 20px;
-            line-height: 1;
         }
 
-        /* Hover / active */
         .invexa-side-link:hover,
         .invexa-side-link.active {
             background: #f2f2f2;
@@ -94,7 +91,7 @@
         font-size: 14px;
     }
 
-    /* EXPANDED STATE */
+    /* Expanded state */
     .invexa-side:hover .invexa-side-link,
     .invexa-side.expanded .invexa-side-link {
         justify-content: flex-start;
@@ -113,7 +110,7 @@
         display: none;
     }
 
-    /* Section labels */
+    /* Section label */
     .invexa-side-section {
         margin: 14px 0 6px;
         padding-left: 14px;
@@ -122,11 +119,35 @@
         text-transform: uppercase;
     }
 
+    /* ===========================
+       STOCK SUBMENU
+    =========================== */
+
+    .invexa-submenu {
+        display: none;
+        flex-direction: column;
+        margin-left: 36px;
+        margin-bottom: 6px;
+    }
+
+        .invexa-submenu .invexa-side-link {
+            height: 38px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+    /* Show submenu ONLY when Stock is active / hovered */
+    .invexa-side:hover .stock-parent + .invexa-submenu,
+    .invexa-side.expanded .stock-parent + .invexa-submenu,
+    .stock-parent:hover + .invexa-submenu,
+    .stock-parent.active + .invexa-submenu {
+        display: flex;
+    }
 </style>
 
 <aside class="invexa-side" id="invexaSideMenu">
 
-    <!-- TOGGLE (LOCK) -->
+    <!-- TOGGLE -->
     <button class="invexa-side-toggle"
             onclick="toggleInvexaSide()"
             aria-label="Toggle menu">
@@ -146,7 +167,6 @@
         <span class="invexa-side-text">Dashboard</span>
     </a>
 
-    <!-- MANAGE ITEMS -->
     <a asp-controller="Item" asp-action="ItemIndex"
        class="invexa-side-link @(currentController == "Item" ? "active" : "")">
         <i class="bi bi-box-seam"></i>
@@ -165,25 +185,47 @@
         <span class="invexa-side-text">Maintain Supplier</span>
     </a>
 
+    <!-- ===== MAINTAIN STOCK (PARENT) ===== -->
     <a asp-controller="Stock" asp-action="StockIndex"
-       class="invexa-side-link @(currentController == "Stock" ? "active" : "")">
+       class="invexa-side-link stock-parent @(currentController == "Stock" ? "active" : "")">
         <i class="bi bi-boxes"></i>
         <span class="invexa-side-text">Maintain Stock</span>
     </a>
 
+    <!-- ===== STOCK SUBMENU ===== -->
+    <div class="invexa-submenu">
+
+        <a asp-controller="Stock" asp-action="AdjustmentHistory"
+           class="invexa-side-link">
+            <i class="bi bi-clock-history"></i>
+            <span class="invexa-side-text">Adjustment History</span>
+        </a>
+
+        <a asp-controller="Stock" asp-action="StockBatchList"
+           class="invexa-side-link">
+            <i class="bi bi-hourglass-split"></i>
+            <span class="invexa-side-text">Batch & Expiry</span>
+        </a>
+
+    </div>
+
     <a asp-controller="ExpiryTracking" asp-action="ExpiryTrackingIndex"
-       class="invexa-side-link @(currentController == "Expiry" ? "active" : "")">
+       class="invexa-side-link @(currentController == "ExpiryTracking" ? "active" : "")">
         <i class="bi bi-hourglass-split"></i>
         <span class="invexa-side-text">Expiry Tracking</span>
     </a>
 
-    <a asp-controller="Inventory" asp-action="Index"
+    <a asp-controller="Inventory" asp-action="InventoryIndex"
        class="invexa-side-link @(currentController == "Inventory" ? "active" : "")">
         <i class="bi bi-box-seam"></i>
         <span class="invexa-side-text">Inventory</span>
     </a>
 
-   
+    <a asp-controller="Alerts" asp-action="Index"
+       class="invexa-side-link @(currentController == "Alerts" ? "active" : "")">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span class="invexa-side-text">Alerts & Notifications</span>
+    </a>
 
     <a asp-controller="Forecast" asp-action="Index"
        class="invexa-side-link @(currentController == "Forecast" ? "active" : "")">
@@ -191,11 +233,7 @@
         <span class="invexa-side-text">Forecasting</span>
     </a>
 
-    <a asp-controller="Alerts" asp-action="Index"
-       class="invexa-side-link @(currentController == "Alerts" ? "active" : "")">
-        <i class="bi bi-exclamation-triangle"></i>
-        <span class="invexa-side-text">Alerts</span>
-    </a>
+    
 
     <a asp-controller="Reports" asp-action="Index"
        class="invexa-side-link @(currentController == "Reports" ? "active" : "")">
@@ -204,6 +242,14 @@
     </a>
 
     <div class="invexa-side-section">System</div>
+
+    <a asp-controller="User"
+       asp-action="UpdateProfile"
+       class="invexa-side-link @(currentController == "User" ? "active" : "")">
+        <i class="bi bi-person-gear"></i>
+        <span class="invexa-side-text">Update Profile</span>
+    </a>
+
 
     <a asp-controller="Help" asp-action="Index" class="invexa-side-link">
         <i class="bi bi-question-circle"></i>
