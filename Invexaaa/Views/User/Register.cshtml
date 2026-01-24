@@ -203,7 +203,7 @@
 
                 </div>
 
-                <button type="button" class="btn solid use-btn" id="useImage">Use</button>
+                <button type="button" class="btn solid use-btn" id="useImage">Confirm</button>
             </div>
 
         </div>
@@ -233,12 +233,9 @@
 
     /* Desktop: side-by-side */
     @@media (min-width: 980px) {
-        .grid
-
-    {
-        grid-template-columns: 420px 1fr;
-    }
-
+        .grid {
+            grid-template-columns: 420px 1fr;
+        }
     }
 
     .panel {
@@ -254,9 +251,9 @@
         margin-top: auto;
     }
 
-        .panel:first-child {
-            padding-bottom: 76px;
-        }
+    .panel:first-child {
+        padding-bottom: 76px;
+    }
 
 
 
@@ -274,7 +271,7 @@
         font-size: 30px;
         font-weight: 800;
         letter-spacing: -0.3px;
-        color: #111;
+        color: #000;
         margin-bottom: 30px; /* ⬅ was 20px */
         text-align: center;
     }
@@ -303,13 +300,10 @@
 
 
     @@media (min-width: 720px) {
-        .row
-
-    {
+        .row {
             grid-template-columns: 1fr 1fr;
             column-gap: 12px; /* ⬅ tighter columns */
-    }
-
+        }
     }
 
     /* ====== PASSWORD + EYE ICON ====== */
@@ -479,14 +473,14 @@
 
 
 
-.editor-box{
-  width: min(480px, 94vw);
-  background: #fff;
-  border-radius: 24px;
-  padding: 18px 18px 16px;
-  position: relative;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-}
+    .editor-box {
+        width: min(480px, 94vw);
+        background: #fff;
+        border-radius: 24px;
+        padding: 18px 18px 16px;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
 
 
 
@@ -798,7 +792,6 @@
         background: #fff;
         margin-top: 24px;
         cursor: pointer;
-
     }
 
         .dropzone.drag {
@@ -957,8 +950,8 @@
 
 
     /* ================================
-       Button hover style (B/W clean)
-       ================================ */
+           Button hover style (B/W clean)
+           ================================ */
 
     /* All buttons on hover */
     .btn:hover {
@@ -998,9 +991,6 @@
         height: 100%;
         display: block;
         border-radius: 0; /* optional */
-
-
-
     }
 </style>
 

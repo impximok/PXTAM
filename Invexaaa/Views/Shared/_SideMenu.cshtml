@@ -195,7 +195,7 @@
     <!-- ===== STOCK SUBMENU ===== -->
     <div class="invexa-submenu">
 
-        <a asp-controller="Stock" asp-action="AdjustmentHistory"
+        <a asp-controller="Stock" asp-action="StockAdjustmentHistory"
            class="invexa-side-link">
             <i class="bi bi-clock-history"></i>
             <span class="invexa-side-text">Adjustment History</span>
@@ -227,18 +227,10 @@
         <span class="invexa-side-text">Alerts & Notifications</span>
     </a>
 
-    <a asp-controller="Forecast" asp-action="Index"
-       class="invexa-side-link @(currentController == "Forecast" ? "active" : "")">
-        <i class="bi bi-graph-up"></i>
-        <span class="invexa-side-text">Forecasting</span>
-    </a>
-
-    
-
-    <a asp-controller="Reports" asp-action="Index"
+    <a asp-controller="Reports" asp-action="Overview"
        class="invexa-side-link @(currentController == "Reports" ? "active" : "")">
         <i class="bi bi-file-earmark-text"></i>
-        <span class="invexa-side-text">Reports</span>
+        <span class="invexa-side-text">Reports & Analytics</span>
     </a>
 
     <div class="invexa-side-section">System</div>

@@ -1,17 +1,11 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
-    ViewData["Title"] = "Sign In";
+    ViewData["Title"] = "Log In";
     ViewBag.HideHeader = true;
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     var isPost = string.Equals(Context.Request.Method, "POST", StringComparison.OrdinalIgnoreCase);
     var hasModelErrors = !ViewData.ModelState.IsValid;
-}
-@if (TempData["Info"] != null)
-{
-    <div class="alert alert-success text-center">
-        @TempData["Info"]
-    </div>
 }
 
 <div class="auth-wrap">
@@ -53,7 +47,7 @@
                            placeholder="••••••••"
                            aria-required="true"
                            required />
-                    
+
 
 
                     <button type="button"
@@ -96,11 +90,12 @@
                     </button>
                 </div>
                 <div class="forgot-wrap">
-                    <a asp-action="ForgotPassword" asp-controller="User">
+                    <a asp-action="ForgotPassword"
+                       class="forgot-link">
                         Forgot password?
                     </a>
-
                 </div>
+
             </div>
 
             <!-- hCaptcha -->
@@ -241,7 +236,7 @@
         width: 100%;
         height: 50px;
         border-radius: 12px;
-        border: 1px solid var(--line);
+        border: 1px solid #ccc;
         padding: 0 14px;
         font-size: 15px;
     }
@@ -285,11 +280,11 @@
         border: 1px solid #000;
     }
 
-    .btn-primary:hover {
-        background: #fff;
-        color: #000;
-        border-color: #000; /* force black */
-    }
+        .btn-primary:hover {
+            background: #fff;
+            color: #000;
+            border-color: #000; /* force black */
+        }
 
         /* Pressed (mouse down) → dark grey */
         .btn-primary:active,
@@ -323,27 +318,27 @@
         color: #000;
     }
 
-    .link-register:hover {
-       color: #2563eb; /* blue on hover */
-    }
+        .link-register:hover {
+            color: #2563eb; /* blue on hover */
+        }
 
     .back {
         text-align: center;
         margin-top: 12px;
     }
 
-    .back .link {
-        color: #000;     
-        font-size: 14px;
-        font-weight: 500;
-        transition: color 0.2s ease;
-    }
+        .back .link {
+            color: #000;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
 
 
-    .back .link:hover {
-        color: #2563eb;           /* blue on hover */
-        text-decoration: underline;
-    }
+            .back .link:hover {
+                color: #2563eb; /* blue on hover */
+                text-decoration: underline;
+            }
 
     .forgot-wrap {
         text-align: right;
@@ -362,8 +357,8 @@
             text-decoration: underline;
         }
     /* =====================================
-       LOGIN BUTTON – PRIMARY (REVERSE HOVER)
-       ===================================== */
+           LOGIN BUTTON – PRIMARY (REVERSE HOVER)
+           ===================================== */
 
     /* Default */
     .auth-card .btn.btn-primary {
@@ -380,19 +375,19 @@
             color: #000 !important;
         }
 
-        }
+    }
 
-        /* After click / focus → back to default, no blue */
-        .auth-card .btn.btn-primary:focus,
-        .auth-card .btn.btn-primary:focus-visible,
-        .auth-card .btn-check:focus + .btn-primary,
-        .auth-card .btn-check:checked + .btn-primary {
-            background-color: #000 !important;
-            border-color: #000 !important;
-            color: #fff !important;
-            outline: none !important;
-            box-shadow: none !important;
-        }
+    /* After click / focus → back to default, no blue */
+    .auth-card .btn.btn-primary:focus,
+    .auth-card .btn.btn-primary:focus-visible,
+    .auth-card .btn-check:focus + .btn-primary,
+    .auth-card .btn-check:checked + .btn-primary {
+        background-color: #000 !important;
+        border-color: #000 !important;
+        color: #fff !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
 
     /* Remove mobile blue tap highlight */
     .auth-card .btn.btn-primary {

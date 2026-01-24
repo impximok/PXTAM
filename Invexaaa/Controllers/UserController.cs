@@ -190,29 +190,49 @@ namespace Invexaaa.Controllers
                     return View();
                 }
 
-                // clear attempts
+                // clear lockout counters
                 _cache.Remove(AttemptKey(loginKey, ip));
                 _cache.Remove(LockKey(loginKey, ip));
 
-                var claims = new List<Claim>
+                // ===============================
+                // PATCH: SESSION FOR _Layout.cshtml
+                // ===============================
+                HttpContext.Session.SetString("UserFullName", user.UserFullName);
+
+                if (!string.IsNullOrWhiteSpace(user.UserProfileImageUrl))
                 {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
-                    new Claim(ClaimTypes.Name, user.UserFullName),
-                    new Claim(ClaimTypes.Email, user.UserEmail),
-                    new Claim(ClaimTypes.Role, user.UserRole)
-                };
+                    HttpContext.Session.SetString(
+                        "UserProfilePhoto",
+                        user.UserProfileImageUrl
+                    );
+                }
+                else
+                {
+                    HttpContext.Session.Remove("UserProfilePhoto");
+                }
+
+                // ===============================
+                // PATCH: CLAIMS (ADD PHOTO)
+                // ===============================
+                var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+        new Claim(ClaimTypes.Name, user.UserFullName),
+        new Claim(ClaimTypes.Email, user.UserEmail),
+        new Claim(ClaimTypes.Role, user.UserRole),
+        new Claim("photo", user.UserProfileImageUrl ?? "")
+    };
 
                 var identity = new ClaimsIdentity(claims, "MyCookieAuth");
-                await HttpContext.SignInAsync("MyCookieAuth", new ClaimsPrincipal(identity));
 
-                return user.UserRole switch
-                {
-                    "Admin" => RedirectToAction("Index", "Dashboard"),
-                    "Manager" => RedirectToAction("Index", "Dashboard"),
-                    "Staff" => RedirectToAction("Index", "Dashboard"),
-                    _ => RedirectToAction("Login")
-                };
+                await HttpContext.SignInAsync(
+                    "MyCookieAuth",
+                    new ClaimsPrincipal(identity)
+                );
+
+                return RedirectToAction("Index", "Dashboard");
             }
+
 
             // ---- FAILED LOGIN ----
             var attemptsKey = AttemptKey(loginKey, ip);
@@ -472,8 +492,26 @@ If you did not request this, please ignore this email.",
             }
 
             await _context.SaveChangesAsync();
+            // ===============================
+            // PATCH: REFRESH SESSION AFTER PROFILE UPDATE
+            // ===============================
+            HttpContext.Session.SetString("UserFullName", user.UserFullName);
+
+            if (!string.IsNullOrWhiteSpace(user.UserProfileImageUrl))
+            {
+                HttpContext.Session.SetString(
+                    "UserProfilePhoto",
+                    user.UserProfileImageUrl
+                );
+            }
+            else
+            {
+                HttpContext.Session.Remove("UserProfilePhoto");
+            }
 
             TempData["Info"] = "Profile updated successfully.";
+
+
             return RedirectToAction(nameof(UpdateProfile));
         }
 
