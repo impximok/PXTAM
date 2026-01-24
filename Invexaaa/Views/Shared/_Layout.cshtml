@@ -6,27 +6,47 @@
 @{
     Layout = null;
 
-    // ONE FLAG CONTROLS EVERYTHING
+    // ===============================
+    // PAGE FLAGS
+    // ===============================
     bool hideHeader = ViewBag.HideHeader == true;
 
+    // ===============================
+    // AUTHENTICATION
+    // ===============================
     var isAuth = User?.Identity?.IsAuthenticated == true;
     var isGuest = !isAuth;
-    if (isAuth) { Context.Session.Remove("IsGuest"); }
 
+    if (isAuth)
+    {
+        Context.Session.Remove("IsGuest");
+    }
+
+    // ===============================
+    // ROLES (ADMIN / MANAGER / STAFF)
+    // ===============================
     bool isAdmin = isAuth && (User.IsInRole("Admin") || User.IsInRole("UR100"));
+    bool isManager = isAuth && (User.IsInRole("Manager") || User.IsInRole("UR102"));
     bool isStaff = isAuth && (User.IsInRole("Staff") || User.IsInRole("UR101"));
-    bool isCustomer = isAuth && User.IsInRole("Customer");
 
-    var sessionUserName = Context.Session.GetString("CustomerUserName");
+    bool isEmployee = isAdmin || isManager || isStaff;
+
+    // ===============================
+    // PROFILE NAME
+    // ===============================
+    var sessionUserName = Context.Session.GetString("UserFullName");
 
     var profileName = isAuth
         ? (!string.IsNullOrWhiteSpace(sessionUserName)
             ? sessionUserName
-            : (User.Identity!.Name ?? "User"))
+            : (User.Identity?.Name ?? "User"))
         : "Guest";
 
+    // ===============================
+    // PROFILE PHOTO
+    // ===============================
     var claimPhoto = User.FindFirst("photo")?.Value;
-    var sessionPhoto = Context.Session.GetString("CustomerPhotoUrl");
+    var sessionPhoto = Context.Session.GetString("UserProfilePhoto");
     var vbPhoto = ViewBag.ProfilePhotoUrl as string;
 
     var profilePhoto =
@@ -35,6 +55,9 @@
         !string.IsNullOrWhiteSpace(claimPhoto) ? claimPhoto :
         "/images/default-profile.jpg";
 
+    // ===============================
+    // INITIALS FALLBACK
+    // ===============================
     string InitialsOf(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "U";
@@ -62,7 +85,7 @@
           rel="stylesheet" />
 
     <style>
-        body.snomi-ppg-body {
+        body.invexa-body {
             background: #fff;
             font-family: Inter, system-ui, sans-serif;
             min-height: 100vh;
@@ -71,7 +94,7 @@
         }
 
         /* HEADER */
-        .snomi-header {
+        .invexa-header {
             position: sticky;
             top: 0;
             z-index: 1030;
@@ -79,7 +102,7 @@
             border-bottom: 1px solid #e9e9e9;
         }
 
-        .snomi-header-inner {
+        .invexa-header-inner {
             padding: 10px 1.5cm;
             min-height: 64px;
             display: grid;
@@ -146,7 +169,7 @@
             background: #f5f6f8;
         }
 
-        /* FOOTER (CENTERED & MINIMAL) */
+        /* FOOTER */
         .invexa-footer {
             background: #fff;
             border-top: 1px solid #e9e9e9;
@@ -180,17 +203,17 @@
         .invexa-footer-year {
             opacity: .7;
         }
-
     </style>
 </head>
 
-<body class="snomi-ppg-body">
+<body class="invexa-body">
 
     @if (!hideHeader)
     {
         <!-- HEADER -->
-        <header class="snomi-header">
-            <div class="snomi-header-inner">
+        <header class="invexa-header">
+            <div class="invexa-header-inner">
+
                 <a asp-controller="Dashboard"
                    asp-action="Index"
                    class="brand-link">
@@ -198,24 +221,26 @@
                     <span class="brand-slogan">@slogan</span>
                 </a>
 
-
                 <div></div>
 
-                <a asp-controller="User"
-                   asp-action="UpdateProfile"
-                   class="profile-pill">
+                @if (isEmployee)
+                {
+                    <a asp-controller="User"
+                       asp-action="UpdateProfile"
+                       class="profile-pill">
 
-                    <span>@profileName</span>
+                        <span>@profileName</span>
 
-                    @if (!string.IsNullOrWhiteSpace(profilePhoto))
-                    {
-                        <img src="@profilePhoto" class="avatar" />
-                    }
-                    else
-                    {
-                        <span class="avatar-fallback">@initials</span>
-                    }
-                </a>
+                        @if (!string.IsNullOrWhiteSpace(profilePhoto))
+                        {
+                            <img src="@profilePhoto" class="avatar" />
+                        }
+                        else
+                        {
+                            <span class="avatar-fallback">@initials</span>
+                        }
+                    </a>
+                }
 
             </div>
         </header>
@@ -223,9 +248,11 @@
 
     @if (!hideHeader)
     {
-        <!-- NORMAL LAYOUT -->
         <div class="invexa-layout">
-            @await Html.PartialAsync("_SideMenu")
+            @if (isEmployee)
+            {
+                @await Html.PartialAsync("_SideMenu")
+            }
 
             <main class="invexa-content">
                 @RenderBody()
@@ -234,7 +261,6 @@
     }
     else
     {
-        <!-- FULLSCREEN PAGE (NO HEADER / SIDEMENU / FOOTER) -->
         <main>
             @RenderBody()
         </main>
@@ -255,8 +281,6 @@
             </div>
         </footer>
     }
-
-
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     @RenderSection("Scripts", required: false)

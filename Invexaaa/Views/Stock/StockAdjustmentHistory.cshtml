@@ -20,6 +20,7 @@
                     <tr>
                         <th>Date</th>
                         <th>Item</th>
+                        <th>Batch No</th>   <!-- ✅ NEW -->
                         <th>Before</th>
                         <th>After</th>
                         <th>Diff</th>
@@ -39,23 +40,33 @@
                         <tr>
                             <td>@h.AdjustmentDate.ToString("dd/MM/yyyy")</td>
                             <td class="fw-semibold">@h.ItemName</td>
+
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    @h.BatchNumber
+                                </span>
+                            </td>
+
                             <td>@h.QuantityBefore</td>
                             <td>@h.QuantityAfter</td>
+
                             <td class="@diffClass">
                                 @h.QuantityDifference
                             </td>
+
                             <td>
                                 <span class="badge
-                                    @(h.AdjustmentStatus == "Approved" ? "bg-success" :
-                                                                        h.AdjustmentStatus == "Pending" ? "bg-warning" :
-                                                                        "bg-secondary")">
+                                        @(h.AdjustmentStatus == "Approved" ? "bg-success" :
+                                                                            h.AdjustmentStatus == "Pending" ? "bg-warning" :
+                                                                            "bg-secondary")">
                                 @h.AdjustmentStatus
                             </span>
                         </td>
-                        <td class="text-muted small">
-                            @h.AdjustmentReason
-                        </td>
-                    </tr>
+
+                            <td class="text-muted small">
+                                @h.AdjustmentReason
+                            </td>
+                        </tr>
                                         }
                 </tbody>
 

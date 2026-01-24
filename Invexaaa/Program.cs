@@ -43,6 +43,11 @@ builder.Services.AddHttpContextAccessor();
 // Session
 builder.Services.AddSession();
 
+RotativaConfiguration.Setup(
+    builder.Environment.WebRootPath,
+    "Rotativa"
+);
+
 var app = builder.Build();
 
 
@@ -50,6 +55,7 @@ var app = builder.Build();
 // Pipeline
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseRotativa();
 app.UseRouting();
 
 app.UseSession();

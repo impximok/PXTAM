@@ -26,9 +26,10 @@ namespace Invexaaa.Controllers
                     ItemName = item.ItemName,
                     TotalQuantity = inv.InventoryTotalQuantity,
                     HealthStatus =
-                        inv.InventoryTotalQuantity == 0 ? "Critical" :
-                        inv.InventoryTotalQuantity <= 10 ? "Low" :
-                        "Healthy",
+    inv.InventoryTotalQuantity == 0 ? "Critical" :
+    inv.InventoryTotalQuantity <= item.ItemReorderLevel ? "Low" :
+    "Healthy",
+
                     LastUpdated = inv.InventoryLastUpdated
                 };
 

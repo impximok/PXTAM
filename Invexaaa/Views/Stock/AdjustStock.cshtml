@@ -1,4 +1,4 @@
-﻿@model Invexaaa.Models.ViewModels.AddStockBatchViewModel
+﻿@model Invexaaa.Models.ViewModels.AdjustStockViewModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
@@ -37,130 +37,73 @@
         color: #6b7280;
         margin-top: 4px;
     }
-
-    .field-error {
-        color: #dc2626;
-        font-size: 13px;
-        margin-top: 4px;
-    }
-
-    .alert-note {
-        font-size: 13px;
-    }
-
-    .readonly-input {
-        background: #f9fafb;
-        font-weight: 600;
-        text-align: center;
-    }
 </style>
 
 <div class="container-fluid adjust-stock-page">
 
     <h3 class="mb-1">Adjust Stock</h3>
-    <div class="text-muted mb-3">@Model.ItemName (@Model.ItemUnitOfMeasure)</div>
+    <div class="text-muted mb-3">
+        @Model.ItemName (@Model.ItemUnitOfMeasure)
+    </div>
 
-    <div class="alert alert-warning alert-note">
-        Use this function only to correct stock discrepancies
-        (damage, miscount, system correction).
+    <div class="alert alert-warning small">
+        Use this only for stock corrections (damage, miscount, system fix).
     </div>
 
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-    <form asp-action="AdjustStock" method="post" id="adjustForm">
+    <form asp-action="AdjustStock" method="post">
         @Html.AntiForgeryToken()
 
+        <!-- 🔑 INVENTORY IDS -->
         @foreach (var id in Model.InventoryIds)
         {
             <input type="hidden" name="InventoryIds" value="@id" />
         }
 
-        <!-- STOCK POLICY INFO -->
+        <!-- INFO GRID -->
         <div class="info-grid">
             <div>
-                <div class="info-box" id="currentQty">@Model.CurrentQuantity</div>
+                <div class="info-box">@Model.CurrentQuantity</div>
                 <div class="info-label">Current Qty</div>
             </div>
-
             <div>
-                <div class="info-box">
-                    @Model.ItemReorderLevel
-                </div>
+                <div class="info-box">@Model.ItemReorderLevel</div>
                 <div class="info-label">Reorder Level</div>
             </div>
-
             <div>
                 <div class="info-box">@Model.SafetyStock</div>
                 <div class="info-label">Safety Stock</div>
             </div>
-
             <div>
                 <div class="info-box">@Model.ReorderPoint</div>
                 <div class="info-label">Reorder Point</div>
             </div>
         </div>
 
-        @if (Model.CurrentQuantity <= Model.SafetyStock)
-        {
-            <div class="alert alert-danger alert-note">
-                ⚠ Stock is below safety stock. Immediate action recommended.
-            </div>
-        }
-        else if (Model.CurrentQuantity <= Model.ItemReorderLevel)
-        {
-            <div class="alert alert-warning alert-note">
-                ⚠ Stock is below reorder level.
-            </div>
-        }
-
-        <!-- ADJUST BY -->
+        <!-- ADJUST -->
         <div class="mb-3">
-            <label>Adjust By (＋ / −)</label>
-            <input asp-for="AdjustBy"
-                   type="number"
-                   class="form-control"
-                   id="adjustBy" />
-            <span asp-validation-for="AdjustBy" class="field-error"></span>
-            <div class="field-error" id="adjustError"></div>
-        </div>
-
-        <!-- NEW QUANTITY -->
-        <div class="mb-3">
-            <label>New Quantity</label>
-            <input asp-for="Quantity"
-                   class="form-control readonly-input"
-                   id="newQty"
-                   readonly />
-        </div>
-
-        <!-- EXPIRY REFERENCE -->
-        <div class="mb-3">
-            <label>Expiry Reference Date</label>
-            <input asp-for="ExpiryDate"
-                   type="date"
-                   class="form-control"
-                   min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
-            <span asp-validation-for="ExpiryDate" class="field-error"></span>
+            <label>Adjust By (+ / -)</label>
+            <input asp-for="AdjustBy" class="form-control" />
+            <span asp-validation-for="AdjustBy" class="text-danger"></span>
         </div>
 
         <!-- NOTE -->
         <div class="mb-3">
-            <label>Adjustment Note</label>
+            <label>Adjustment Reason</label>
             <textarea asp-for="AdjustmentNote"
-                      class="form-control"
                       rows="3"
-                      maxlength="255"
-                      placeholder="E.g. Damaged items, stock recount, system correction"></textarea>
-            <span asp-validation-for="AdjustmentNote" class="field-error"></span>
+                      class="form-control"
+                      placeholder="Reason for adjustment"></textarea>
+            <span asp-validation-for="AdjustmentNote" class="text-danger"></span>
         </div>
 
         <!-- ACTIONS -->
         <div class="d-flex gap-2">
-            <button class="btn btn-primary">
+            <button type="submit" class="btn btn-primary">
                 Save Adjustment
             </button>
-            <a asp-action="StockIndex"
-               class="btn btn-outline-secondary">
+            <a asp-action="StockIndex" class="btn btn-outline-secondary">
                 Cancel
             </a>
         </div>
@@ -169,27 +112,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
-    <script>
-        const currentQty = parseInt(document.getElementById("currentQty").innerText);
-        const adjustBy = document.getElementById("adjustBy");
-        const newQty = document.getElementById("newQty");
-        const adjustError = document.getElementById("adjustError");
-
-        function recalc() {
-            const delta = parseInt(adjustBy.value || 0);
-            const result = currentQty + delta;
-
-            if (result < 0) {
-                adjustError.innerText = "Adjustment would result in negative stock.";
-                newQty.value = "";
-            } else {
-                adjustError.innerText = "";
-                newQty.value = result;
-            }
-        }
-
-        adjustBy.addEventListener("input", recalc);
-        recalc();
-    </script>
 }

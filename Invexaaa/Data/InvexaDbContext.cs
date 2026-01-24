@@ -20,9 +20,6 @@ namespace Invexaaa.Data
         public DbSet<StockAdjustment> StockAdjustments { get; set; }
         public DbSet<StockAdjustmentDetail> StockAdjustmentDetails { get; set; }
         public DbSet<DemandForecast> DemandForecasts { get; set; }
-        public DbSet<AlertType> AlertTypes { get; set; }
-        public DbSet<Alert> Alerts { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
         public DbSet<SalesHeader> SalesHeaders { get; set; }
         public DbSet<SalesDetail> SalesDetails { get; set; }
     }
