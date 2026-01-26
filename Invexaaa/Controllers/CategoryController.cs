@@ -106,5 +106,25 @@ namespace Invexaaa.Controllers
 
             return RedirectToAction(nameof(CategoryIndex));
         }
+
+        // =========================
+        // JSON LIST (for dropdown refresh)
+        // =========================
+        [HttpGet]
+        public IActionResult ListJson()
+        {
+            var categories = _context.Categories
+                .Where(c => c.CategoryStatus == "Active") // optional but recommended
+                .OrderBy(c => c.CategoryName)
+                .Select(c => new
+                {
+                    id = c.CategoryID,
+                    name = c.CategoryName
+                })
+                .ToList();
+
+            return Json(categories);
+        }
+
     }
 }

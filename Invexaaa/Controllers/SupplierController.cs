@@ -105,5 +105,25 @@ namespace Invexaaa.Controllers
 
             return RedirectToAction(nameof(SupplierIndex));
         }
+
+        // =========================
+        // JSON LIST (for dropdown refresh)
+        // =========================
+        [HttpGet]
+        public IActionResult ListJson()
+        {
+            var suppliers = _context.Suppliers
+                .Where(s => s.SupplierStatus == "Active") // optional but recommended
+                .OrderBy(s => s.SupplierName)
+                .Select(s => new
+                {
+                    id = s.SupplierID,
+                    name = s.SupplierName
+                })
+                .ToList();
+
+            return Json(suppliers);
+        }
+
     }
 }
