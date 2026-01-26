@@ -1,5 +1,99 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Invexaaa.Models.ViewModels.ItemFormViewModel
+
 @{
+    ViewData["Title"] = "Edit Item";
+}
+
+<h2 class="mb-4">✏️ Edit Item</h2>
+
+<form asp-action="EditItem" asp-controller="Item" method="post">
+    @Html.AntiForgeryToken()
+
+    <!-- Hidden ID -->
+    <input type="hidden" asp-for="Item.ItemID" />
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Item.ItemName" class="form-label"></label>
+            <input asp-for="Item.ItemName" class="form-control" />
+            <span asp-validation-for="Item.ItemName" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Barcode</label>
+            <input class="form-control" value="@Model.Item.ItemBarcode" disabled />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Category</label>
+            <select asp-for="Item.CategoryID"
+                    asp-items="@(new SelectList(Model.Categories, "CategoryID", "CategoryName"))"
+                    class="form-select">
+                <option value="">-- Select Category --</option>
+            </select>
+            <span asp-validation-for="Item.CategoryID" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Supplier</label>
+            <select asp-for="Item.SupplierID"
+                    asp-items="@(new SelectList(Model.Suppliers, "SupplierID", "SupplierName"))"
+                    class="form-select">
+                <option value="">-- Select Supplier --</option>
+            </select>
+            <span asp-validation-for="Item.SupplierID" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="Item.ItemBuyPrice" class="form-label"></label>
+            <input asp-for="Item.ItemBuyPrice" class="form-control" />
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="Item.ItemSellPrice" class="form-label"></label>
+            <input asp-for="Item.ItemSellPrice" class="form-control" />
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="Item.ItemUnitOfMeasure" class="form-label"></label>
+            <input asp-for="Item.ItemUnitOfMeasure" class="form-control" />
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="Item.ItemReorderLevel" class="form-label"></label>
+            <input asp-for="Item.ItemReorderLevel" class="form-control" />
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="Item.SafetyStock" class="form-label"></label>
+            <input asp-for="Item.SafetyStock" class="form-control" />
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="Item.ItemStatus" class="form-label"></label>
+            <select asp-for="Item.ItemStatus" class="form-select">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+
+        <div class="col-12 mb-3">
+            <label asp-for="Item.ItemImageUrl" class="form-label"></label>
+            <input asp-for="Item.ItemImageUrl" class="form-control" />
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">
+            💾 Save Changes
+        </button>
+        <a asp-action="ItemDetail" asp-route-id="@Model.Item.ItemID"
+           class="btn btn-secondary ms-2">
+            Cancel
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }

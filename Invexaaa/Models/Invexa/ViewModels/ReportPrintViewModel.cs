@@ -22,7 +22,10 @@ namespace Invexaaa.Models.ViewModels
         public List<Inventory>? Inventories { get; set; }
         public List<StockBatch>? StockBatches { get; set; }
 
-   
+        public List<StockChartViewModel>? StockChartData { get; set; }
+
+
+
 
     }
 }

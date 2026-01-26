@@ -5,6 +5,7 @@
         public string BatchNo { get; set; }
         public DateTime ExpiryDate { get; set; }
         public int Quantity { get; set; }
-        public string BatchStatus { get; set; } // Normal / Near Expiry / Reorder
+        // Display-only, computed in controller
+        public string ExpiryStatus { get; set; } = "Safe";
     }
 }

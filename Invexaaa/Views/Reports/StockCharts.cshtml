@@ -1,0 +1,59 @@
+﻿@model List<Invexaaa.Models.ViewModels.StockChartViewModel>
+
+@{
+    ViewData["Title"] = "Stock Charts";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var labels = Model.Select(x => x.ItemName).ToList();
+    var quantities = Model.Select(x => x.Quantity).ToList();
+
+    var healthy = Model.Count(x => x.Status == "Healthy");
+    var low = Model.Count(x => x.Status == "Low");
+    var reorder = Model.Count(x => x.Status == "Reorder");
+}
+
+<h2 class="mb-4">Stock Overview</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <canvas id="barChart"></canvas>
+    </div>
+    <div class="col-md-4">
+        <canvas id="pieChart"></canvas>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // BAR CHART
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(labels)),
+                datasets: [{
+                    label: 'Stock Quantity',
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(quantities)),
+                    backgroundColor: '#0d6efd'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // PIE CHART
+        new Chart(document.getElementById('pieChart'), {
+            type: 'pie',
+            data: {
+                labels: ['Healthy', 'Low', 'Reorder'],
+                datasets: [{
+                    data: [@healthy, @low, @reorder],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545']
+                }]
+            }
+        });
+    </script>
+}

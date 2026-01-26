@@ -1,0 +1,73 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Invexaaa.Models.Invexa.StockBatch
+
+@{
+    ViewData["Title"] = "Edit Expiry Date";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4" style="max-width: 520px;">
+
+    <h4 class="fw-semibold mb-3">Edit Expiry Date</h4>
+
+    <div class="alert alert-light border text-muted small">
+        Changing the expiry date affects inventory alerts and reports.
+        Please provide a valid reason.
+    </div>
+
+    <form asp-action="EditExpiry" method="post">
+        @Html.AntiForgeryToken()
+
+        <!-- REQUIRED -->
+        <input type="hidden" name="BatchID" value="@Model.BatchID" />
+
+        <!-- ITEM NAME (FROM ViewBag, NOT Model.Item) -->
+        <div class="mb-3">
+            <label class="form-label">Item</label>
+            <input class="form-control"
+                   value="@ViewBag.ItemName"
+                   disabled />
+        </div>
+
+        <!-- BATCH NUMBER -->
+        <div class="mb-3">
+            <label class="form-label">Batch Number</label>
+            <input class="form-control"
+                   value="@Model.BatchNumber"
+                   disabled />
+        </div>
+
+        <!-- EXPIRY DATE -->
+        <div class="mb-3">
+            <label class="form-label">Expiry Date</label>
+            <input type="date"
+                   name="BatchExpiryDate"
+                   value="@Model.BatchExpiryDate.ToString("yyyy-MM-dd")"
+                   class="form-control"
+                   required />
+        </div>
+
+        <!-- REASON -->
+        <div class="mb-3">
+            <label class="form-label">Reason</label>
+            <textarea name="Reason"
+                      class="form-control"
+                      rows="3"
+                      required></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a asp-controller="ExpiryTracking"
+               asp-action="ExpiryTrackingIndex"
+               class="btn btn-outline-secondary">
+                Cancel
+            </a>
+
+            <button type="submit"
+                    class="btn btn-dark">
+                Save Changes
+            </button>
+        </div>
+    </form>
+
+</div>

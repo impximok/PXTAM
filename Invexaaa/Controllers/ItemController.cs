@@ -39,27 +39,29 @@ namespace Invexaaa.Controllers
                 {
                     ItemID = i.ItemID,
                     ItemName = i.ItemName,
+                    CategoryID = i.CategoryID,
                     CategoryName = c.CategoryName,
                     SupplierName = s.SupplierName,
-
                     ItemSellPrice = i.ItemSellPrice,
                     ItemStatus = i.ItemStatus,
                     ItemImageUrl = i.ItemImageUrl,
-
                     ReorderLevel = i.ItemReorderLevel,
                     SafetyStock = i.SafetyStock,
                     CurrentBalance = inv.InventoryTotalQuantity,
-
-                    ItemBarcode = i.ItemBarcode   // ✅ ADD THIS
+                    ItemBarcode = i.ItemBarcode
                 };
 
+            // 🔥 DEFAULT RULE: only ACTIVE items
+            if (string.IsNullOrEmpty(status))
+            {
+                items = items.Where(x => x.ItemStatus == "Active");
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
                 items = items.Where(x => x.ItemName.Contains(search));
 
             if (categoryId.HasValue)
-                items = items.Where(x =>
-                    _context.Items.Any(i => i.ItemID == x.ItemID && i.CategoryID == categoryId));
+                items = items.Where(x => x.CategoryID == categoryId);
 
             if (!string.IsNullOrWhiteSpace(status))
                 items = items.Where(x => x.ItemStatus == status);
@@ -70,9 +72,9 @@ namespace Invexaaa.Controllers
 
             ViewBag.StatusList = new[] { "Active", "Inactive" };
 
-            // 👇 EXPLICIT VIEW NAME (important)
             return View("ItemIndex", items.ToList());
         }
+
 
         // =====================================================
         // ITEM DETAIL
@@ -115,16 +117,21 @@ namespace Invexaaa.Controllers
                 return NotFound();
 
             item.Batches =
-                _context.StockBatches
-                .Where(b => b.ItemID == id)
-                .Select(b => new ItemBatchViewModel
-                {
-                    BatchNo = b.BatchNumber,
-                    Quantity = b.BatchQuantity,
-                    ExpiryDate = b.BatchExpiryDate,
-                    BatchStatus = b.BatchStatus
-                })
-                .ToList();
+    _context.StockBatches
+    .Where(b => b.ItemID == id)
+    .Select(b => new ItemBatchViewModel
+    {
+        BatchNo = b.BatchNumber,
+        Quantity = b.BatchQuantity,
+        ExpiryDate = b.BatchExpiryDate,
+
+        ExpiryStatus =
+            b.BatchExpiryDate < DateTime.Today ? "Expired" :
+            b.BatchExpiryDate <= DateTime.Today.AddDays(30) ? "Near Expiry" :
+            "Safe"
+    })
+    .ToList();
+
 
             return View("ItemDetail", item);
         }
@@ -240,24 +247,22 @@ namespace Invexaaa.Controllers
             return RedirectToAction("ItemDetail", "Item", new { id = vm.Item.ItemID });
         }
 
-        // =====================================================
-        // DELETE ITEM (SOFT DELETE)
-        // =====================================================
+        // SOFT DELETE = DEACTIVATE
         [Authorize(Roles = "Admin,Manager")]
-        [HttpGet("DeleteItem/{id}")]
-        public IActionResult DeleteItem(int id)
+        [HttpGet("DeactivateItem/{id}")]
+        public IActionResult DeactivateItem(int id)
         {
             var item = _context.Items.Find(id);
             if (item == null)
                 return NotFound();
 
-            return View("DeleteItem", item);
+            return View("DeactivateItem", item);
         }
 
         [Authorize(Roles = "Admin,Manager")]
-        [HttpPost("DeleteItem")]
+        [HttpPost("DeactivateItem/{id}")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteItemConfirmed(int id)
+        public IActionResult DeactivateItemConfirmed(int id)
         {
             var item = _context.Items.Find(id);
             if (item == null)
@@ -266,10 +271,88 @@ namespace Invexaaa.Controllers
             item.ItemStatus = "Inactive";
             _context.SaveChanges();
 
-            return RedirectToAction("ItemIndex", "Item");
+            TempData["Success"] = "Item deactivated successfully.";
+            return RedirectToAction("ItemIndex");
         }
 
-       
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("ForceDeleteItem")]
+        [ValidateAntiForgeryToken]
+        public IActionResult ForceDeleteItem(int id)
+        {
+            using var tx = _context.Database.BeginTransaction();
+
+            try
+            {
+                var item = _context.Items.FirstOrDefault(i => i.ItemID == id);
+                if (item == null)
+                    return NotFound();
+
+                // =====================================================
+                // 1️⃣ DELETE STOCK TRANSACTIONS
+                // =====================================================
+                var transactions = _context.StockTransactions
+                    .Where(t => t.ItemID == id)
+                    .ToList();
+                _context.StockTransactions.RemoveRange(transactions);
+
+                // =====================================================
+                // 2️⃣ DELETE STOCK ADJUSTMENT DETAILS
+                // =====================================================
+                var adjustmentDetails = _context.StockAdjustmentDetails
+                    .Where(d => d.ItemID == id)
+                    .ToList();
+                _context.StockAdjustmentDetails.RemoveRange(adjustmentDetails);
+
+                // =====================================================
+                // 3️⃣ DELETE STOCK ADJUSTMENTS (ORPHANS)
+                // =====================================================
+                var adjustmentIds = adjustmentDetails
+                    .Select(d => d.AdjustmentID)
+                    .Distinct()
+                    .ToList();
+
+                var adjustments = _context.StockAdjustments
+                    .Where(a => adjustmentIds.Contains(a.AdjustmentID))
+                    .ToList();
+                _context.StockAdjustments.RemoveRange(adjustments);
+
+                // =====================================================
+                // 4️⃣ DELETE STOCK BATCHES
+                // =====================================================
+                var batches = _context.StockBatches
+                    .Where(b => b.ItemID == id)
+                    .ToList();
+                _context.StockBatches.RemoveRange(batches);
+
+                // =====================================================
+                // 5️⃣ DELETE INVENTORY
+                // =====================================================
+                var inventory = _context.Inventories
+                    .FirstOrDefault(inv => inv.ItemID == id);
+                if (inventory != null)
+                    _context.Inventories.Remove(inventory);
+
+                // =====================================================
+                // 6️⃣ DELETE ITEM (LAST!)
+                // =====================================================
+                _context.Items.Remove(item);
+
+                _context.SaveChanges();
+                tx.Commit();
+
+                TempData["Success"] = "Item permanently deleted from database.";
+                return RedirectToAction("ItemIndex");
+            }
+            catch (Exception ex)
+            {
+                tx.Rollback();
+                throw;
+            }
+        }
+
+
 
         [Authorize(Roles = "Admin,Manager,Staff")]
         [HttpGet("Scan")]

@@ -17,5 +17,9 @@ namespace Invexaaa.Models.Invexa
 
         [Required(ErrorMessage = "Last updated date is required.")]
         public DateTime InventoryLastUpdated { get; set; } = DateTime.Now;
+
+        // ✅ OPTIMISTIC CONCURRENCY TOKEN
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
     }
 }

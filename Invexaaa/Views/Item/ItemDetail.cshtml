@@ -203,11 +203,11 @@
                         <td>@b.ExpiryDate.ToString("dd/MM/yyyy")</td>
                         <td>@b.Quantity</td>
                         <td>
-                            @if (b.BatchStatus == "Near Expiry")
+                            @if (b.ExpiryStatus == "Near Expiry")
                             {
                                 <span class="badge-warn">Near Expiry</span>
                             }
-                            else if (b.BatchStatus == "Reorder")
+                            else if (b.ExpiryStatus == "Reorder")
                             {
                                 <span class="badge-danger">Reorder</span>
                             }

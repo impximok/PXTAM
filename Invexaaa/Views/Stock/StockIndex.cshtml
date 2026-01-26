@@ -115,7 +115,7 @@
 
                             <!-- ACTION -->
                             <td>
-                                <a asp-action="AdjustStock"
+                                <a asp-action="AdjustStockByBatch"
                                    asp-route-inventoryId="@s.InventoryID"
                                    class="btn btn-sm btn-outline-primary">
                                     Adjust
@@ -165,7 +165,7 @@
             ).map(c => c.value).join(",");
 
             window.location.href =
-                `/Stock/AddStockBatchBulk?inventoryIds=${ids}`;
+                `/Stock/AddStockBatch?inventoryIds=${ids}`;
         });
     </script>
 }

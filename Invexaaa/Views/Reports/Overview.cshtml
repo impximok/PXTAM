@@ -89,8 +89,12 @@
                 <option value="Sales" selected="@(Model.ReportType == "Sales")">Sales</option>
                 <option value="DemandForecast" selected="@(Model.ReportType == "DemandForecast")">Demand Forecast</option>
                 <option value="Stock" selected="@(Model.ReportType == "Stock")">Stock Summary</option>
+                <option value="StockCharts" selected="@(Model.ReportType == "StockCharts")">
+                    Stock Charts
+                </option>
                 <option value="Expiry" selected="@(Model.ReportType == "Expiry")">Expiry & Wastage</option>
             </select>
+
         </div>
 
         <div class="col-md-3">
@@ -110,33 +114,27 @@
         </div>
     </form>
 
-    @if (!string.IsNullOrEmpty(Model.ReportType))
+    @if (Model.ReportType == "Sales")
     {
-        <hr class="my-4" />
-
-        <!-- ================= KPI SUMMARY ================= -->
-        <div class="row g-3 mb-4">
-
-            @if (Model.ReportType == "Sales")
-            {
-                <div class="col-md-3">
-                    <div class="kpi-card">
-                        <div class="kpi-title">Total Sales</div>
-                        <div class="kpi-value">
-                            @Model.SalesHeaders!.Sum(x => x.TotalAmount)
-                        </div>
-                    </div>
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Sales</div>
+                <div class="kpi-value">
+                    @Model.SalesHeaders!.Sum(x => x.TotalAmount)
                 </div>
+            </div>
+        </div>
 
-                <div class="col-md-3">
-                    <div class="kpi-card">
-                        <div class="kpi-title">Total Orders</div>
-                        <div class="kpi-value">
-                            @Model.SalesHeaders!.Count
-                        </div>
-                    </div>
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Orders</div>
+                <div class="kpi-value">
+                    @Model.SalesHeaders!.Count
                 </div>
-            }
+            </div>
+        </div>
+    }
+
 
             @if (Model.ReportType == "Stock")
             {
@@ -212,10 +210,13 @@
 
 @if (Model.ReportType == "Sales")
 {
-    <script>
-        const ctx = document.getElementById('reportChart');
+    <div class="report-section">
+        <h5 class="mb-3">Sales Trend</h5>
+        <canvas id="salesChart"></canvas>
+    </div>
 
-        new Chart(ctx, {
+    <script>
+        new Chart(document.getElementById('salesChart'), {
             type: 'line',
             data: {
                 labels: [@string.Join(",", Model.SalesHeaders!.Select(x => $"'{x.SalesDate:dd MMM}'"))],
@@ -229,3 +230,31 @@
         });
     </script>
 }
+
+@if (Model.ReportType == "StockCharts")
+{
+    <div class="report-section">
+        <h5 class="mb-3">Stock Distribution</h5>
+        <canvas id="stockChart"></canvas>
+    </div>
+
+    <script>
+        new Chart(document.getElementById('stockChart'), {
+            type: 'bar',
+            data: {
+                labels: [
+                    @string.Join(",", Model.StockChartData!.Select(x => $"'{x.ItemName}'"))
+                ],
+                datasets: [{
+                    label: 'Stock Quantity',
+                    data: [
+                        @string.Join(",", Model.StockChartData!.Select(x => x.Quantity))
+                    ],
+                    borderWidth: 1
+                }]
+            }
+        });
+    </script>
+}
+
+

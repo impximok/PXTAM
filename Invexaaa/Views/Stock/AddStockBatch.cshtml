@@ -6,54 +6,210 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    /* ===============================
+           MINIMAL BLACK & WHITE STYLE
+        =============================== */
+
+    .add-stock-page {
+        max-width: 900px;
+    }
+
+    h3 {
+        font-weight: 600;
+        color: #111;
+    }
+
+    label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #444;
+    }
+
+    .form-control {
+        border-radius: 6px;
+    }
+
+    .preview-card {
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    .preview-header {
+        padding: 12px 16px;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e5e5;
+        color: #111;
+    }
+
+    .preview-table th {
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        border-bottom: 1px solid #eee;
+    }
+
+    .preview-table td {
+        font-size: 14px;
+        color: #111;
+        border-top: 1px solid #f2f2f2;
+    }
+
+    .preview-qty,
+    .preview-expiry {
+        color: #000;
+    }
+</style>
+
 <div class="container-fluid add-stock-page">
 
-    <h3 class="mb-3">Add Stock (With Expiry)</h3>
+    <h3 class="mb-4">Add Stock (With Expiry)</h3>
 
     <!-- VALIDATION -->
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
+    <!-- ===============================
+         FORM
+    =============================== -->
     <form asp-controller="Stock" asp-action="AddStockBatch" method="post">
         @Html.AntiForgeryToken()
 
-        <!-- 🔑 CRITICAL: correct binding -->
+        <!-- INVENTORY IDS -->
         @foreach (var id in Model.InventoryIds)
         {
             <input type="hidden" name="InventoryIds" value="@id" />
         }
 
-        <!-- QUANTITY -->
-        <div class="mb-3">
-            <label class="form-label">Quantity to Add</label>
-            <input asp-for="Quantity"
-                   type="number"
-                   min="1"
-                   class="form-control" />
-            <span asp-validation-for="Quantity" class="text-danger"></span>
-        </div>
+        <div class="row g-3">
 
-        <!-- EXPIRY -->
-        <div class="mb-3">
-            <label class="form-label">Expiry Date</label>
-            <input asp-for="ExpiryDate"
-                   type="date"
-                   class="form-control"
-                   min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
-            <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+            <!-- QUANTITY -->
+            <div class="col-md-6">
+                <label>Quantity to Add</label>
+                <input asp-for="Quantity"
+                       type="number"
+                       min="1"
+                       class="form-control"
+                       placeholder="Enter quantity" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+            </div>
+
+            <!-- EXPIRY -->
+            <div class="col-md-6">
+                <label>Expiry Date</label>
+                <input asp-for="ExpiryDate"
+                       type="date"
+                       class="form-control"
+                       min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+            </div>
+
         </div>
 
         <!-- ACTIONS -->
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-dark">
                 Save Stock
             </button>
-            <a asp-action="StockIndex" class="btn btn-outline-secondary">
+            <a asp-action="StockIndex" class="btn btn-outline-dark">
                 Cancel
             </a>
         </div>
     </form>
+
+    <!-- ===============================
+         LIVE PREVIEW (ALWAYS VISIBLE)
+    =============================== -->
+    <div class="preview-card mt-5">
+        <div class="preview-header">
+            Stock Preview
+        </div>
+
+        <table class="table preview-table mb-0">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Expiry</th>
+                </tr>
+            </thead>
+            <tbody id="previewBody">
+                @foreach (var item in Model.PreviewItems)
+                {
+                    <tr>
+                        <td>@item.ItemName</td>
+                        <td class="preview-qty">–</td>
+                        <td class="preview-expiry">Not selected</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===============================
+         AFTER SAVE SUMMARY
+    =============================== -->
+    @if (Model.ShowSummary && Model.SummaryRows.Any())
+    {
+        <div class="preview-card mt-4">
+            <div class="preview-header">
+                Stock Added Successfully
+            </div>
+
+            <table class="table preview-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity Added</th>
+                        <th>Expiry</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.SummaryRows)
+                    {
+                        <tr>
+                            <td>@row.ItemName</td>
+                            <td>@row.QuantityAdded</td>
+                            <td>@row.ExpiryDate.ToString("dd MMM yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const qtyInput = document.querySelector('[name="Quantity"]');
+        const expiryInput = document.querySelector('[name="ExpiryDate"]');
+
+        function updatePreview() {
+            const qty = qtyInput.value;
+            const expiry = expiryInput.value;
+
+            document.querySelectorAll('#previewBody tr').forEach(row => {
+                row.querySelector('.preview-qty').innerText =
+                    qty ? qty : '–';
+
+                row.querySelector('.preview-expiry').innerText =
+                    expiry
+                        ? new Date(expiry).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                        })
+                        : 'Not selected';
+            });
+        }
+
+        // Run once on load
+        updatePreview();
+
+        qtyInput.addEventListener('input', updatePreview);
+        expiryInput.addEventListener('change', updatePreview);
+    </script>
 }
