@@ -81,12 +81,12 @@
 
 
 
-                    <label>Full Name</label>
+                    <label class="req">Full Name</label>
                     <input asp-for="UserFullName" class="input" />
                     <span asp-validation-for="UserFullName" class="val"></span>
 
 
-                    <label>Email Address</label>
+                    <label class="req">Email Address</label>
                     <input asp-for="UserEmail" class="input" type="text" />
                     <span asp-validation-for="UserEmail" class="val"></span>
 
@@ -94,7 +94,7 @@
 
                     <div class="row">
                         <div>
-                            <label>Password</label>
+                            <label class="req">Password</label>
                             <div class="password">
                                 <input asp-for="Password" id="Password" type="password" class="input" />
                                 <button type="button" class="eye" data-target="Password">
@@ -105,7 +105,7 @@
                         </div>
 
                         <div>
-                            <label>Confirm Password</label>
+                            <label class="req">Confirm Password</label>
                             <div class="password">
                                 <input asp-for="ConfirmPassword" id="ConfirmPassword" type="password" class="input" />
                                 <button type="button" class="eye" data-target="ConfirmPassword">
@@ -118,18 +118,19 @@
 
                     <div class="row">
                         <div>
-                            <label>Phone Number</label>
+                            <label class="req">Phone Number</label>
                             <input asp-for="UserPhone" class="input" />
                             <span asp-validation-for="UserPhone" class="val"></span>
 
                         </div>
 
                         <div>
-                            <label>Role</label>
+                            <label class="req">Role</label>
 
-                            <div class="select-wrap" id="roleSelect">
+                            <div class="select-wrap @(ViewData.ModelState["UserRole"]?.Errors.Any() == true ? "error" : "")" id="roleSelect">
                                 <button type="button" class="select-btn" aria-haspopup="listbox" aria-expanded="false">
-                                    <span id="roleText">Staff</span>
+                                    <span id="roleText">Select role</span>
+
                                     <i class="bi bi-chevron-down"></i>
                                 </button>
 
@@ -140,8 +141,10 @@
                                 </ul>
                             </div>
 
+
                             <!-- hidden input for form submit -->
-                            <input type="hidden" name="UserRole" id="UserRole" value="Staff" />
+                            <input asp-for="UserRole" type="hidden" id="UserRole" value="" />
+
                             <span asp-validation-for="UserRole" class="val"></span>
                         </div>
                     </div>
@@ -188,6 +191,10 @@
             </div>
 
             <div class="editor-actions">
+                <!-- ✅ Confirm FIRST (top) -->
+                <button type="button" class="btn solid use-btn" id="useImage">Confirm</button>
+
+                <!-- ✅ Rotate BELOW -->
                 <div class="rotate-row">
                     <button type="button" class="btn icon" id="rotateLeft" aria-label="Rotate left">
                         <svg viewBox="0 0 24 24" width="18" height="18">
@@ -200,1148 +207,1208 @@
                             <path d="M12 5V2l4 4-4 4V7a5 5 0 1 0 5 5h2a7 7 0 1 1-7-7z" fill="currentColor" />
                         </svg>
                     </button>
-
                 </div>
-
-                <button type="button" class="btn solid use-btn" id="useImage">Confirm</button>
             </div>
 
-        </div>
-
-    </div>
-</div>
-
-<style>
-
-
-    .page {
-        padding: 40px;
-    }
-
-    .sheet {
-        max-width: 1100px;
-        margin: auto;
-    }
-
-    /* ====== LAYOUT ====== */
-    .grid {
-        display: grid;
-        grid-template-columns: 1fr; /* mobile stack */
-        gap: 30px;
-        align-items: stretch;
-    }
-
-    /* Desktop: side-by-side */
-    @@media (min-width: 980px) {
-        .grid {
-            grid-template-columns: 420px 1fr;
-        }
-    }
-
-    .panel {
-        border: 1px solid #ddd;
-        border-radius: 20px;
-        padding: 40px 24px 28px; /* ⬅ more space on top */
-        background: #fff;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .panel-footer {
-        margin-top: auto;
-    }
-
-    .panel:first-child {
-        padding-bottom: 76px;
-    }
-
-
-
-
-    /* ====== TITLES + LABELS ====== */
-    label {
-        font-size: 13px;
-        font-weight: 500;
-        color: #000;
-        margin-bottom: 6px;
-        display: block;
-    }
-
-    .title-xl {
-        font-size: 30px;
-        font-weight: 800;
-        letter-spacing: -0.3px;
-        color: #000;
-        margin-bottom: 30px; /* ⬅ was 20px */
-        text-align: center;
-    }
-
-
-    /* ====== INPUTS ====== */
-    .input {
-        width: 100%;
-        height: 46px;
-        font-size: 14px;
-        border-radius: 12px;
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin-bottom: 20px; /* ⬅ was 12px */
-    }
-
-
-
-
-    /* ====== ROW (PASSWORD + CONFIRM) ====== */
-    .row {
-        display: grid;
-        gap: 16px; /* ⬅ reduce horizontal space */
-        grid-template-columns: 1fr;
-    }
-
-
-    @@media (min-width: 720px) {
-        .row {
-            grid-template-columns: 1fr 1fr;
-            column-gap: 12px; /* ⬅ tighter columns */
-        }
-    }
-
-    /* ====== PASSWORD + EYE ICON ====== */
-    .password {
-        position: relative;
-    }
-
-        /* input height = 46px */
-        .password .input {
-            padding-right: 56px;
-        }
-
-        .password .input {
-            padding-right: 56px; /* leave space for eye */
-        }
-
-    .eye {
-        position: absolute;
-        right: 14px;
-        top: 40%; /* ⬅ move up a bit */
-        transform: translateY(-58%);
-        width: 34px;
-        height: 34px;
-        display: grid;
-        place-items: center;
-        border: 0;
-        background: transparent;
-        padding: 0;
-        cursor: pointer;
-        border-radius: 10px;
-        z-index: 10;
-    }
-
-
-        .eye i {
-            font-size: 18px;
-            line-height: 1;
-            pointer-events: none; /* click always hits the button */
-        }
-
-
-    /* ====== SELECT (ROLE) ARROW ALIGN WITH EYE ====== */
-    select.input {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        padding-right: 56px; /* same as password */
-
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23111' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 18px center;
-        background-size: 18px 18px;
-    }
-
-    /* ====== BUTTONS ====== */
-    .btn {
-        padding: 10px 18px;
-        border-radius: 999px;
-        border: 1px solid #000;
-        background: #fff;
-    }
-
-
-        .btn.solid {
-            background: #000;
-            color: #fff;
-        }
-
-            .btn.solid.w100 {
-                height: 54px;
-                font-size: 16px;
-            }
-
-            .btn.solid,
-            .btn.solid.w100 {
-                font-weight: 600; /* ⬅ slightly bolder (recommended) */
-            }
-    /* shared primary action width */
-    .primary-action {
-        width: 360px; /* 👈 adjust once, affects both */
-        max-width: 100%;
-        height: 48px;
-        font-size: 15px;
-        font-weight: 600;
-    }
-
-
-    .w100 {
-        width: 100%;
-    }
-
-    .actions {
-        justify-content: center;
-        margin-top: 24px; /* keep nice spacing, not 60px */
-    }
-
-    .create-btn {
-        width: 100%;
-        margin-top: 0px;
-    }
-
-
-
-    /* inline validation error */
-    .val {
-        display: block;
-        margin-top: -12px;
-        margin-bottom: 14px;
-        font-size: 12px;
-        color: #d11;
-        font-weight: 500;
-    }
-
-    /* red border on invalid input */
-    .input.input-validation-error {
-        border-color: #d11;
-    }
-
-    /* ✅ Focus style like your screenshot */
-    .input:focus,
-    .input:focus-visible {
-        outline: none;
-        border: 2px solid #000;
-    }
-
-    /* ✅ Make sure invalid stays red even on focus */
-    .input.input-validation-error {
-        border-color: #d11;
-        box-shadow: none;
-    }
-
-        .input.input-validation-error:focus,
-        .input.input-validation-error:focus-visible {
-            border-color: #d11;
-            box-shadow: 0 0 0 4px rgba(209,17,17,0.12); /* red ring when invalid */
-        }
-
-
-
-    .back {
-        text-align: center;
-        margin-top: 12px;
-    }
-
-    /* ====== EDITOR MODAL (IMPROVED) ====== */
-    .editor {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        background: rgba(0,0,0,.55);
-        display: grid;
-        place-items: center;
-        padding: 20px;
-    }
-
-        .editor.hidden {
-            display: none;
-        }
-
-    .editor-controls {
-        margin-top: 18px;
-        display: grid;
-        gap: 18px;
-        padding-top: 14px;
-        border-top: 1px solid rgba(0,0,0,0.08);
-    }
-
-
-
-    .editor-box {
-        width: min(480px, 94vw);
-        background: #fff;
-        border-radius: 24px;
-        padding: 18px 18px 16px;
-        position: relative;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-    }
-
-
-
-    .editor-close {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: #fff;
-        border: 1px solid rgba(0,0,0,0.15);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-        cursor: pointer;
-        z-index: 10;
-    }
-
-    .editor-canvasWrap {
-        width: min(360px, 82vw);
-        height: min(360px, 82vw);
-        margin: 8px auto 0;
-        border-radius: 50%;
-        background: #f4f5f7;
-        border: 1px solid rgba(0,0,0,0.12);
-        display: grid;
-        place-items: center;
-        overflow: hidden;
-    }
-
-
-    /* --- Zoom row: cleaner container --- */
-    .editor-zoom {
-        display: grid;
-        grid-template-columns: 46px 1fr;
-        align-items: center;
-        gap: 12px;
-        background: transparent;
-        border: none;
-        padding: 0;
-    }
-
-        .editor-zoom input[type="range"] {
-            height: 10px;
-            border-radius: 999px;
-            background: #e5e7eb;
-        }
-
-
-    .zoom-label {
-        font-size: 13px;
-        font-weight: 700;
-        color: #111;
-    }
-
-    /* --- Make the range slider look premium --- */
-    .editor-zoom input[type="range"] {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 100%;
-        height: 10px;
-        border-radius: 999px;
-        background: #e5e7eb;
-        outline: none;
-    }
-
-        /* Chrome/Safari thumb */
-        .editor-zoom input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #111;
-            border: 3px solid #fff;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-            cursor: pointer;
-        }
-
-        /* Firefox thumb */
-        .editor-zoom input[type="range"]::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #111;
-            border: 3px solid #fff;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-            cursor: pointer;
-        }
-
-        /* Firefox track */
-        .editor-zoom input[type="range"]::-moz-range-track {
-            height: 10px;
-            border-radius: 999px;
-            background: #e5e7eb;
-        }
-
-    /* --- Actions layout: rotate row, use button below --- */
-    .editor-actions {
-        display: grid;
-        gap: 18px; /* ⬅ more separation */
-        justify-items: center;
-    }
-
-
-    .rotate-row {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-    }
-
-    .use-btn {
-        width: 68%; /* ⬅ not full width */
-        max-width: 260px; /* ⬅ keeps it elegant */
-        height: 46px;
-        border-radius: 999px;
-        font-size: 15px;
-        font-weight: 600; /* ⬅ lighter text */
-        letter-spacing: 0.2px;
-        margin-top: 6px; /* spacing from rotate buttons */
-        margin-bottom: 6px; /* spacing from rotate buttons */
-    }
-
-    .use-btn {
-        font-weight: 600 !important; /* ⬅ override global */
-    }
-
-
-    /* Optional: make rotate buttons slightly softer */
-    .btn.icon {
-        display: grid;
-        place-items: center;
-    }
-
-        .btn.icon svg {
-            display: block;
-        }
-
-    #btnCapture {
-        height: 48px;
-        font-size: 15px;
-        font-weight: 600;
-    }
-
-
-
-    /* ========================= */
-    /* PROFILE PHOTO (LEFT SIDE) */
-    /* ========================= */
-    .avatarWrap {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 8px;
-    }
-
-    .avatar {
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        background: #f3f4f6;
-        border: 1px solid rgba(0,0,0,0.08);
-        overflow: hidden;
-        position: relative;
-        margin-bottom: 22px; /* ⬅ spacing before Upload / Camera */
-        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-
-
-    .avatar {
-        cursor: pointer;
-    }
-
-        .avatar:focus-visible {
-            outline: 2px solid rgba(0,0,0,0.35);
-            outline-offset: 4px;
-        }
-
-        /* hover + keyboard focus */
-        .avatar:hover,
-        .avatar:focus-visible {
-            transform: translateY(-2px);
-            border-color: rgba(0,0,0,0.18);
-            box-shadow: 0 10px 26px rgba(0,0,0,0.10);
-        }
-
-        /* subtle dark overlay on hover */
-        .avatar::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.06);
-            opacity: 0;
-            transition: opacity .18s ease;
-            pointer-events: none;
-        }
-
-        .avatar:hover::after,
-        .avatar:focus-visible::after {
-            opacity: 1;
-        }
-
-
-        .avatar img,
-        .avatar video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-    .avatar-ph {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        color: #9aa0a6;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .avatar-ph {
-        transition: opacity 0.2s ease;
-    }
-
-
-    .avatar.has-image .avatar-ph {
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    /* extra safety: if img/video is visible, keep placeholder hidden */
-    .avatar img:not([hidden]) ~ .avatar-ph,
-    .avatar video:not([hidden]) ~ .avatar-ph {
-        opacity: 0;
-        visibility: hidden;
-    }
-
-
-    .avatarNote {
-        margin: -18px 0 22px; /* ⬅ closer to “Profile Photo” */
-        font-size: 12px;
-        color: #8a8f98;
-        text-align: center;
-    }
-
-
-
-    /* segmented Upload/Camera */
-    .segmented {
-        position: relative;
-        display: flex;
-        width: 200px;
-        background: #f3f4f6;
-        border-radius: 999px;
-        padding: 4px;
-        border: 1px solid rgba(0,0,0,0.08);
-    }
-
-    .seg-indicator {
-        position: absolute;
-        top: 4px;
-        left: 4px;
-        width: calc(50% - 4px);
-        height: calc(100% - 8px);
-        background: #111;
-        border-radius: 999px;
-        transition: transform 0.28s cubic-bezier(.4,0,.2,1);
-        z-index: 0;
-    }
-
-    /* slide right when camera active */
-    .segmented.camera .seg-indicator {
-        transform: translateX(100%);
-    }
-
-    .segBtn {
-        flex: 1;
-        border: none;
-        background: transparent;
-        padding: 8px 0;
-        font-family: inherit; /* same as Create Account */
-        font-size: 14px; /* match button text size */
-        font-weight: 600; /* same visual weight */
-        letter-spacing: 0; /* avoid mismatch */
-        cursor: pointer;
-        z-index: 1;
-        color: #6b7280;
-        transition: color 0.25s ease;
-    }
-
-        .segBtn.active {
-            color: #fff;
-            font-weight: 600;
-        }
-
-    .btn,
-    .segBtn {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-
-
-    /* dropzone like sample */
-    .dropzone {
-        border: 1.6px dashed rgba(0,0,0,0.18);
-        border-radius: 16px;
-        padding: 18px 16px;
-        text-align: center;
-        background: #fff;
-        margin-top: 24px;
-        cursor: pointer;
-    }
-
-        .dropzone.drag {
-            background: #f7faff;
-            border-color: rgba(37,99,235,0.35);
-        }
-
-    .dzIcon {
-        width: 34px;
-        height: 34px;
-        margin: 0 auto 10px;
-        border-radius: 10px;
-        display: grid;
-        place-items: center;
-        background: #f3f4f6;
-        color: #6b7280;
-        font-weight: 900;
-    }
-
-    .dzTitle {
-        font-size: 12px;
-        color: #6b7280;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-
-    .dzBtn {
-        border: 1.5px solid #000;
-        background: #fff;
-        color: #000;
-        border-radius: 999px;
-        padding: 8px 16px;
-        font-weight: 700;
-        font-size: 13px;
-        cursor: pointer;
-        transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
-        margin-top: 10px;
-    }
-
-        /* Hover effect */
-        .dzBtn:hover {
-            background: #000;
-            color: #fff;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
-        }
-
-        /* Active / click feedback */
-        .dzBtn:active {
-            transform: translateY(0);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.18);
-        }
-
-
-    .dzHint {
-        font-size: 11px;
-        color: #9aa0a6;
-        margin-top: 8px;
-    }
-
-    /* ===== Custom Apple-style dropdown ===== */
-
-    .select-wrap {
-        position: relative;
-        margin-bottom: 20px;
-    }
-
-    .select-btn {
-        width: 100%;
-        height: 46px;
-        border-radius: 14px;
-        border: 1px solid #ccc;
-        background: #fff;
-        padding: 0 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 14px;
-        cursor: pointer;
-    }
-
-        .select-btn i {
-            font-size: 14px;
-        }
-
-
-    /* dropdown menu */
-    .select-menu {
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        right: 0;
-        background: #fff;
-        border-radius: 14px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        border: 1px solid rgba(0,0,0,0.08);
-        padding: 6px 0;
-        list-style: none;
-        display: none;
-        z-index: 50;
-    }
-
-        .select-menu li {
-            padding: 10px 16px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-            /* hover (Apple-like) */
-            .select-menu li:hover {
-                background: rgba(0,0,0,0.05);
-            }
-
-    /* open state */
-    .select-wrap.open .select-menu {
-        display: block;
-    }
-    /* --- CAPTCHA spacing --- */
-    .captcha {
-        margin-top: 18px; /* space from Role dropdown */
-        margin-bottom: 22px; /* space before Create Account button */
-    }
-
-        /* optional: reduce the red warning text height feeling */
-        .captcha .h-captcha {
-            margin-top: 6px;
-        }
-
-    /* --- Primary button spacing + size --- */
-    .btn.solid.w100 {
-        margin-top: 6px; /* slight breathing room */
-        height: 48px; /* ⬅ was 54px */
-        font-size: 15px; /* ⬅ slightly smaller */
-    }
-
-    /* --- Back link spacing --- */
-    .back {
-        margin-top: 18px; /* more breathing room after button */
-        padding-bottom: 6px;
-    }
-
-        .back a {
-            color: #000;
-            text-decoration: underline;
-            font-weight: 500;
-            font-size: 13px; /* ⬅ slightly smaller */
-        }
-
-
-            .back a:hover {
-                color: #2563eb;
-            }
-
-
-
-
-
-    /* ================================
-           Button hover style (B/W clean)
-           ================================ */
-
-    /* All buttons on hover */
-    .btn:hover {
-        border-color: #111;
-        background: #fff;
-        color: #111;
-    }
-
-        /* Keep icons/text inside button black too */
-        .btn:hover i {
-            color: #111;
-        }
-
-    /* Solid buttons (black) invert on hover */
-    .btn.solid:hover {
-        background: #fff;
-        color: #111;
-        border-color: #111;
-    }
-
-    /* Optional: nicer focus (keyboard tab) */
-    .btn:focus-visible {
-        outline: none;
-        border-color: #111;
-    }
-
-    #editorCanvas {
-        cursor: grab;
-    }
-
-        #editorCanvas:active {
-            cursor: grabbing;
-        }
-
-    #editorCanvas {
-        width: 100%;
-        height: 100%;
-        display: block;
-        border-radius: 0; /* optional */
-    }
-</style>
+
+            <style>
+
+
+                .page {
+                    padding: 40px;
+                }
+
+                .sheet {
+                    max-width: 1100px;
+                    margin: auto;
+                }
+
+                /* ====== LAYOUT ====== */
+                .grid {
+                    display: grid;
+                    grid-template-columns: 1fr; /* mobile stack */
+                    gap: 30px;
+                    align-items: stretch;
+                }
+
+                /* Desktop: side-by-side */
+                @@media (min-width: 980px) {
+                    .grid {
+                        grid-template-columns: 420px 1fr;
+                    }
+                }
+
+                .panel {
+                    border: 1px solid #ddd;
+                    border-radius: 20px;
+                    padding: 40px 24px 28px; /* ⬅ more space on top */
+                    background: #fff;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .panel-footer {
+                    margin-top: auto;
+                }
+
+                .panel:first-child {
+                    padding-bottom: 76px;
+                }
+
+
+
+
+                /* ====== TITLES + LABELS ====== */
+                label {
+                    font-size: 13px;
+                    font-weight: 500;
+                    color: #000;
+                    margin-bottom: 6px;
+                    display: block;
+                }
+
+                .title-xl {
+                    font-size: 30px;
+                    font-weight: 800;
+                    letter-spacing: -0.3px;
+                    color: #000;
+                    margin-bottom: 30px; /* ⬅ was 20px */
+                    text-align: center;
+                }
+
+
+                /* ====== INPUTS ====== */
+                .input {
+                    width: 100%;
+                    height: 46px;
+                    font-size: 14px;
+                    border-radius: 12px;
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                    margin-bottom: 20px; /* ⬅ was 12px */
+                }
+
+
+
+
+                /* ====== ROW (PASSWORD + CONFIRM) ====== */
+                .row {
+                    display: grid;
+                    gap: 16px; /* ⬅ reduce horizontal space */
+                    grid-template-columns: 1fr;
+                }
+
+
+                @@media (min-width: 720px) {
+                    .row {
+                        grid-template-columns: 1fr 1fr;
+                        column-gap: 12px; /* ⬅ tighter columns */
+                    }
+                }
+
+                /* ====== PASSWORD + EYE ICON ====== */
+                .password {
+                    position: relative;
+                }
+
+                    /* input height = 46px */
+                    .password .input {
+                        padding-right: 56px;
+                    }
+
+                    .password .input {
+                        padding-right: 56px; /* leave space for eye */
+                    }
+
+                .eye {
+                    position: absolute;
+                    right: 14px;
+                    top: 40%; /* ⬅ move up a bit */
+                    transform: translateY(-58%);
+                    width: 34px;
+                    height: 34px;
+                    display: grid;
+                    place-items: center;
+                    border: 0;
+                    background: transparent;
+                    padding: 0;
+                    cursor: pointer;
+                    border-radius: 10px;
+                    z-index: 10;
+                }
+
+
+                    .eye i {
+                        font-size: 18px;
+                        line-height: 1;
+                        pointer-events: none; /* click always hits the button */
+                    }
+
+
+                /* ====== SELECT (ROLE) ARROW ALIGN WITH EYE ====== */
+                select.input {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    padding-right: 56px; /* same as password */
+
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%23111' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: right 18px center;
+                    background-size: 18px 18px;
+                }
+
+                /* ====== BUTTONS ====== */
+                .btn {
+                    padding: 10px 18px;
+                    border-radius: 999px;
+                    border: 1px solid #000;
+                    background: #fff;
+                }
+
+
+                    .btn.solid {
+                        background: #000;
+                        color: #fff;
+                    }
+
+                        .btn.solid.w100 {
+                            height: 54px;
+                            font-size: 16px;
+                        }
+
+                        .btn.solid,
+                        .btn.solid.w100 {
+                            font-weight: 600; /* ⬅ slightly bolder (recommended) */
+                        }
+                /* shared primary action width */
+                .primary-action {
+                    width: 360px; /* 👈 adjust once, affects both */
+                    max-width: 100%;
+                    height: 48px;
+                    font-size: 15px;
+                    font-weight: 600;
+                }
+
+
+                .w100 {
+                    width: 100%;
+                }
+
+                .actions {
+                    justify-content: center;
+                    margin-top: 24px; /* keep nice spacing, not 60px */
+                }
+
+                .create-btn {
+                    width: 100%;
+                    margin-top: 0px;
+                }
+
+
+
+                /* inline validation error */
+                .val {
+                    display: block;
+                    margin-top: -12px;
+                    margin-bottom: 14px;
+                    font-size: 12px;
+                    color: #d11;
+                    font-weight: 500;
+                }
+
+                /* red border on invalid input */
+                .input.input-validation-error {
+                    border: 2px solid #d11;
+                }
+
+                /* ✅ Focus style like your screenshot */
+                .input:focus,
+                .input:focus-visible {
+                    outline: none;
+                    border: 2px solid #000;
+                }
+
+                /* ✅ Make sure invalid stays red even on focus */
+                .input.input-validation-error {
+                    border-color: #d11;
+                    box-shadow: none;
+                }
+
+                    .input.input-validation-error:focus,
+                    .input.input-validation-error:focus-visible {
+                        border-color: #d11;
+                        box-shadow: 0 0 0 4px rgba(209,17,17,0.12); /* red ring when invalid */
+                    }
+
+
+
+                .back {
+                    text-align: center;
+                    margin-top: 12px;
+                }
+
+                /* ====== EDITOR MODAL (IMPROVED) ====== */
+                .editor {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 9999;
+                    background: rgba(0,0,0,.55);
+                    display: grid;
+                    place-items: center;
+                    padding: 20px;
+                }
+
+                    .editor.hidden {
+                        display: none;
+                    }
+
+                .editor-controls {
+                    margin-top: 18px;
+                    display: grid;
+                    gap: 18px;
+                    padding-top: 14px;
+                    border-top: 1px solid rgba(0,0,0,0.08);
+                }
+
+
+
+                .editor-box {
+                    width: min(480px, 94vw);
+                    background: #fff;
+                    border-radius: 24px;
+                    padding: 18px 18px 16px;
+                    position: relative;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+                }
+
+
+
+                .editor-close {
+                    position: absolute;
+                    top: 16px;
+                    right: 16px;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    background: #fff;
+                    border: 1px solid rgba(0,0,0,0.15);
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+                    cursor: pointer;
+                    z-index: 10;
+                }
+
+                .editor-canvasWrap {
+                    width: min(360px, 82vw);
+                    height: min(360px, 82vw);
+                    margin: 8px auto 0;
+                    border-radius: 50%;
+                    background: #f4f5f7;
+                    border: 1px solid rgba(0,0,0,0.12);
+                    display: grid;
+                    place-items: center;
+                    overflow: hidden;
+                }
+
+
+                /* --- Zoom row: cleaner container --- */
+                .editor-zoom {
+                    display: grid;
+                    grid-template-columns: 46px 1fr;
+                    align-items: center;
+                    gap: 12px;
+                    background: transparent;
+                    border: none;
+                    padding: 0;
+                }
+
+                    .editor-zoom input[type="range"] {
+                        height: 10px;
+                        border-radius: 999px;
+                        background: #e5e7eb;
+                    }
+
+
+                .zoom-label {
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: #111;
+                }
+
+                /* --- Make the range slider look premium --- */
+                .editor-zoom input[type="range"] {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 100%;
+                    height: 10px;
+                    border-radius: 999px;
+                    background: #e5e7eb;
+                    outline: none;
+                }
+
+                    /* Chrome/Safari thumb */
+                    .editor-zoom input[type="range"]::-webkit-slider-thumb {
+                        -webkit-appearance: none;
+                        appearance: none;
+                        width: 18px;
+                        height: 18px;
+                        border-radius: 50%;
+                        background: #111;
+                        border: 3px solid #fff;
+                        box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+                        cursor: pointer;
+                    }
+
+                    /* Firefox thumb */
+                    .editor-zoom input[type="range"]::-moz-range-thumb {
+                        width: 18px;
+                        height: 18px;
+                        border-radius: 50%;
+                        background: #111;
+                        border: 3px solid #fff;
+                        box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+                        cursor: pointer;
+                    }
+
+                    /* Firefox track */
+                    .editor-zoom input[type="range"]::-moz-range-track {
+                        height: 10px;
+                        border-radius: 999px;
+                        background: #e5e7eb;
+                    }
+
+                /* --- Actions layout: rotate row, use button below --- */
+                .editor-actions {
+                    display: grid;
+                    gap: 18px; /* ⬅ more separation */
+                    justify-items: center;
+                }
+
+
+                .rotate-row {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                }
+
+                .use-btn {
+                    width: 52%;
+                    max-width: 200px;
+                    height: 40px;
+                    font-size: 14px;
+                    font-weight: 600 !important;
+                    margin: 0; /* keep tight */
+                }
+
+                .editor-actions {
+                    display: grid;
+                    gap: 12px; /* was 18px */
+                    justify-items: center;
+                }
+
+
+                /* Optional: make rotate buttons slightly softer */
+                .btn.icon {
+                    display: grid;
+                    place-items: center;
+                }
+
+                    .btn.icon svg {
+                        display: block;
+                    }
+
+                #btnCapture {
+                    height: 48px;
+                    font-size: 15px;
+                    font-weight: 600;
+                }
+
+
+
+                /* ========================= */
+                /* PROFILE PHOTO (LEFT SIDE) */
+                /* ========================= */
+                .avatarWrap {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin-top: 8px;
+                }
+
+                .avatar {
+                    width: 200px;
+                    height: 200px;
+                    border-radius: 50%;
+                    background: #f3f4f6;
+                    border: 1px solid rgba(0,0,0,0.08);
+                    overflow: hidden;
+                    position: relative;
+                    margin-bottom: 22px; /* ⬅ spacing before Upload / Camera */
+                    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+                }
+
+
+                .avatar {
+                    cursor: pointer;
+                }
+
+                    .avatar:focus-visible {
+                        outline: 2px solid rgba(0,0,0,0.35);
+                        outline-offset: 4px;
+                    }
+
+                    /* hover + keyboard focus */
+                    .avatar:hover,
+                    .avatar:focus-visible {
+                        transform: translateY(-2px);
+                        border-color: rgba(0,0,0,0.18);
+                        box-shadow: 0 10px 26px rgba(0,0,0,0.10);
+                    }
+
+                    /* subtle dark overlay on hover */
+                    .avatar::after {
+                        content: "";
+                        position: absolute;
+                        inset: 0;
+                        border-radius: 50%;
+                        background: rgba(0,0,0,0.06);
+                        opacity: 0;
+                        transition: opacity .18s ease;
+                        pointer-events: none;
+                    }
+
+                    .avatar:hover::after,
+                    .avatar:focus-visible::after {
+                        opacity: 1;
+                    }
+
+
+                    .avatar img,
+                    .avatar video {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+
+                .avatar-ph {
+                    position: absolute;
+                    inset: 0;
+                    display: grid;
+                    place-items: center;
+                    color: #9aa0a6;
+                    font-size: 14px;
+                    font-weight: 500;
+                }
+
+                .avatar-ph {
+                    transition: opacity 0.2s ease;
+                }
+
+
+                .avatar.has-image .avatar-ph {
+                    opacity: 0;
+                    visibility: hidden;
+                }
+
+                /* extra safety: if img/video is visible, keep placeholder hidden */
+                .avatar img:not([hidden]) ~ .avatar-ph,
+                .avatar video:not([hidden]) ~ .avatar-ph {
+                    opacity: 0;
+                    visibility: hidden;
+                }
+
+
+                .avatarNote {
+                    margin: -18px 0 22px; /* ⬅ closer to “Profile Photo” */
+                    font-size: 12px;
+                    color: #8a8f98;
+                    text-align: center;
+                }
+
+
+
+                /* segmented Upload/Camera */
+                .segmented {
+                    position: relative;
+                    display: flex;
+                    width: 200px;
+                    background: #f3f4f6;
+                    border-radius: 999px;
+                    padding: 4px;
+                    border: 1px solid rgba(0,0,0,0.08);
+                }
+
+                .seg-indicator {
+                    position: absolute;
+                    top: 4px;
+                    left: 4px;
+                    width: calc(50% - 4px);
+                    height: calc(100% - 8px);
+                    background: #111;
+                    border-radius: 999px;
+                    transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+                    z-index: 0;
+                }
+
+                /* slide right when camera active */
+                .segmented.camera .seg-indicator {
+                    transform: translateX(100%);
+                }
+
+                .segBtn {
+                    flex: 1;
+                    border: none;
+                    background: transparent;
+                    padding: 8px 0;
+                    font-family: inherit; /* same as Create Account */
+                    font-size: 14px; /* match button text size */
+                    font-weight: 600; /* same visual weight */
+                    letter-spacing: 0; /* avoid mismatch */
+                    cursor: pointer;
+                    z-index: 1;
+                    color: #6b7280;
+                    transition: color 0.25s ease;
+                }
+
+                    .segBtn.active {
+                        color: #fff;
+                        font-weight: 600;
+                    }
+
+                .btn,
+                .segBtn {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                }
+
+
+
+                /* dropzone like sample */
+                .dropzone {
+                    border: 1.6px dashed rgba(0,0,0,0.18);
+                    border-radius: 16px;
+                    padding: 18px 16px;
+                    text-align: center;
+                    background: #fff;
+                    margin-top: 24px;
+                    cursor: pointer;
+                }
+
+                    /* Drag / hover state: no blue, just darker dashed border */
+                    .dropzone.drag {
+                        background: #fff; /* keep white */
+                        border-color: rgba(0,0,0,0.35); /* darker dotted/dashed */
+                    }
+
+                    .dropzone:hover {
+                        border-color: rgba(0,0,0,0.28);
+                    }
+
+
+                .dzIcon {
+                    width: 34px;
+                    height: 34px;
+                    margin: 0 auto 10px;
+                    border-radius: 10px;
+                    display: grid;
+                    place-items: center;
+                    background: #f3f4f6;
+                    color: #6b7280;
+                    font-weight: 900;
+                }
+
+                .dzTitle {
+                    font-size: 12px;
+                    color: #6b7280;
+                    font-weight: 700;
+                    margin-bottom: 8px;
+                }
+
+                .dzBtn {
+                    border: 1.5px solid #000;
+                    background: #fff;
+                    color: #000;
+                    border-radius: 999px;
+                    padding: 8px 16px;
+                    font-weight: 700;
+                    font-size: 13px;
+                    cursor: pointer;
+                    transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
+                    margin-top: 10px;
+                }
+
+                    /* Hover effect */
+                    .dzBtn:hover {
+                        background: #000;
+                        color: #fff;
+                        transform: translateY(-1px);
+                        box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+                    }
+
+                    /* Active / click feedback */
+                    .dzBtn:active {
+                        transform: translateY(0);
+                        box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+                    }
+
+
+                .dzHint {
+                    font-size: 11px;
+                    color: #9aa0a6;
+                    margin-top: 8px;
+                }
+
+                /* ===== Custom Apple-style dropdown ===== */
+
+                .select-wrap {
+                    position: relative;
+                    margin-bottom: 20px;
+                }
+
+                .select-btn {
+                    width: 100%;
+                    height: 46px;
+                    border-radius: 14px;
+                    border: 1px solid #ccc;
+                    background: #fff;
+                    padding: 0 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    font-size: 14px;
+                    cursor: pointer;
+                }
+
+                    .select-btn i {
+                        font-size: 14px;
+                    }
+
+
+                /* dropdown menu */
+                .select-menu {
+                    position: absolute;
+                    top: calc(100% + 6px);
+                    left: 0;
+                    right: 0;
+                    background: #fff;
+                    border-radius: 14px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+                    border: 1px solid rgba(0,0,0,0.08);
+                    padding: 6px 0;
+                    list-style: none;
+                    display: none;
+                    z-index: 50;
+                }
+
+                    .select-menu li {
+                        padding: 10px 16px;
+                        font-size: 14px;
+                        cursor: pointer;
+                    }
+
+                        /* hover (Apple-like) */
+                        .select-menu li:hover {
+                            background: rgba(0,0,0,0.05);
+                        }
+
+                /* open state */
+                .select-wrap.open .select-menu {
+                    display: block;
+                }
+                /* --- CAPTCHA spacing --- */
+                .captcha {
+                    margin-top: 18px; /* space from Role dropdown */
+                    margin-bottom: 22px; /* space before Create Account button */
+                }
+
+                    /* optional: reduce the red warning text height feeling */
+                    .captcha .h-captcha {
+                        margin-top: 6px;
+                    }
+
+                /* --- Primary button spacing + size --- */
+                .btn.solid.w100 {
+                    margin-top: 6px; /* slight breathing room */
+                    height: 48px; /* ⬅ was 54px */
+                    font-size: 15px; /* ⬅ slightly smaller */
+                }
+
+                /* --- Back link spacing --- */
+                .back {
+                    margin-top: 18px; /* more breathing room after button */
+                    padding-bottom: 6px;
+                }
+
+                    .back a {
+                        color: #000;
+                        text-decoration: underline;
+                        font-weight: 500;
+                        font-size: 13px; /* ⬅ slightly smaller */
+                    }
+
+
+                        .back a:hover {
+                            color: #2563eb;
+                        }
+
+
+
+
+
+                /* ================================
+                       Button hover style (B/W clean)
+                       ================================ */
+
+                /* All buttons on hover */
+                .btn:hover {
+                    border-color: #111;
+                    background: #fff;
+                    color: #111;
+                }
+
+                    /* Keep icons/text inside button black too */
+                    .btn:hover i {
+                        color: #111;
+                    }
+
+                /* Solid buttons (black) invert on hover */
+                .btn.solid:hover {
+                    background: #fff;
+                    color: #111;
+                    border-color: #111;
+                }
+
+                /* Optional: nicer focus (keyboard tab) */
+                .btn:focus-visible {
+                    outline: none;
+                    border-color: #111;
+                }
+
+                #editorCanvas {
+                    cursor: grab;
+                }
+
+                    #editorCanvas:active {
+                        cursor: grabbing;
+                    }
+
+                #editorCanvas {
+                    width: 100%;
+                    height: 100%;
+                    display: block;
+                    border-radius: 0; /* optional */
+                }
+
+                .req::after {
+                    content: " *";
+                    color: #d11;
+                    font-weight: 800;
+                }
+
+
+                .req {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+
+                    .req::after {
+                        content: "*";
+                        color: #d11;
+                        font-weight: 800;
+                    }
+                /* =========================
+                                   Role dropdown base states
+                                   ========================= */
+
+                /* DEFAULT (grey) */
+                .select-btn {
+                    border: 1px solid #ccc;
+                }
+
+                    /* FOCUS / OPEN (black) */
+                    .select-wrap.open .select-btn,
+                    .select-btn:focus-visible {
+                        border: 2px solid #000;
+                        outline: none;
+                    }
+
+                /* ERROR (red) — overrides everything */
+                .select-wrap.error .select-btn {
+                    border: 2px solid #d11;
+                }
+
+            </style>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
-
-    <script>
-        const dz = document.getElementById('dropzone');
-        const file = document.getElementById('ProfileImage');
-        const img = document.getElementById('profilePreview');
-        const video = document.getElementById('camVideo');
-        const hidden = document.getElementById('CapturedImageData');
-
-        const zoomSlider = document.getElementById('zoom'); // ✅ NEW
-
-        const editorModal = document.getElementById('editorModal');
-        const editorClose = document.getElementById('editorClose');
-        const avatarBox = document.getElementById('avatarBox');
-
-        avatarBox.addEventListener('click', () => {
-          // ✅ use the saved cropped image first (best)
-          const existing = hidden.value || img.src;
-
-          // if there is no image yet, behave like upload
-          if (!existing) {
-            setActive(btnUpload);
-            file.value = "";
-            file.click();
-            return;
-          }
-
-          // ✅ open editor with current picture
-          openEditor(existing);
-        });
-
-
-
-        function closeEditor() {
-          editorModal.classList.add('hidden');
-          editorModal.setAttribute('aria-hidden', 'true');
-        }
-
-        editorClose.addEventListener('click', closeEditor);
+                <partial name="_ValidationScriptsPartial" />
+                <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 
-        // ✅ click outside the box closes too
-        editorModal.addEventListener('click', (e) => {
-          if (e.target === editorModal) closeEditor();
-        });
-
-        // ✅ ESC closes
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && !editorModal.classList.contains('hidden')) closeEditor();
-        });
+                <script>
+                    const dz = document.getElementById('dropzone');
+                    const file = document.getElementById('ProfileImage');
+                    const img = document.getElementById('profilePreview');
+                    const video = document.getElementById('camVideo');
+                    const hidden = document.getElementById('CapturedImageData');
 
-        let stream = null,
-            angle = 0,
-            zoomValue = 1,
-            baseImg = new Image();
+                    const zoomSlider = document.getElementById('zoom'); // ✅ NEW
 
-        let isCameraActive = false; // ✅ NEW
-
-        // ✅ NEW: pan/drag variables
-        let offsetX = 0;
-        let offsetY = 0;
-        let isDragging = false;
-        let dragStartX = 0;
-        let dragStartY = 0;
-        let startOffsetX = 0;
-        let startOffsetY = 0;
-
+                    const editorModal = document.getElementById('editorModal');
+                    const editorClose = document.getElementById('editorClose');
+                    const avatarBox = document.getElementById('avatarBox');
 
+                    avatarBox.addEventListener('click', () => {
+                      // ✅ use the saved cropped image first (best)
+                      const existing = hidden.value || img.src;
 
-        const btnUpload = document.getElementById('btnUpload');
-        const btnCamera = document.getElementById('btnCamera');
-        const dzChoose = document.getElementById('dzChoose');
-        const segmented = document.querySelector('.segmented');
-
-        const select = document.getElementById('roleSelect');
-        const btn = select.querySelector('.select-btn');
-        const text = document.getElementById('roleText');
-        const hiddenInput = document.getElementById('UserRole');
+                      // if there is no image yet, behave like upload
+                      if (!existing) {
+                        setActive(btnUpload);
+                        file.value = "";
+                        file.click();
+                        return;
+                      }
 
-        btn.onclick = () => {
-          select.classList.toggle('open');
-        };
+                      // ✅ open editor with current picture
+                      openEditor(existing);
+                    });
 
-        select.querySelectorAll('li').forEach(item => {
-          item.onclick = () => {
-            text.textContent = item.textContent;
-            hiddenInput.value = item.dataset.value;
-            select.classList.remove('open');
-          };
-        });
 
-        document.addEventListener('click', e => {
-          if (!select.contains(e.target)) {
-            select.classList.remove('open');
-          }
-        });
 
+                    function closeEditor() {
+                      editorModal.classList.add('hidden');
+                      editorModal.setAttribute('aria-hidden', 'true');
+                    }
 
-        function setActive(btn){
-          [btnUpload, btnCamera].forEach(x => x.classList.remove('active'));
-          btn.classList.add('active');
+                    editorClose.addEventListener('click', closeEditor);
 
-          if(btn === btnCamera){
-            segmented.classList.add('camera');
-          }else{
-            segmented.classList.remove('camera');
-          }
-        }
+                    // ✅ click outside the box closes too
+                    editorModal.addEventListener('click', (e) => {
+                      if (e.target === editorModal) closeEditor();
+                    });
 
+                    // ✅ ESC closes
+                    document.addEventListener('keydown', (e) => {
+                      if (e.key === 'Escape' && !editorModal.classList.contains('hidden')) closeEditor();
+                    });
 
-        btnUpload.onclick = (e) => {
-          e.stopPropagation();
-          setActive(btnUpload);
-          isCameraActive = false;  // ✅ camera is OFF
-          file.value = "";
-          file.click();
-        };
+                    let stream = null,
+                        angle = 0,
+                        zoomValue = 1,
+                        baseImg = new Image();
 
+                    let isCameraActive = false; // ✅ NEW
 
-        dzChoose.onclick = (e) => {
-          e.stopPropagation();    // ✅ prevents dropzone click firing too
-          setActive(btnUpload);
-          file.value = "";
-          file.click();
-        };
+                    // ✅ NEW: pan/drag variables
+                    let offsetX = 0;
+                    let offsetY = 0;
+                    let isDragging = false;
+                    let dragStartX = 0;
+                    let dragStartY = 0;
+                    let startOffsetX = 0;
+                    let startOffsetY = 0;
 
 
-        dz.onclick = (e) => {
-          // ✅ if click came from the Choose button, ignore
-          if (e.target.closest('#dzChoose')) return;
 
-          setActive(btnUpload);
-          file.value = "";
-          file.click();
-        };
+                    const btnUpload = document.getElementById('btnUpload');
+                    const btnCamera = document.getElementById('btnCamera');
+                    const dzChoose = document.getElementById('dzChoose');
+                    const segmented = document.querySelector('.segmented');
 
+                    const select = document.getElementById('roleSelect');
+                    const btn = select.querySelector('.select-btn');
+                    const text = document.getElementById('roleText');
+                    const hiddenInput = document.getElementById('UserRole');
 
-        btnCamera.onclick = async () => {
-          setActive(btnCamera);
+                    btn.onclick = () => {
+                      select.classList.toggle('open');
+                    };
 
-          stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          video.srcObject = stream;
-          video.hidden = false;
-          img.hidden = true;
 
-          isCameraActive = true;   // ✅ camera is now active
-        };
 
 
-        dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag')}
-        dz.ondragleave=()=>dz.classList.remove('drag')
-        dz.ondrop = (e) => {
-          e.preventDefault();
-          dz.classList.remove('drag');
+                    document.addEventListener('click', e => {
+                      if (!select.contains(e.target)) {
+                        select.classList.remove('open');
+                      }
+                    });
 
-          const droppedFile = e.dataTransfer.files?.[0];
-          if (!droppedFile) return;
 
-          loadFile(droppedFile);
-        };
+                    function setActive(btn){
+                      [btnUpload, btnCamera].forEach(x => x.classList.remove('active'));
+                      btn.classList.add('active');
 
-        file.onchange = (e) => {
-          const f = e.target.files?.[0];
-          if (!f) return;
-          loadFile(f);
-        };
+                      if(btn === btnCamera){
+                        segmented.classList.add('camera');
+                      }else{
+                        segmented.classList.remove('camera');
+                      }
+                    }
 
 
-        function loadFile(f){
-          if (!f) return;                 // ✅ guard
-          const r = new FileReader();
-          r.onload = () => openEditor(r.result);
-          r.readAsDataURL(f);
-        }
+                    btnUpload.onclick = (e) => {
+                      e.stopPropagation();
+                      setActive(btnUpload);
+                      isCameraActive = false;  // ✅ camera is OFF
+                      file.value = "";
+                      file.click();
+                    };
 
 
-        document.getElementById('btnCapture').onclick = () => {
+                    dzChoose.onclick = (e) => {
+                      e.stopPropagation();    // ✅ prevents dropzone click firing too
+                      setActive(btnUpload);
+                      file.value = "";
+                      file.click();
+                    };
 
-          // ❌ Camera not active → show error
-          if (!isCameraActive || !stream) {
-            alert("Please switch to Camera mode before using Capture.");
-            return;
-          }
 
-          const c = document.createElement('canvas');
-          c.width = video.videoWidth;
-          c.height = video.videoHeight;
+                    dz.onclick = (e) => {
+                      // ✅ if click came from the Choose button, ignore
+                      if (e.target.closest('#dzChoose')) return;
 
-          c.getContext('2d').drawImage(video, 0, 0);
-          openEditor(c.toDataURL());
+                      setActive(btnUpload);
+                      file.value = "";
+                      file.click();
+                    };
 
-          // stop camera
-          stream.getTracks().forEach(t => t.stop());
-          stream = null;
-          isCameraActive = false;
 
-          video.hidden = true;
-        };
+                    btnCamera.onclick = async () => {
+                      setActive(btnCamera);
 
+                      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                      video.srcObject = stream;
+                      video.hidden = false;
+                      img.hidden = true;
 
-        function openEditor(src){
-          editorModal.classList.remove('hidden');
-          editorModal.setAttribute('aria-hidden', 'false');
+                      isCameraActive = true;   // ✅ camera is now active
+                    };
 
 
-          offsetX = 0;
-          offsetY = 0;
-          baseImg.onload = () => draw();
+                    dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag')}
+                    dz.ondragleave=()=>dz.classList.remove('drag')
+                    dz.ondrop = (e) => {
+                      e.preventDefault();
+                      dz.classList.remove('drag');
 
-          baseImg.src = "";   // ✅ force reload even if same data URL
-          baseImg.src = src;
-        }
+                      const droppedFile = e.dataTransfer.files?.[0];
+                      if (!droppedFile) return;
 
+                      loadFile(droppedFile);
+                    };
 
+                    file.onchange = (e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      loadFile(f);
+                    };
 
-        function draw() {
-          const c = document.getElementById('editorCanvas');
-          const g = c.getContext('2d');
 
-          const W = c.width;
-          const H = c.height;
-          const cx = W / 2;
-          const cy = H / 2;
-          const r = Math.min(W, H) / 2;
+                    function loadFile(f){
+                      if (!f) return;                 // ✅ guard
+                      const r = new FileReader();
+                      r.onload = () => openEditor(r.result);
+                      r.readAsDataURL(f);
+                    }
 
-          g.clearRect(0, 0, W, H);
 
-          // ✅ Fill background (so outside image looks clean)
-          g.fillStyle = "#f4f5f7";
-          g.fillRect(0, 0, W, H);
+                    document.getElementById('btnCapture').onclick = () => {
 
-          // ✅ Clip to circle (THIS removes the “square” feeling)
-          g.save();
-          g.beginPath();
-          g.arc(cx, cy, r, 0, Math.PI * 2);
-          g.closePath();
-          g.clip();
+                      // ❌ Camera not active → show error
+                      if (!isCameraActive || !stream) {
+                        alert("Please switch to Camera mode before using Capture.");
+                        return;
+                      }
 
-          // ✅ Move + rotate
-          g.translate(cx + offsetX, cy + offsetY);
-          g.rotate(angle * Math.PI / 180);
+                      const c = document.createElement('canvas');
+                      c.width = video.videoWidth;
+                      c.height = video.videoHeight;
 
-          // ✅ scale to cover circle nicely
-          const coverScale = Math.max((2 * r) / baseImg.width, (2 * r) / baseImg.height);
+                      c.getContext('2d').drawImage(video, 0, 0);
+                      openEditor(c.toDataURL());
 
-          // optional overscan to avoid tiny gaps when rotated
-          const needsOverscan = (Math.abs(angle) % 180) !== 0;
-          const overscan = needsOverscan ? 1.2 : 1.0;
+                      // stop camera
+                      stream.getTracks().forEach(t => t.stop());
+                      stream = null;
+                      isCameraActive = false;
 
-          const finalScale = coverScale * overscan * zoomValue;
+                      video.hidden = true;
+                    };
 
-          const dw = baseImg.width * finalScale;
-          const dh = baseImg.height * finalScale;
 
-          g.drawImage(baseImg, -dw / 2, -dh / 2, dw, dh);
+                    function openEditor(src){
+                      editorModal.classList.remove('hidden');
+                      editorModal.setAttribute('aria-hidden', 'false');
 
-          g.restore(); // ✅ end clip + transforms
-        }
 
-                // ✅ NEW: drag to move (pan)
-        const canvas = document.getElementById('editorCanvas');
+                      offsetX = 0;
+                      offsetY = 0;
+                      baseImg.onload = () => draw();
 
-        canvas.addEventListener('mousedown', (e) => {
-          isDragging = true;
-          dragStartX = e.clientX;
-          dragStartY = e.clientY;
-          startOffsetX = offsetX;
-          startOffsetY = offsetY;
-        });
+                      baseImg.src = "";   // ✅ force reload even if same data URL
+                      baseImg.src = src;
+                    }
 
-        window.addEventListener('mousemove', (e) => {
-          if (!isDragging) return;
 
-          const dx = e.clientX - dragStartX;
-          const dy = e.clientY - dragStartY;
 
-          offsetX = startOffsetX + dx;
-          offsetY = startOffsetY + dy;
+                    function draw() {
+                      const c = document.getElementById('editorCanvas');
+                      const g = c.getContext('2d');
 
-          draw();
-        });
+                      const W = c.width;
+                      const H = c.height;
+                      const cx = W / 2;
+                      const cy = H / 2;
+                      const r = Math.min(W, H) / 2;
 
-        window.addEventListener('mouseup', () => {
-          isDragging = false;
-        });
+                      g.clearRect(0, 0, W, H);
 
-        // ✅ NEW: touch support (mobile)
-        canvas.addEventListener('touchstart', (e) => {
-          const t = e.touches[0];
-          isDragging = true;
-          dragStartX = t.clientX;
-          dragStartY = t.clientY;
-          startOffsetX = offsetX;
-          startOffsetY = offsetY;
-        }, { passive: true });
+                      // ✅ Fill background (so outside image looks clean)
+                      g.fillStyle = "#f4f5f7";
+                      g.fillRect(0, 0, W, H);
 
-        canvas.addEventListener('touchmove', (e) => {
-          if (!isDragging) return;
-          const t = e.touches[0];
+                      // ✅ Clip to circle (THIS removes the “square” feeling)
+                      g.save();
+                      g.beginPath();
+                      g.arc(cx, cy, r, 0, Math.PI * 2);
+                      g.closePath();
+                      g.clip();
 
-          const dx = t.clientX - dragStartX;
-          const dy = t.clientY - dragStartY;
+                      // ✅ Move + rotate
+                      g.translate(cx + offsetX, cy + offsetY);
+                      g.rotate(angle * Math.PI / 180);
 
-          offsetX = startOffsetX + dx;
-          offsetY = startOffsetY + dy;
+                      // ✅ scale to cover circle nicely
+                      const coverScale = Math.max((2 * r) / baseImg.width, (2 * r) / baseImg.height);
 
-          draw();
-        }, { passive: true });
+                      // optional overscan to avoid tiny gaps when rotated
+                      const needsOverscan = (Math.abs(angle) % 180) !== 0;
+                      const overscan = needsOverscan ? 1.2 : 1.0;
 
-        canvas.addEventListener('touchend', () => {
-          isDragging = false;
-        });
+                      const finalScale = coverScale * overscan * zoomValue;
 
+                      const dw = baseImg.width * finalScale;
+                      const dh = baseImg.height * finalScale;
 
+                      g.drawImage(baseImg, -dw / 2, -dh / 2, dw, dh);
 
-        zoomSlider.addEventListener('input', (e) => {
-          zoomValue = parseFloat(e.target.value);
-          draw();
-        });
+                      g.restore(); // ✅ end clip + transforms
+                    }
 
-        rotateLeft.onclick=()=>{angle-=90;draw()}
-        rotateRight.onclick=()=>{angle+=90;draw()}
-        useImage.onclick=()=>{
-         hidden.value=editorCanvas.toDataURL();
-         img.src=hidden.value;img.hidden=false;
-         editorModal.classList.add('hidden');
-         document.getElementById('avatarBox').classList.add('has-image');
+                            // ✅ NEW: drag to move (pan)
+                    const canvas = document.getElementById('editorCanvas');
 
-        }
+                    canvas.addEventListener('mousedown', (e) => {
+                      isDragging = true;
+                      dragStartX = e.clientX;
+                      dragStartY = e.clientY;
+                      startOffsetX = offsetX;
+                      startOffsetY = offsetY;
+                    });
 
-        document.querySelectorAll('.eye').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const targetId = btn.dataset.target;
-            const input = document.getElementById(targetId);
-            if (!input) return;
+                    window.addEventListener('mousemove', (e) => {
+                      if (!isDragging) return;
 
-            const isPassword = input.type === 'password';
-            input.type = isPassword ? 'text' : 'password';
+                      const dx = e.clientX - dragStartX;
+                      const dy = e.clientY - dragStartY;
 
-            // toggle icon
-            const icon = btn.querySelector('i');
-            if (icon) {
-              icon.classList.toggle('bi-eye', !isPassword);
-              icon.classList.toggle('bi-eye-slash', isPassword);
-            }
-          });
-        });
+                      offsetX = startOffsetX + dx;
+                      offsetY = startOffsetY + dy;
 
-    </script>
+                      draw();
+                    });
+
+                    window.addEventListener('mouseup', () => {
+                      isDragging = false;
+                    });
+
+                    // ✅ NEW: touch support (mobile)
+                    canvas.addEventListener('touchstart', (e) => {
+                      const t = e.touches[0];
+                      isDragging = true;
+                      dragStartX = t.clientX;
+                      dragStartY = t.clientY;
+                      startOffsetX = offsetX;
+                      startOffsetY = offsetY;
+                    }, { passive: true });
+
+                    canvas.addEventListener('touchmove', (e) => {
+                      if (!isDragging) return;
+                      const t = e.touches[0];
+
+                      const dx = t.clientX - dragStartX;
+                      const dy = t.clientY - dragStartY;
+
+                      offsetX = startOffsetX + dx;
+                      offsetY = startOffsetY + dy;
+
+                      draw();
+                    }, { passive: true });
+
+                    canvas.addEventListener('touchend', () => {
+                      isDragging = false;
+                    });
+
+
+
+                    zoomSlider.addEventListener('input', (e) => {
+                      zoomValue = parseFloat(e.target.value);
+                      draw();
+                    });
+
+                    rotateLeft.onclick=()=>{angle-=90;draw()}
+                    rotateRight.onclick=()=>{angle+=90;draw()}
+                    useImage.onclick=()=>{
+                     hidden.value=editorCanvas.toDataURL();
+                     img.src=hidden.value;img.hidden=false;
+                     editorModal.classList.add('hidden');
+                     document.getElementById('avatarBox').classList.add('has-image');
+
+                    }
+
+                    document.querySelectorAll('.eye').forEach(btn => {
+                      btn.addEventListener('click', () => {
+                        const targetId = btn.dataset.target;
+                        const input = document.getElementById(targetId);
+                        if (!input) return;
+
+                        const isPassword = input.type === 'password';
+                        input.type = isPassword ? 'text' : 'password';
+
+                        // toggle icon
+                        const icon = btn.querySelector('i');
+                        if (icon) {
+                          icon.classList.toggle('bi-eye', !isPassword);
+                          icon.classList.toggle('bi-eye-slash', isPassword);
+                        }
+                      });
+                    });
+
+                                        function syncRoleErrorUI(){
+                                  // if invalid (empty), add error class
+                                  if (!hiddenInput.value || hiddenInput.value.trim() === "") {
+                                    select.classList.add("error");
+                                  } else {
+                                    select.classList.remove("error");
+                                  }
+                                }
+
+                                // When selecting a role
+                                select.querySelectorAll('li').forEach(item => {
+                                  item.onclick = () => {
+                                    text.textContent = item.textContent;
+                                    hiddenInput.value = item.dataset.value;
+                                    select.classList.remove('open');
+
+                                    // trigger jQuery unobtrusive validation + update UI
+                                    hiddenInput.dispatchEvent(new Event("change", { bubbles: true }));
+                                    syncRoleErrorUI();
+                                  };
+                                });
+
+                                // On form submit (so it turns red if still empty)
+                                document.querySelector("form").addEventListener("submit", () => {
+                                  syncRoleErrorUI();
+                                });
+
+                </script>
 }

@@ -41,7 +41,7 @@ namespace Invexaaa.Models.ViewModels
 
         [Required(ErrorMessage = "Role is required.")]
         [RegularExpression(@"^(Staff|Manager|Admin)$", ErrorMessage = "Invalid role selected.")]
-        public string UserRole { get; set; } = "Staff";
+        public string UserRole { get; set; } = "";
 
         /* ================= PROFILE IMAGE ================= */
 

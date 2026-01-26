@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="wwwroot\images\Items\" />
     <Folder Include="wwwroot\sounds\" />
   </ItemGroup>
 

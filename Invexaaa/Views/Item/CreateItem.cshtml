@@ -27,12 +27,6 @@
         background: #fff !important;
     }
 
-    .page-wrap {
-        padding: 28px 18px;
-        display: flex;
-        justify-content: flex-start; /* ⬅ left */
-        background: #fff !important;
-    }
 
 
     .two-card {
@@ -58,6 +52,27 @@
     }
 
 
+    .basic-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 16px;
+    }
+
+        .basic-grid .span-2 {
+            grid-column: 1 / -1;
+        }
+
+    /* mobile */
+    @@media (max-width: 950px) {
+        .basic-grid {
+            grid-template-columns: 1fr;
+        }
+
+            .basic-grid .span-2 {
+                grid-column: auto;
+            }
+    }
+
 
     .card {
         background: var(--card-bg);
@@ -69,6 +84,7 @@
         display: flex;
         flex-direction: column;
         align-items: stretch;
+        overflow: visible;
     }
 
 
@@ -445,9 +461,9 @@
 
     .editor-close {
         position: absolute;
-        top: 6px; /* ⬆ higher */
-        right: 6px; /* ⬅ tighter */
-        width: 32px; /* slightly smaller */
+        top: 14px; /* ⬅ more space from top */
+        right: 14px; /* ⬅ more space from right */
+        width: 32px;
         height: 32px;
         border-radius: 50%;
         border: 1px solid rgba(0,0,0,.15);
@@ -455,6 +471,9 @@
         cursor: pointer;
     }
 
+        .editor-close:hover {
+            background: #f4f4f4;
+        }
 
 
     .editor-canvasWrap {
@@ -533,54 +552,59 @@
         }
 
 
+    /* ===== Zoom slider (clean single track) ===== */
     .editor-zoom input[type="range"] {
         -webkit-appearance: none;
         appearance: none;
         width: 100%;
-        height: 4px;
-        background: #e5e5e5; /* unfilled part */
-        border-radius: 999px;
+        height: 16px; /* bigger click area */
+        background: transparent; /* ✅ IMPORTANT: remove the extra grey line */
         outline: none;
+        padding: 0;
+        margin: 0;
     }
 
-        /* Filled (left) track */
+        /* Track (Chrome/Safari) */
         .editor-zoom input[type="range"]::-webkit-slider-runnable-track {
             height: 4px;
-            background: linear-gradient( to right, #000 0%, #000 var(--value), #e5e5e5 var(--value), #e5e5e5 100% );
             border-radius: 999px;
+            background: linear-gradient( to right, #000 0%, #000 var(--value, 0%), #e5e5e5 var(--value, 0%), #e5e5e5 100% );
         }
 
-        /* Thumb */
+        /* Thumb (Chrome/Safari) */
         .editor-zoom input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 16px;
             height: 16px;
-            background: #000;
             border-radius: 50%;
-            margin-top: -6px;
+            background: #000;
+            border: 0;
+            margin-top: -6px; /* centers thumb on 4px track */
             cursor: pointer;
         }
 
-        .editor-zoom input[type="range"]::-moz-range-progress {
-            background: #000; /* filled part */
+        /* Firefox track */
+        .editor-zoom input[type="range"]::-moz-range-track {
             height: 4px;
+            background: #e5e5e5;
             border-radius: 999px;
         }
 
-        .editor-zoom input[type="range"]::-moz-range-track {
-            background: #e5e5e5; /* unfilled part */
+        .editor-zoom input[type="range"]::-moz-range-progress {
             height: 4px;
+            background: #000;
             border-radius: 999px;
         }
 
         .editor-zoom input[type="range"]::-moz-range-thumb {
             width: 16px;
             height: 16px;
-            background: #000;
-            border: none;
             border-radius: 50%;
+            background: #000;
+            border: 0;
             cursor: pointer;
         }
+
 
 
 
@@ -628,6 +652,8 @@
         justify-content: space-between;
         cursor: pointer;
         box-sizing: border-box;
+        position: relative; /* ✅ needed */
+        padding-right: 44px; /* ⬅ more space for arrow */
     }
 
     /* When open, add soft shadow like sample */
@@ -661,6 +687,10 @@
         display: grid;
         place-items: center;
         flex: 0 0 auto;
+        position: absolute;
+        right: 16px; /* ⬅ move right */
+        top: 50%;
+        transform: translateY(-50%);
     }
 
         .dd-arrow::before {
@@ -793,7 +823,11 @@
 
     .page-wrap {
         padding: 6px 14px;
+        display: flex;
+        justify-content: flex-start;
+        background: #fff !important;
     }
+
 
     .card {
         padding-top: 16px;
@@ -867,11 +901,26 @@
     }
 
     .btn-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        padding: 12px 0 6px;
+        margin-top: 12px;
+        border-top: 1px solid #ededed;
+        display: flex;
         gap: 12px;
-        margin-top: 18px;
     }
+
+        .btn-row .primary-btn {
+            flex: 1;
+            margin-top: 0;
+        }
+    /* ✅ remove extra top margin */
+    .card[aria-label="Add New Item Form"] {
+        overflow: visible;
+    }
+
+
 
     .primary-btn.secondary {
         background: #fff;
@@ -942,24 +991,434 @@
         }
 
     .dd-action {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         border-radius: 12px;
-        border: 1px solid #dedede;
+        border: 1px solid #e6e8ec;
         background: #fff;
-        cursor: pointer;
-        font-weight: 800;
-        line-height: 1;
+        color: #111;
+        transition: .15s ease;
     }
 
         .dd-action:hover {
+            background: #f5f6f8;
+            border-color: #d7dae0;
+        }
+
+
+    .dropzone.is-dragover {
+        border-color: #000;
+        background: #fafafa;
+    }
+
+    .editor-zoom input[type="range"]::-moz-range-progress {
+        background: #000;
+        height: 4px;
+        border-radius: 999px;
+    }
+
+    .editor-zoom input[type="range"]::-moz-range-track {
+        background: #e5e5e5;
+        height: 4px;
+        border-radius: 999px;
+    }
+
+    /* ===== FINAL compact spacing for daily ops ===== */
+    .card {
+        padding: 18px 22px;
+    }
+
+    .card-title {
+        margin: 6px 0 14px;
+        padding: 0; /* ✅ remove the big padding you set earlier */
+        font-size: 28px; /* slightly smaller to save height */
+    }
+
+    .field {
+        margin-bottom: 12px;
+    }
+        /* ✅ you don't have this now */
+        .field label {
+            margin: 0 0 6px; /* ✅ override your 10px top margin */
+            font-size: 14px;
+        }
+
+    .form-grid, .form-grid-2, .form-grid-3 {
+        gap: 12px 16px;
+    }
+
+    /* ===== UOM quick fill (clean) ===== */
+    .uom-row {
+        display: grid;
+        gap: 10px;
+    }
+
+    .uom-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid #ededed;
+        background: #fafafa;
+        border-radius: 14px;
+    }
+
+    .uom-chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid #e3e3e3;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 0.88rem;
+        line-height: 1;
+        transition: background .15s ease, border-color .15s ease, transform .08s ease;
+    }
+
+        .uom-chip:hover {
+            background: #f3f3f3;
+            border-color: #d6d6d6;
+        }
+
+        .uom-chip:active {
+            transform: scale(0.98);
+        }
+
+        /* nice focus for keyboard */
+        .uom-chip:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.08);
+        }
+
+
+    /* ===== Dropdown menu: always above + scrollable ===== */
+    .dd {
+        position: relative;
+        z-index: 30;
+    }
+
+        .dd.open {
+            z-index: 9999;
+        }
+    /* only when open, jump to top */
+
+    .dd-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 6px);
+        z-index: 9999;
+        max-height: 220px;
+        overflow: auto;
+    }
+
+    .uom-chip.is-active {
+        border-color: #000;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    }
+
+    .dd-uom .dd-input {
+        width: 100%;
+        height: 44px;
+        padding: 0 44px 0 18px;
+        border-radius: 14px;
+        border: 2px solid #dedede; /* ✅ 2px default */
+        font-size: 0.95rem;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+        .dd-uom .dd-input:focus {
+            border-color: #000; /* ✅ black focus */
+        }
+
+
+    /* ===== DD-style input for UOM ===== */
+    .dd-uom .dd-head {
+        position: relative;
+        width: 100%;
+    }
+
+    .dd-uom .dd-input {
+        width: 100%;
+        height: 44px;
+        padding: 0 44px 0 18px; /* leave room for arrow */
+        border-radius: 12px;
+        border: 1px solid #dedede;
+        font-size: 0.95rem;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+        .dd-uom .dd-input:focus {
             border-color: #000;
         }
+
+    .dd-uom.open .dd-input {
+        box-shadow: 0 12px 26px rgba(0,0,0,0.06);
+    }
+
+    .dd-uom .dd-arrow {
+        pointer-events: none;
+    }
+
+    .section-label {
+        margin: 18px 0 10px;
+        padding-bottom: 10px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        border-bottom: 1px solid #ededed; /* ✅ thin line */
+    }
+
+        .section-label:first-of-type {
+            margin-top: 0;
+        }
+
+    .dd-uom .dd-arrow {
+        pointer-events: auto; /* ✅ allow clicking */
+        cursor: pointer;
+    }
+
+    .text-danger {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.82rem;
+        color: #dc2626;
+    }
+
+    .dd-uom .dd-input.input-validation-error {
+        border: 2px solid #dc2626 !important;
+    }
+
+
+    .field textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 2px solid #dedede;
+        font-size: 0.95rem;
+        outline: none;
+        box-shadow: none !important;
+    }
+
+        .field textarea:focus {
+            border-color: #000;
+        }
+
+        .field textarea.input-validation-error {
+            border-color: #dc2626 !important;
+        }
+
+
+    .char-hint {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.75rem;
+        color: #6b7280; /* muted grey */
+        text-align: right;
+    }
+
+    /* ===== EXTRA-TIGHT BASIC INFO SPACING ===== */
+
+    /* overall grid row spacing */
+    .basic-grid {
+        row-gap: 4px; /* was 8px / 12px */
+    }
+
+        /* reduce bottom gap of each field */
+        .basic-grid .field {
+            margin-bottom: 2px; /* was 6px / 12px */
+        }
+
+            /* labels closer to inputs */
+            .basic-grid .field label {
+                margin-bottom: 3px; /* was 4px–6px */
+            }
+
+            /* description textarea → next row tighter */
+            .basic-grid .field.span-2 {
+                margin-bottom: 0; /* key change */
+            }
+
+        /* character counter closer */
+        .basic-grid .char-hint {
+            margin-top: 2px; /* was 4px */
+        }
+
+        /* error message closer to field */
+        .basic-grid .text-danger {
+            margin-top: 2px; /* was 6px */
+        }
+
+    /* ===== Tighten RIGHT form only ===== */
+
+    /* reduce card internal padding */
+    .card[aria-label="Add New Item Form"] {
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
+
+        /* reduce section spacing */
+        .card[aria-label="Add New Item Form"] .section-label {
+            margin: 12px 0 6px;
+            padding-bottom: 6px;
+        }
+
+        /* tighten grids */
+        .card[aria-label="Add New Item Form"] .basic-grid,
+        .card[aria-label="Add New Item Form"] .form-grid-2,
+        .card[aria-label="Add New Item Form"] .form-grid-3 {
+            row-gap: 6px; /* was 10–12px */
+        }
+
+        /* tighten each field block */
+        .card[aria-label="Add New Item Form"] .field {
+            margin-bottom: 6px; /* was ~12px */
+        }
+
+            /* labels closer to inputs */
+            .card[aria-label="Add New Item Form"] .field label {
+                margin-bottom: 4px;
+            }
+
+        /* error text closer */
+        .card[aria-label="Add New Item Form"] .text-danger {
+            margin-top: 2px;
+        }
+
+        /* description → category gap */
+        .card[aria-label="Add New Item Form"] .field.span-2 {
+            margin-bottom: 2px;
+        }
+
+        /* barcode help box tighter */
+        .card[aria-label="Add New Item Form"] .help-box {
+            margin-top: 4px;
+            padding: 8px 12px;
+        }
+
+        /* buttons row tighter */
+        .card[aria-label="Add New Item Form"] .btn-row {
+            margin-top: 10px;
+            padding-top: 8px;
+        }
+
+    .soft-divider {
+        height: 1px;
+        background: #ededed;
+        margin: 10px 0; /* tighter */
+    }
+
+    /* ===== Compact mode (right form tighter) ===== */
+    .card[aria-label="Add New Item Form"] .field {
+        margin-bottom: 8px; /* was 12px+ */
+    }
+
+        .card[aria-label="Add New Item Form"] .field label {
+            margin: 0 0 4px; /* tighter label spacing */
+            font-size: 13px;
+        }
+
+    .card[aria-label="Add New Item Form"] .form-grid-2,
+    .card[aria-label="Add New Item Form"] .form-grid-3,
+    .card[aria-label="Add New Item Form"] .basic-grid {
+        gap: 10px 14px; /* tighter row/col gap */
+    }
+
+    .card[aria-label="Add New Item Form"] textarea {
+        min-height: 78px; /* shorter description box */
+    }
+
+    /* ===== UOM focus behavior (match Category/Supplier) ===== */
+
+
+    /* focus = light shadow, keep grey border */
+    .dd-uom .dd-input:focus {
+        border-color: #dedede !important;
+        box-shadow: 0 12px 26px rgba(0,0,0,0.06) !important;
+        border: 2px solid #000 !important;
+    }
+
+
+    /* error state */
+    .dd-uom.error .dd-input {
+        border: 2px solid #dc2626 !important;
+        box-shadow: none !important;
+    }
+
+    /* ===== UOM visual states ===== */
+
+    /* DEFAULT */
+    .dd-uom .dd-input {
+        border: 2px solid #dedede !important;
+        box-shadow: none !important;
+    }
+
+        /* FOCUS */
+        .dd-uom .dd-input:focus {
+            border-color: #000 !important;
+            box-shadow: none !important;
+        }
+
+    /* ERROR */
+    .dd-uom.error .dd-input {
+        border: 2px solid #dc2626 !important;
+        box-shadow: none !important;
+    }
+
+        /* ERROR + FOCUS */
+        .dd-uom.error .dd-input:focus {
+            border: 2px solid #dc2626 !important;
+            box-shadow: 0 0 0 4px rgba(220,38,38,0.15) !important;
+        }
+
+    /* ===== Category/Supplier visual states (default/focus/error) ===== */
+
+    /* DEFAULT */
+    .dd:not(.dd-uom) .dd-btn {
+        border: 2px solid #dedede !important;
+        box-shadow: none !important;
+    }
+
+    /* FOCUS / OPEN (like your current dropdown style) */
+    .dd:not(.dd-uom).open .dd-btn {
+        border-color: #000 !important;
+        box-shadow: 0 12px 26px rgba(0,0,0,0.06) !important;
+    }
+
+    /* ERROR (only when we add .error after submit) */
+    .dd:not(.dd-uom).error .dd-btn {
+        border: 2px solid #dc2626 !important;
+        box-shadow: none !important;
+    }
+
+    /* ERROR + OPEN (keep red, optional soft red ring) */
+    .dd:not(.dd-uom).error.open .dd-btn {
+        border: 2px solid #dc2626 !important;
+        box-shadow: 0 0 0 4px rgba(220,38,38,0.10) !important;
+    }
+
+    .card-title {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
 
 </style>
 
 <div class="page-wrap">
-    <form asp-action="CreateItem" method="post" enctype="multipart/form-data" class="two-card" id="itemForm">
+    <form asp-action="CreateItem"
+          method="post"
+          enctype="multipart/form-data"
+          class="two-card"
+          id="itemForm"
+          novalidate>
+
+
         @Html.AntiForgeryToken()
 
         <!-- LEFT CARD -->
@@ -999,25 +1458,73 @@
         <!-- RIGHT CARD -->
         <section class="card" aria-label="Add New Item Form">
             <h2 class="card-title">Add New Item</h2>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
 
-            <div class="form-grid">
+            <div class="basic-grid">
+
+                <!-- Item Name (LEFT) -->
                 <div class="field">
-                    <label>Item Name</label>
-                    <input asp-for="Item.ItemName" autofocus />
+                    <label>Item Name <span class="req">*</span></label>
+                    <input asp-for="Item.ItemName" />
                     <span asp-validation-for="Item.ItemName" class="text-danger"></span>
                 </div>
 
+                <!-- Unit of Measure (RIGHT) -->
                 <div class="field">
-                    <label>Unit of Measure</label>
-                    <input asp-for="Item.ItemUnitOfMeasure" />
+                    <label>Unit of Measure <span class="req">*</span></label>
+
+                    <div class="dd dd-uom" data-name="Item.ItemUnitOfMeasure">
+                        <input asp-for="Item.ItemUnitOfMeasure" type="hidden" id="uomHidden" />
+
+                        <div class="dd-head">
+                            <input type="text"
+                                   id="uomInput"
+                                   class="dd-input"
+                                   placeholder="Select or Type"
+                                   autocomplete="off" />
+                            <span class="dd-arrow" id="uomArrow"></span>
+
+                        </div>
+
+                        <div class="dd-menu">
+                            <div class="dd-items">
+                                <div class="dd-item" data-value="pcs">pcs</div>
+                                <div class="dd-item" data-value="unit">unit</div>
+                                <div class="dd-item" data-value="box">box</div>
+                                <div class="dd-item" data-value="kg">kg</div>
+                                <div class="dd-item" data-value="g">g</div>
+                                <div class="dd-item" data-value="l">l</div>
+                                <div class="dd-item" data-value="ml">ml</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <span asp-validation-for="Item.ItemUnitOfMeasure" class="text-danger"></span>
                 </div>
+
+                <!-- Description (FULL WIDTH BELOW) -->
+                <div class="field span-2">
+                    <label>Description</label>
+                    <textarea asp-for="Item.ItemDescription"
+                              rows="3"
+                              maxlength="500"
+                              placeholder="Optional — notes about packaging, grade, usage, etc."></textarea>
+
+                    <small class="char-hint">
+                        <span id="descCount">0</span>/500
+                    </small>
+
+                    <span asp-validation-for="Item.ItemDescription" class="text-danger"></span>
+                </div>
+
             </div>
 
+
             <div class="form-grid-2">
+                <!-- CATEGORY -->
                 <div class="field">
-                    <label>Category</label>
+                    <label>Category <span class="req">*</span></label>
 
                     <div class="dd" data-name="Item.CategoryID">
                         <input type="hidden" name="Item.CategoryID" value="@Model.Item?.CategoryID" />
@@ -1028,20 +1535,25 @@
                                 <span class="dd-arrow" aria-hidden="true"></span>
                             </button>
 
-                            <button type="button" class="dd-action dd-add" title="New Category" aria-label="New Category">＋</button>
-                            <button type="button" class="dd-action dd-refresh" title="Refresh list" aria-label="Refresh list">⟳</button>
-                        </div>
+                            <button type="button"
+                                    class="dd-action dd-add"
+                                    title="New Category"
+                                    aria-label="New Category"
+                                    data-new-url="@Url.Action("Create", "Category")">
+                                ＋
+                            </button>
 
+                            <button type="button"
+                                    class="dd-action dd-refresh-btn"
+                                    title="Refresh categories"
+                                    aria-label="Refresh categories"
+                                    data-refresh-url="@Url.Action("ListJson", "Category")">
+                                ⟳
+                            </button>
+                        </div>
 
                         <div class="dd-menu" role="listbox">
                             <input type="text" class="dd-search" placeholder="Search..." autocomplete="off" />
-                            <div class="dd-item dd-new" data-new-url="@Url.Action("Create", "Category")">
-                                + New Category…
-                            </div>
-                            <div class="dd-item dd-refresh"
-                                 data-refresh="category">
-                                ↻ Refresh list
-                            </div>
                             <div class="dd-items">
                                 @foreach (var c in Model.Categories)
                                 {
@@ -1049,34 +1561,43 @@
                                 }
                             </div>
                         </div>
-
                     </div>
 
                     <span asp-validation-for="Item.CategoryID" class="text-danger"></span>
                 </div>
 
-
+                <!-- SUPPLIER -->
                 <div class="field">
-                    <label>Supplier</label>
+                    <label>Supplier <span class="req">*</span></label>
 
-                    <div class="dd" data-name="Item.SupplierID">
+                    <div class="dd" data-name="Item.SupplierID" data-type="supplier">
                         <input type="hidden" name="Item.SupplierID" value="@Model.Item?.SupplierID" />
 
-                        <button type="button" class="dd-btn" aria-haspopup="listbox">
-                            <span class="dd-value dd-placeholder">Select Supplier</span>
-                            <span class="dd-arrow" aria-hidden="true"></span>
+                        <div class="dd-head">
+                            <button type="button" class="dd-btn" aria-haspopup="listbox">
+                                <span class="dd-value dd-placeholder">Select Supplier</span>
+                                <span class="dd-arrow" aria-hidden="true"></span>
+                            </button>
 
-                        </button>
+                            <button type="button"
+                                    class="dd-action dd-add"
+                                    title="New Supplier"
+                                    aria-label="New Supplier"
+                                    data-new-url="@Url.Action("Create", "Supplier")">
+                                ＋
+                            </button>
+
+                            <button type="button"
+                                    class="dd-action dd-refresh-btn"
+                                    title="Refresh suppliers"
+                                    aria-label="Refresh suppliers"
+                                    data-refresh-url="@Url.Action("ListJson", "Supplier")">
+                                ⟳
+                            </button>
+                        </div>
 
                         <div class="dd-menu" role="listbox">
                             <input type="text" class="dd-search" placeholder="Search..." autocomplete="off" />
-                            <div class="dd-item dd-new" data-new-url="@Url.Action("Create", "Supplier")">
-                                + New Supplier…
-                            </div>
-                            <div class="dd-item dd-refresh"
-                                 data-refresh="supplier">
-                                ↻ Refresh list
-                            </div>
                             <div class="dd-items">
                                 @foreach (var s in Model.Suppliers)
                                 {
@@ -1084,13 +1605,12 @@
                                 }
                             </div>
                         </div>
-
                     </div>
 
                     <span asp-validation-for="Item.SupplierID" class="text-danger"></span>
                 </div>
-
             </div>
+
 
             <div class="field">
                 <label>Barcode</label>
@@ -1100,39 +1620,39 @@
                 </div>
             </div>
 
+            <div class="soft-divider"></div>
             <div class="form-grid-2">
                 <div class="field">
-                    <label>Buy Price</label>
-                    <input asp-for="Item.ItemBuyPrice" class="auto-clear money num-dec"
-                           type="number" step="0.01" min="0" inputmode="decimal" />
+                    <label>Buy Price <span class="req">*</span></label>
+                    <input asp-for="Item.ItemBuyPrice" type="number" step="0.01" inputmode="decimal" />
                     <span asp-validation-for="Item.ItemBuyPrice" class="text-danger"></span>
                 </div>
 
                 <div class="field">
-                    <label>Sell Price</label>
-                    <input asp-for="Item.ItemSellPrice" class="auto-clear money num-dec"
-                           type="number" step="0.01" min="0" inputmode="decimal" />
+                    <label>Sell Price <span class="req">*</span></label>
+                    <input asp-for="Item.ItemSellPrice" type="number" step="0.01" inputmode="decimal" />
                     <span asp-validation-for="Item.ItemSellPrice" class="text-danger"></span>
                 </div>
             </div>
 
+            <div class="soft-divider"></div>
             <div class="form-grid-3">
                 <div class="field">
-                    <label>Reorder Level</label>
+                    <label>Reorder Level <span class="req">*</span></label>
                     <input asp-for="Item.ItemReorderLevel" class="auto-clear num-int"
                            type="number" step="1" min="0" inputmode="numeric" />
                     <span asp-validation-for="Item.ItemReorderLevel" class="text-danger"></span>
                 </div>
 
                 <div class="field">
-                    <label>Safety Stock</label>
+                    <label>Safety Stock <span class="req">*</span></label>
                     <input asp-for="Item.SafetyStock" class="auto-clear num-int"
                            type="number" step="1" min="0" inputmode="numeric" />
                     <span asp-validation-for="Item.SafetyStock" class="text-danger"></span>
                 </div>
 
                 <div class="field">
-                    <label>Reorder Point</label>
+                    <label>Reorder Point <span class="req">*</span></label>
                     <input asp-for="Item.ReorderPoint" class="auto-clear num-int"
                            type="number" step="1" min="0" inputmode="numeric" />
                     <span asp-validation-for="Item.ReorderPoint" class="text-danger"></span>
@@ -1242,6 +1762,51 @@
                     }
                 });
 
+                        // ===== Drag & Drop FIX (prevent browser opening the image) =====
+                (function () {
+                    const dropzone = document.getElementById("dropzone");
+                    const fileInput = document.getElementById("ItemImageInput");
+
+                    if (!dropzone || !fileInput) return;
+
+                    // ✅ stop browser from opening dropped file anywhere
+                    ["dragenter", "dragover", "dragleave", "drop"].forEach(evt => {
+                        dropzone.addEventListener(evt, (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        });
+
+                        document.addEventListener(evt, (e) => {
+                            e.preventDefault();
+                        });
+                    });
+
+                    // optional nice hover UI
+                    dropzone.addEventListener("dragover", () => dropzone.classList.add("is-dragover"));
+                    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-dragover"));
+                    dropzone.addEventListener("drop", (e) => {
+                        dropzone.classList.remove("is-dragover");
+
+                        const files = e.dataTransfer?.files;
+                        if (!files || !files.length) return;
+
+                        const f = files[0];
+
+                        // ✅ only accept images
+                        if (!f.type.startsWith("image/")) {
+                            alert("Please drop an image file.");
+                            return;
+                        }
+
+                        // ✅ put file into input so your existing change handler works
+                        fileInput.files = files;
+
+                        // trigger your existing: fileInput.addEventListener('change', ...)
+                        fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                })();
+
+
                 function openEditor(src){
                     editorModal.classList.remove('hidden');
                     editorModal.setAttribute('aria-hidden', 'false');
@@ -1250,6 +1815,9 @@
                     angle = 0;
                     zoomValue = 1;
                     zoomSlider.value = 1;
+
+                    updateZoomTrack(); // ✅ add this
+
                     offsetX = 0;
                     offsetY = 0;
 
@@ -1358,16 +1926,18 @@
                     draw();
                 });
 
-                    function updateZoomTrack() {
-                    const min = zoomSlider.min;
-                    const max = zoomSlider.max;
-                    const val = zoomSlider.value;
+                function updateZoomTrack() {
+                    const min = parseFloat(zoomSlider.min);
+                    const max = parseFloat(zoomSlider.max);
+                    const val = parseFloat(zoomSlider.value);
                     const percent = ((val - min) / (max - min)) * 100;
+
                     zoomSlider.style.setProperty('--value', percent + '%');
                 }
 
                 updateZoomTrack();
                 zoomSlider.addEventListener('input', updateZoomTrack);
+
 
 
                 // Rotate
@@ -1398,63 +1968,70 @@
 
                 canvas.style.cursor = "grab";
 
-                // Use -> save edited image into preview
-                useImage.addEventListener('click', ()=>{
-                    const data = canvas.toDataURL("image/png");
+        useImage.addEventListener('click', ()=>{
+          const data = canvas.toDataURL("image/png");
 
-                    // preview in circle
-                    img.src = data;
-                    img.style.display = "block";
-                    placeholder.style.display = "none";
+          img.src = data;
+          img.style.display = "block";
+          placeholder.style.display = "none";
+          if(editedHidden) editedHidden.value = data;
 
-                    // store edited image (optional for backend)
-                    if(editedHidden) editedHidden.value = data;
+          zoomSlider.value = 1;
+          zoomValue = 1;
+          updateZoomTrack(); // ✅ keep consistent
 
-                    closeEditor();
-                });
+          closeEditor();
+        });
 
-                // ===== Custom dropdown logic (with search + keyboard) =====
+                // ===== Custom dropdown logic (with search + keyboard + add/refresh) =====
                 (function () {
 
                     function closeAll(except) {
-                        document.querySelectorAll(".dd.open").forEach(dd => {
-                            if (dd !== except) dd.classList.remove("open");
+                        document.querySelectorAll(".dd.open").forEach(x => {
+                            if (x !== except) x.classList.remove("open");
                         });
                     }
 
-                    function setActive(items, index) {
-                        items.forEach(x => x.classList.remove("kb-active"));
-                        if (items[index]) items[index].classList.add("kb-active");
-                    }
+                function setActive(items, index) {
+                    items.forEach(x => x.classList.remove("kb-active"));
+                    if (index >= 0 && items[index]) items[index].classList.add("kb-active");
+                }
+
 
                     function getVisibleItems(dd) {
-                        return Array.from(dd.querySelectorAll(".dd-item")).filter(x => !x.classList.contains("hidden"));
+                        return Array.from(dd.querySelectorAll(".dd-items .dd-item"))
+                            .filter(x => !x.classList.contains("hidden"));
                     }
 
                     function filterItems(dd, term) {
                         const t = (term || "").trim().toLowerCase();
-                        dd.querySelectorAll(".dd-item").forEach(item => {
+                        dd.querySelectorAll(".dd-items .dd-item").forEach(item => {
                             const txt = item.textContent.trim().toLowerCase();
                             item.classList.toggle("hidden", t && !txt.includes(t));
                         });
 
-                        // reset keyboard highlight
-                        const visible = getVisibleItems(dd);
-                        setActive(visible, 0);
+                const visible = getVisibleItems(dd);
+                setActive(visible, -1); // ✅ no default highlight
+
                     }
 
                     document.addEventListener("click", (e) => {
+                        const dd = e.target.closest(".dd");
                         const btn = e.target.closest(".dd-btn");
                         const item = e.target.closest(".dd-item");
-                        const dd = e.target.closest(".dd");
 
-                        // open/close
-                        if (btn && dd) {
+                        // click outside
+                        if (!dd) {
+                            closeAll(null);
+                            return;
+                        }
+
+                        // ✅ OPEN/CLOSE by clicking the main field
+                        if (btn) {
                             const isOpen = dd.classList.contains("open");
                             closeAll(dd);
                             dd.classList.toggle("open", !isOpen);
 
-                            // when opening: focus search + reset filter
                             if (!isOpen) {
                                 const search = dd.querySelector(".dd-search");
                                 if (search) {
@@ -1466,59 +2043,88 @@
                             return;
                         }
 
-                                // click "New..." item
-                if (item && item.classList.contains("dd-new")) {
-                    const url = item.getAttribute("data-new-url");
-                    if (url) window.open(url, "_blank"); // safe: doesn't destroy current form
-                    dd.classList.remove("open");
-                    return;
-                }
+                        // ✅ TOP + button
+                        const addBtn = e.target.closest(".dd-add");
+                        if (addBtn) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const url = addBtn.getAttribute("data-new-url");
+                            if (url) window.open(url, "_blank");
+                            return;
+                        }
 
-                        // choose item
-                        if (item && dd) {
+                        // ✅ TOP refresh button
+                        const refreshBtn = e.target.closest(".dd-refresh-btn");
+                        if (refreshBtn) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const refreshUrl = refreshBtn.getAttribute("data-refresh-url");
+                            refreshDd(dd, refreshUrl);
+                            return;
+                        }
+
+                        // ✅ Menu: New...
+                        if (item && item.classList.contains("dd-new")) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const url = item.getAttribute("data-new-url");
+                            if (url) window.open(url, "_blank");
+                            dd.classList.remove("open");
+                            return;
+                        }
+
+                        // ✅ Menu: Refresh list
+                        if (item && item.classList.contains("dd-refresh")) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const refreshUrl = item.getAttribute("data-refresh-url");
+                            refreshDd(dd, refreshUrl);
+                            return;
+                        }
+
+                        // ✅ choose item
+                        if (item && item.hasAttribute("data-value")) {
                             const value = item.getAttribute("data-value");
                             const text = item.textContent.trim();
 
                             const hidden = dd.querySelector('input[type="hidden"]');
                             const valueSpan = dd.querySelector(".dd-value");
 
-                            hidden.value = value;
-                            valueSpan.textContent = text;
-                            valueSpan.classList.remove("dd-placeholder");
+                            if (hidden) hidden.value = value;
+                            if (valueSpan) {
+                                valueSpan.textContent = text;
+                                valueSpan.classList.remove("dd-placeholder");
+                            }
 
-                            dd.querySelectorAll(".dd-item").forEach(x => x.classList.remove("active"));
+                            dd.querySelectorAll(".dd-items .dd-item").forEach(x => x.classList.remove("active"));
                             item.classList.add("active");
 
                             dd.classList.remove("open");
                             return;
                         }
-
-                        // click outside
-                        closeAll(null);
                     });
 
-                    // init selected values on load
+                    // init selected values + search/keyboard
                     document.querySelectorAll(".dd").forEach(dd => {
                         const hidden = dd.querySelector('input[type="hidden"]');
                         const value = hidden?.value;
 
                         if (value) {
-                            const match = dd.querySelector(`.dd-item[data-value="${CSS.escape(value)}"]`);
+                            const match = dd.querySelector(`.dd-items .dd-item[data-value="${CSS.escape(value)}"]`);
                             if (match) match.click();
                         }
 
-                        // search typing
                         const search = dd.querySelector(".dd-search");
                         if (search) {
                             search.addEventListener("input", () => filterItems(dd, search.value));
 
-                            // keyboard nav inside search box
                             search.addEventListener("keydown", (e) => {
                                 const visible = getVisibleItems(dd);
                                 if (!visible.length) return;
 
-                                let idx = visible.findIndex(x => x.classList.contains("kb-active"));
-                                if (idx < 0) idx = 0;
+                let idx = visible.findIndex(x => x.classList.contains("kb-active"));
+                if (idx < 0) idx = -1; // ✅ start with none
+
 
                                 if (e.key === "ArrowDown") {
                                     e.preventDefault();
@@ -1534,10 +2140,11 @@
                                     visible[idx].scrollIntoView({ block: "nearest" });
                                 }
 
-                                if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    visible[idx].click();
-                                }
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    const pick = (idx >= 0 ? idx : 0);
+                    visible[pick]?.click();
+                }
 
                                 if (e.key === "Escape") {
                                     dd.classList.remove("open");
@@ -1547,44 +2154,148 @@
                         }
                     });
 
-                    // ESC closes dropdowns globally
+                    // ESC closes all
                     document.addEventListener("keydown", (e) => {
                         if (e.key === "Escape") closeAll(null);
                     });
 
                 })();
-
-
-                // ===== Prevent double-submit + show spinner on clicked submit button =====
+                        // ===== Category + Supplier validation state (default grey, focus black, error red after submit) =====
                 (function () {
-                    const form = document.getElementById("itemForm");
-                    if (!form) return;
+                  const form = document.getElementById("itemForm");
+                  if (!form) return;
 
-                    let clickedBtn = null;
+                  let submitted = false;
 
-                    form.querySelectorAll('button[type="submit"]').forEach(btn => {
-                        btn.addEventListener("click", () => clickedBtn = btn);
-                    });
+                  function setDdError(dd, isError) {
+                    if (!dd) return;
+                    dd.classList.toggle("error", !!isError);
+                  }
 
-                    form.addEventListener("submit", () => {
-                        // If jQuery validate exists, block loading state when invalid
-                        if (window.jQuery && $(form).data("validator")) {
-                            if (!$(form).valid()) return;
-                        }
+                  function syncDd(ddSelector) {
+                    const dd = document.querySelector(ddSelector);
+                    if (!dd) return;
 
-                        // disable all submit buttons
-                        const all = form.querySelectorAll('button[type="submit"]');
-                        all.forEach(b => b.disabled = true);
+                    const hidden = dd.querySelector('input[type="hidden"]');
 
-                        // apply loading state to the clicked button (fallback to saveBtn)
-                        const btn = clickedBtn || document.getElementById("saveBtn");
-                        if (!btn) return;
+                    // IMPORTANT: get the correct validation span for that field
+                    const name = dd.getAttribute("data-name"); // "Item.CategoryID" / "Item.SupplierID"
+                    const span = name ? document.querySelector(`[data-valmsg-for="${name}"]`) : null;
 
-                        btn.classList.add("is-loading");
-                        const text = btn.querySelector(".btn-text");
-                        if (text) text.textContent = "Saving…";
-                    });
+                    const hasErrorText = span && span.textContent.trim().length > 0;
+                    const hasValue = hidden && hidden.value.trim().length > 0;
+
+                    // ✅ error ONLY after submit
+                    setDdError(dd, submitted && (!hasValue || hasErrorText));
+                  }
+
+                  function syncAll() {
+                    syncDd('.dd[data-name="Item.CategoryID"]');
+                    syncDd('.dd[data-name="Item.SupplierID"]');
+                  }
+
+                  // initial: clean (grey)
+                  syncAll();
+
+                  // mark submitted, then sync
+                  form.addEventListener("submit", () => {
+                    submitted = true;
+                    setTimeout(syncAll, 0);
+                  });
+
+                  // whenever user selects items / closes menu
+                  document.addEventListener("click", (e) => {
+                    if (e.target.closest('.dd[data-name="Item.CategoryID"], .dd[data-name="Item.SupplierID"]')) {
+                      setTimeout(syncAll, 0);
+                    }
+                  });
+
+                  // watch validation span changes (jQuery updates these dynamically)
+                  ["Item.CategoryID", "Item.SupplierID"].forEach(name => {
+                    const span = document.querySelector(`[data-valmsg-for="${name}"]`);
+                    if (!span) return;
+                    new MutationObserver(syncAll).observe(span, { childList: true, subtree: true, characterData: true });
+                  });
                 })();
+
+                // ===== UOM validation state (correct UX) =====
+                (function () {
+                  const form = document.getElementById("itemForm");
+                  const dd = document.querySelector('.dd.dd-uom[data-name="Item.ItemUnitOfMeasure"]');
+                  if (!form || !dd) return;
+
+                  const hidden = dd.querySelector('input[type="hidden"]');
+                  const errorSpan = dd.closest(".field")?.querySelector("span.text-danger");
+
+                  let submitted = false;
+
+                  function syncUom() {
+                    const hasErrorText =
+                      errorSpan && errorSpan.textContent.trim().length > 0;
+
+                    const hasValue =
+                      hidden && hidden.value.trim().length > 0;
+
+                    // ✅ only show error AFTER submit
+                    dd.classList.toggle("error", submitted && (!hasValue || hasErrorText));
+                  }
+
+                  // mark submitted
+                  form.addEventListener("submit", () => {
+                    submitted = true;
+                    setTimeout(syncUom, 0);
+                  });
+
+                  // user interaction clears error
+                  dd.addEventListener("click", syncUom);
+                  dd.addEventListener("input", syncUom);
+                  dd.addEventListener("change", syncUom);
+
+                  // observe validation span
+                  if (errorSpan) {
+                    new MutationObserver(syncUom)
+                      .observe(errorSpan, { childList: true, subtree: true });
+                  }
+
+                  // initial = clean (grey)
+                  syncUom();
+                })();
+
+
+
+                // ===== Save buttons: show "Saving..." ONLY when valid =====
+                (function () {
+                  const form = document.getElementById("itemForm");
+                  if (!form) return;
+
+                  let clickedBtn = null;
+
+                  // track which submit button was clicked
+                  form.querySelectorAll('button[type="submit"]').forEach(btn => {
+                    btn.addEventListener("click", () => clickedBtn = btn);
+                  });
+
+                  form.addEventListener("submit", (e) => {
+                    // If jQuery validation exists and form is invalid -> stop submit + no loading
+                    if (window.jQuery && $(form).data("validator") && !$(form).valid()) {
+                      e.preventDefault();
+                      return;
+                    }
+
+                    // show loading on clicked button
+                    const btn = clickedBtn || document.getElementById("saveBtn");
+                    if (!btn) return;
+
+                    btn.classList.add("is-loading");
+                    const text = btn.querySelector(".btn-text");
+                    if (text) text.textContent = "Saving…";
+
+                    // disable both submit buttons to prevent double submit
+                    form.querySelectorAll('button[type="submit"]').forEach(b => b.disabled = true);
+                  });
+                })();
+
+
 
 
                         // ===== Keyboard: Enter moves to next field (business data-entry style) =====
@@ -1593,11 +2304,13 @@
                     if (!form) return;
 
                     // Select inputs only (include your dropdown button too)
-                    const selector = `
-                        input:not([type="hidden"]):not([type="file"]),
-                        select,
-                        button.dd-btn
-                    `;
+                const selector = `
+                  input:not([type="hidden"]):not([type="file"]),
+                  input.dd-input,
+                  select,
+                  button.dd-btn
+                `;
+
 
                     function getFocusable() {
                         return Array.from(form.querySelectorAll(selector))
@@ -1614,9 +2327,17 @@
                         // allow Enter on the Save button (submit)
                         if (e.target.id === "saveBtn") return;
 
-                        // If dropdown is open, let Enter choose item (your click handler handles it)
-                        const dd = e.target.closest(".dd");
-                        if (dd && dd.classList.contains("open")) return;
+                const dd = e.target.closest(".dd");
+
+                // ✅ If focused on dropdown button and dropdown is CLOSED -> open it
+                if (dd && e.target.classList.contains("dd-btn") && !dd.classList.contains("open")) {
+                    e.preventDefault();
+                    e.target.click();
+                    return;
+                }
+
+                // ✅ If dropdown is open, let Enter choose item
+                if (dd && dd.classList.contains("open")) return;
 
                         e.preventDefault();
 
@@ -1629,16 +2350,23 @@
                     });
                 })();
 
-                        // ===== Numeric UX: select all on focus =====
+                // ===== Numeric UX: auto clear 0 on focus + select all =====
                 (function () {
-                    document.querySelectorAll(".auto-clear").forEach(el => {
-                        el.addEventListener("focus", () => {
-                            setTimeout(() => {
-                                try { el.select(); } catch {}
-                            }, 0);
-                        });
+                  document.querySelectorAll(".auto-clear").forEach(el => {
+                    el.addEventListener("focus", () => {
+                      const v = (el.value || "").trim();
+
+                      // ✅ if value is 0 or 0.00, clear it for faster data entry
+                      if (v === "0" || v === "0.0" || v === "0.00") {
+                        el.value = "";
+                      }
+
+                      // select all (if not cleared)
+                      setTimeout(() => { try { el.select(); } catch {} }, 0);
                     });
+                  });
                 })();
+
 
                         // ===== Unsaved changes warning =====
                 (function () {
@@ -1784,6 +2512,108 @@
                         obs.observe(span, { childList: true, subtree: true, characterData: true });
                     });
                 })();
+
+
+                (function () {
+                  const dd = document.querySelector(".dd.dd-uom");
+                  if (!dd) return;
+
+                  const input = document.getElementById("uomInput");
+                  const arrow = document.getElementById("uomArrow");
+
+                  function open() { dd.classList.add("open"); }
+                  function close() { dd.classList.remove("open"); }
+                  function toggle() { dd.classList.toggle("open"); }
+
+                  input.addEventListener("focus", open);
+                  input.addEventListener("click", toggle);
+
+                  arrow.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggle();
+                    input.focus();
+                  });
+
+                  dd.querySelectorAll(".dd-item[data-value]").forEach(it => {
+                    it.addEventListener("click", () => {
+                      input.value = it.getAttribute("data-value");
+                      close();
+
+                      // ✅ IMPORTANT: trigger validation update
+                      input.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                  });
+
+                  document.addEventListener("click", (e) => {
+                    if (!dd.contains(e.target)) close();
+                  });
+                })();
+
+
+
+                        async function refreshDd(dd, refreshUrl) {
+                    const itemsWrap = dd.querySelector(".dd-items");
+                    if (!itemsWrap || !refreshUrl) return;
+
+                    // keep selected value
+                    const hidden = dd.querySelector('input[type="hidden"]');
+                    const currentValue = hidden ? hidden.value : "";
+
+                    // loading UI on top button if exists
+                    const topBtn = dd.querySelector(".dd-refresh-btn");
+                    if (topBtn) { topBtn.disabled = true; topBtn.textContent = "…"; }
+
+                    try {
+                        const res = await fetch(refreshUrl, { headers: { "Accept": "application/json" } });
+                        if (!res.ok) throw new Error("Refresh failed");
+
+                        const data = await res.json(); // [{id,name}]
+                        itemsWrap.innerHTML = "";
+
+                        data.forEach(x => {
+                            const div = document.createElement("div");
+                            div.className = "dd-item";
+                            div.setAttribute("data-value", x.id);
+                            div.textContent = x.name;
+                            itemsWrap.appendChild(div);
+                        });
+
+                        // reselect if still exists
+                        if (currentValue) {
+                            const match = dd.querySelector(`.dd-items .dd-item[data-value="${CSS.escape(currentValue)}"]`);
+                            if (match) match.click();
+                        }
+
+                    } catch (err) {
+                        console.error(err);
+                        alert("Could not refresh list. Please try again.");
+                    } finally {
+                        if (topBtn) { topBtn.disabled = false; topBtn.textContent = "⟳"; }
+                    }
+                }
+
+                (function () {
+                    const desc = document.querySelector('[name="Item.ItemDescription"]');
+                    const counter = document.getElementById("descCount");
+
+                    if (!desc || !counter) return;
+
+                    const paint = () => {
+                        const len = desc.value.length;
+                        counter.textContent = len;
+
+                        counter.style.color =
+                            len > 450 ? "#dc2626" :
+                            len > 350 ? "#f59e0b" :
+                            "#6b7280";
+                    };
+
+                    paint(); // init count
+                    desc.addEventListener("input", paint);
+                })();
+
+
 
     </script>
 

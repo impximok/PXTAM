@@ -15,7 +15,8 @@ namespace Invexaaa.Models.Invexa
         public DateTime SalesDate { get; set; } = DateTime.Now;
 
         [Required(ErrorMessage = "Total amount is required.")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Total amount must be greater than zero.")]
+        [Range(typeof(decimal), "0.01", "79228162514264337593543950335",
+            ErrorMessage = "Total amount must be greater than zero.")]
         public decimal TotalAmount { get; set; }
     }
 }
