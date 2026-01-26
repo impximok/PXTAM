@@ -7,6 +7,11 @@
 }
 
 <style>
+
+    html, body, main {
+        background: #fff !important;
+    }
+
     :root {
         --bg: #fff;
         --card: #fff;
@@ -41,20 +46,41 @@
         border: 1px solid var(--border);
         border-radius: 22px;
         box-shadow: 0 10px 28px rgba(0,0,0,.06);
-        padding: 22px;
+        padding: 18px 22px 22px; /* 🔽 less top padding */
+    }
+
+    .card-head {
+        padding-bottom: 16px; /* 🔽 tighter */
+        margin-bottom: 18px; /* 🔽 tighter */
+        border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0; /* important */
+        line-height: 1.2; /* 🔽 reduces vertical looseness */
+    }
+
+    .card-sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+        line-height: 1.4;
     }
 
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 18px 20px;
+        gap: 16px 20px; /* ⬅ vertical gap unified */
         align-items: start;
     }
 
     .field {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px; /* label → input */
     }
 
         .field.span-2 {
@@ -62,7 +88,7 @@
         }
 
     .label {
-        font-weight: 700;
+        font-weight: 600;
         color: var(--text);
         font-size: 15px;
         display: flex;
@@ -71,8 +97,8 @@
     }
 
     .req {
-        color: #b00020;
-        font-weight: 800;
+        color: #dc2626;
+        font-weight: 400;
         margin-left: 4px;
     }
 
@@ -85,13 +111,41 @@
         color: var(--text);
         background: #fff;
         outline: none;
-        transition: border-color .15s ease, box-shadow .15s ease;
     }
 
+    /* ===============================
+           Field states
+           =============================== */
+
+    /* Default */
+    .control {
+        border: 2px solid var(--border); /* grey */
+    }
+
+        /* Focus */
         .control:focus {
-            border-color: var(--border-strong);
-            box-shadow: 0 0 0 4px rgba(0,0,0,.06);
+            border-color: #000; /* black */
         }
+
+        /* Error (ASP.NET MVC validation) */
+        .control.input-validation-error {
+            border-color: #dc2626; /* red */
+        }
+
+            /* Error + focus (keep red, no black override) */
+            .control.input-validation-error:focus {
+                border-color: #dc2626;
+            }
+
+    /* Optional: error text consistency */
+    .text-danger {
+        color: #dc2626;
+        font-weight: 400;
+        font-size: 13px; /* optional, matches hint text */
+    }
+
+
+
 
     textarea.control {
         resize: vertical;
@@ -110,7 +164,7 @@
     }
 
     .actions {
-        margin-top: 18px;
+        margin-top: 22px;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
@@ -166,14 +220,297 @@
         }
     }
 
+    /* ===============================
+           Minimal Select (B&W)
+           =============================== */
+
+    select.control {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: #fff;
+        color: #111;
+        cursor: pointer;
+        padding-right: 44px;
+        /* custom arrow */
+        background-image: linear-gradient(45deg, transparent 50%, #111 50%), linear-gradient(135deg, #111 50%, transparent 50%);
+        background-position: calc(100% - 22px) 52%, calc(100% - 16px) 52%;
+        background-size: 6px 6px;
+        background-repeat: no-repeat;
+    }
+
+        /* Focus */
+        select.control:focus {
+            border-color: #111;
+            box-shadow: 0 0 0 4px rgba(0,0,0,.06);
+        }
+
+        /* Disabled (optional, future-proof) */
+        select.control:disabled {
+            background-color: #f6f6f6;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+    /* Hide the native select UI but keep it for MVC binding */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        height: 0 !important;
+        width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+    }
+
+    /* Custom Select */
+    .cs {
+        position: relative;
+    }
+
+    .cs-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        font-size: 16px;
+        background: #fff;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        cursor: pointer;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+        .cs-btn:focus {
+            outline: none;
+            border-color: #000;
+            box-shadow: 0 0 0 4px rgba(0,0,0,.06);
+        }
+
+    .cs-arrow {
+        width: 10px;
+        height: 10px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: rotate(45deg);
+        margin-right: 2px;
+    }
+
+    /* Menu */
+    .cs-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 12px 28px rgba(0,0,0,.10);
+        padding: 6px;
+        display: none;
+        z-index: 50;
+    }
+
+    .cs.open .cs-menu {
+        display: grid;
+        gap: 4px;
+    }
+
+    .cs-opt {
+        width: 100%;
+        text-align: left;
+        padding: 12px 12px;
+        border-radius: 10px;
+        border: 0;
+        background: #fff;
+        color: #111;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .cs-opt:hover,
+        .cs-opt.active {
+            background: #111;
+            color: #fff;
+        }
+
+    /* Error state (sync with MVC validation) */
+    .input-validation-error + .cs .cs-btn,
+    .real-select.input-validation-error ~ .cs .cs-btn {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220,38,38,.14);
+    }
+
+        .real-select.input-validation-error ~ .cs .cs-btn:focus {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220,38,38,.18);
+        }
+
+
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+
+        /* Error state */
+        .real-select.input-validation-error ~ .cs2 .cs2-btn {
+            border-color: #dc2626;
+        }
+
+        /* Show validation error on custom dropdown */
+        .real-select.input-validation-error + .cs2 .cs2-btn,
+        .real-select.input-validation-error ~ .cs2 .cs2-btn {
+            border-color: #dc2626 !important;
+        }
+
+
+            .real-select.input-validation-error ~ .cs2 .cs2-btn:focus {
+                border-color: #dc2626;
+            }
+
+
+    /* Primary Save button */
+    .btn-black {
+        background: #111;
+        border: 2px solid #111;
+        color: #fff;
+        border-radius: 999px;
+        padding: 14px 18px;
+        font-weight: 800;
+        font-size: 16px;
+        width: 100%;
+        transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+
+        /* Hover: invert */
+        .btn-black:hover {
+            background: #fff;
+            color: #111;
+            border-color: #111;
+        }
+
+    /* Smooth interaction for all primary actions */
+    .btn-black,
+    .btn-outline {
+        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 120ms ease;
+    }
+
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        position: relative;
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 44px 14px 16px;
+        background: #fff;
+        color: #111;
+        font-size: 16px;
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 100;
+        display: none;
+        pointer-events: auto;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-list {
+        max-height: 220px;
+        overflow: auto;
+        padding: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .cs2-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #111;
+        padding: 8px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 400;
+        margin: 2px 0;
+        position: relative;
+        z-index: 2;
+    }
+
+        .cs2-item:hover {
+            background: #f2f2f2;
+        }
+
+        .cs2-item.active {
+            background: transparent;
+        }
+    /* Trigger focus */
+    .cs2-btn:focus {
+        border-color: #111 !important;
+        box-shadow: none; /* keep it clean */
+    }
+
+    /* When dropdown is open, keep black border */
+    .cs2.open .cs2-btn {
+        border-color: #111 !important;
+    }
 </style>
 
 <div class="page-wrap">
-    <div class="page-title">Create Category</div>
 
     <div class="card-clean">
-        <form asp-action="Create" method="post" novalidate>
+
+        <!-- Card Header -->
+        <div class="card-head">
+            <h2 class="card-title">Create Category</h2>
+            <p class="card-sub">Add a new category for item classification.</p>
+        </div>
+
+        <form id="catForm" asp-action="Create" method="post" novalidate>
+
             @Html.AntiForgeryToken()
+            <input type="hidden" name="submitAction" id="submitAction" />
+
 
             <div class="form-grid">
                 <!-- Category Name -->
@@ -185,17 +522,42 @@
                     <span asp-validation-for="CategoryName" class="text-danger small"></span>
                 </div>
 
-                <!-- Status -->
+                <!-- Status (Searchable Custom Dropdown) -->
                 <div class="field">
                     <label asp-for="CategoryStatus" class="label">
                         Status <span class="req">*</span>
                     </label>
-                    <select asp-for="CategoryStatus" class="control">
+
+                    <!-- Real select for MVC binding -->
+                    <select asp-for="CategoryStatus" class="real-select" id="CategoryStatus">
+                        <option value="">Select Status</option>
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
                     </select>
-                    <div class="hint">Inactive categories can be hidden from selection.</div>
+
+                    <!-- Custom UI -->
+                    <div class="cs2" data-select="CategoryStatus">
+                        <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="cs2-value">Select Status</span>
+
+                            <span class="cs2-caret"></span>
+                        </button>
+
+                        <div class="cs2-menu" role="listbox">
+                            <div class="cs2-list">
+                                <button type="button" class="cs2-item" data-value="">Select Status</button>
+                                <button type="button" class="cs2-item" data-value="Active">Active</button>
+                                <button type="button" class="cs2-item" data-value="Inactive">Inactive</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <span asp-validation-for="CategoryStatus" class="text-danger small"></span>
                 </div>
+
+
 
                 <!-- Description -->
                 <div class="field span-2">
@@ -207,10 +569,89 @@
             </div>
 
             <div class="actions">
-                <button type="submit" class="btn-black">Save</button>
+                <button type="submit"
+                        class="btn-black js-submit"
+                        data-action="save">
+                    Save
+                </button>
 
-                <a asp-action="CategoryIndex" class="btn-outline">Cancel</a>
+                <button type="submit"
+                        class="btn-outline js-submit"
+                        data-action="saveNew">
+                    Save & New
+                </button>
+
+
             </div>
+
         </form>
     </div>
 </div>
+
+<script>
+    (() => {
+      // =========================
+      // Custom dropdown (Status)
+      // =========================
+      const cs = document.querySelector('.cs2[data-select="CategoryStatus"]');
+      if (!cs) return;
+
+      const real = document.getElementById("CategoryStatus");
+      const btn = cs.querySelector(".cs2-btn");
+      const valueEl = cs.querySelector(".cs2-value");
+      const items = Array.from(cs.querySelectorAll(".cs2-item"));
+
+      const setActive = (val) => {
+        valueEl.textContent = val || "Select Status";
+        items.forEach(i => i.classList.toggle("active", i.dataset.value === val));
+      };
+
+      setActive(real.value);
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        cs.classList.toggle("open");
+      });
+
+      items.forEach(i => {
+        i.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          real.value = i.dataset.value;
+          real.dispatchEvent(new Event("change", { bubbles: true }));
+          setActive(i.dataset.value);
+
+          cs.classList.remove("open");
+        });
+      });
+
+      document.addEventListener("click", e => {
+        if (!cs.contains(e.target)) cs.classList.remove("open");
+      });
+
+      // =========================
+      // Save / Save & New (FIXED)
+      // =========================
+      const form = document.getElementById("catForm");
+      const hiddenAction = document.getElementById("submitAction");
+
+      form.querySelectorAll(".js-submit").forEach(btn => {
+        btn.addEventListener("click", () => {
+          hiddenAction.value = btn.dataset.action;
+        });
+      });
+
+      form.addEventListener("submit", () => {
+        form.querySelectorAll(".js-submit").forEach(b => {
+          b.disabled = true;
+          if (b.dataset.action === hiddenAction.value) {
+            b.textContent = "Saving...";
+          }
+        });
+      });
+    })();
+</script>
+
+

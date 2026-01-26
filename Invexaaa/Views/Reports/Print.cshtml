@@ -1,4 +1,6 @@
 ﻿@model Invexaaa.Models.ViewModels.ReportPrintViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 @{
     Layout = null;
 }
@@ -183,7 +185,16 @@
                         <td>@b.ItemID</td>
                         <td>@b.BatchQuantity</td>
                         <td>@b.BatchExpiryDate.ToString("dd MMM yyyy")</td>
-                        <td>@b.BatchStatus</td>
+                        <td>
+                            @{
+                                var expiryStatus =
+                                b.BatchExpiryDate < DateTime.Today ? "Expired" :
+                                b.BatchExpiryDate <= DateTime.Today.AddDays(30) ? "Near Expiry" :
+                                "Safe";
+                            }
+                            @expiryStatus
+                        </td>
+
                     </tr>
                 }
             </tbody>

@@ -25,9 +25,9 @@ namespace Invexaaa.Models.Invexa
         [Required(ErrorMessage = "Received date is required.")]
         public DateTime BatchReceivedDate { get; set; } = DateTime.Now;
 
-        [Required(ErrorMessage = "Batch status is required.")]
-        [MaxLength(20, ErrorMessage = "Batch status must not exceed 20 characters.")]
-        public string BatchStatus { get; set; } = "Safe";
-        // Safe / Near Expiry / Expired
+        // ✅ CONCURRENCY TOKEN (FIFO deductions)
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
     }
 }

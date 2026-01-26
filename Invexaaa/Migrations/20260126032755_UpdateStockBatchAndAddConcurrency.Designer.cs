@@ -4,6 +4,7 @@ using Invexaaa.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Invexaaa.Migrations
 {
     [DbContext(typeof(InvexaDbContext))]
-    partial class InvexaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260126032755_UpdateStockBatchAndAddConcurrency")]
+    partial class UpdateStockBatchAndAddConcurrency
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

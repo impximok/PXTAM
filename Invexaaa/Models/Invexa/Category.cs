@@ -16,6 +16,7 @@ namespace Invexaaa.Models.Invexa
 
         [Required(ErrorMessage = "Category status is required.")]
         [MaxLength(20, ErrorMessage = "Category status must not exceed 20 characters.")]
-        public string CategoryStatus { get; set; } = "Active";
+        public string? CategoryStatus { get; set; }
+
     }
 }

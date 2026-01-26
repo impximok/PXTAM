@@ -1,15 +1,16 @@
 ﻿@model Invexaaa.Models.ViewModels.ItemCardViewModel
 
-<a href="/Item/ItemDetail/@Model.ItemID"
-   class="item-card-link"
-   style="text-decoration:none; color:inherit;">
+<div class="card h-100 shadow-sm item-card">
 
-    <div class="card h-100 shadow-sm item-card">
+    <!-- CLICKABLE CONTENT -->
+    <a href="/Item/ItemDetail/@Model.ItemID"
+       class="item-card-link"
+       style="text-decoration:none; color:inherit;">
 
         <!-- ITEM IMAGE -->
         <img src="@(string.IsNullOrWhiteSpace(Model.ItemImageUrl)
-                                  ? "/images/no-image.png"
-                                  : Model.ItemImageUrl)"
+                                     ? "/images/no-image.png"
+                                     : Model.ItemImageUrl)"
              class="card-img-top"
              style="height:180px; object-fit:contain;" />
 
@@ -38,7 +39,7 @@
                 Reorder Level: @Model.ReorderLevel
             </div>
 
-            <!-- BARCODE TEXT -->
+            <!-- BARCODE -->
             @if (!string.IsNullOrEmpty(Model.ItemBarcode))
             {
                 <div class="small text-muted">
@@ -48,6 +49,21 @@
             }
 
         </div>
+    </a>
+
+    <!-- ACTION BUTTONS (NOT CLICKABLE CARD) -->
+    <div class="card-footer bg-white border-top d-flex justify-content-between gap-2">
+
+        <a href="/Item/EditItem/@Model.ItemID"
+           class="btn btn-sm btn-outline-primary w-50">
+            <i class="bi bi-pencil-square"></i> Edit
+        </a>
+
+        <a href="/Item/DeactivateItem/@Model.ItemID"
+           class="btn btn-sm btn-outline-warning w-50">
+            <i class="bi bi-slash-circle"></i> Deactivate
+        </a>
+
 
     </div>
-</a>
+</div>

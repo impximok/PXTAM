@@ -41,16 +41,17 @@ namespace Invexaaa.Controllers
             model.OutOfStockCount =
                 inventoryData.Count(x => x.InventoryTotalQuantity == 0);
 
-            // LOW STOCK
-            model.LowStockCount =
-                inventoryData.Count(x =>
-                    x.InventoryTotalQuantity > 0 &&
-                    x.InventoryTotalQuantity <= x.ItemReorderLevel);
-
-            // REORDER ALERT
+            // REORDER (CRITICAL)
             model.ReorderAlertCount =
                 inventoryData.Count(x =>
                     x.InventoryTotalQuantity <= x.ReorderPoint);
+
+            // LOW STOCK (WARNING)
+            model.LowStockCount =
+                inventoryData.Count(x =>
+                    x.InventoryTotalQuantity > x.ReorderPoint &&
+                    x.InventoryTotalQuantity <= x.ItemReorderLevel);
+
 
             // RECENT INVENTORY ACTIVITY (TOP 5)
             model.RecentInventories =
@@ -62,9 +63,10 @@ namespace Invexaaa.Controllers
                     ItemName = x.ItemName,
                     Quantity = x.InventoryTotalQuantity,
                     Status =
-                        x.InventoryTotalQuantity == 0 ? "Out" :
-                        x.InventoryTotalQuantity <= x.ItemReorderLevel ? "Low" :
-                        "OK"
+    x.InventoryTotalQuantity <= x.ReorderPoint ? "Reorder" :
+    x.InventoryTotalQuantity <= x.ItemReorderLevel ? "Low" :
+    "OK"
+
                 })
                 .ToList();
 

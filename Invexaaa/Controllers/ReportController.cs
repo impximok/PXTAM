@@ -34,6 +34,8 @@ namespace Invexaaa.Controllers
         {
             var vm = BuildReportViewModel(reportType, startDate, endDate);
             return View(vm); // 👈 stays on Overview
+
+
         }
 
         // =====================================================
@@ -67,6 +69,9 @@ namespace Invexaaa.Controllers
                 EndDate = endDate
             };
 
+            if (string.IsNullOrEmpty(reportType))
+                return vm;
+
             switch (reportType)
             {
                 case "Sales":
@@ -88,6 +93,22 @@ namespace Invexaaa.Controllers
                     vm.Inventories = _context.Inventories.ToList();
                     break;
 
+                case "StockCharts":
+                    vm.StockChartData =
+                        (from inv in _context.Inventories
+                         join item in _context.Items on inv.ItemID equals item.ItemID
+                         select new StockChartViewModel
+                         {
+                             ItemName = item.ItemName,
+                             Quantity = inv.InventoryTotalQuantity,
+                             Status =
+                                inv.InventoryTotalQuantity <= item.ReorderPoint ? "Reorder" :
+                                inv.InventoryTotalQuantity <= item.ItemReorderLevel ? "Low" :
+                                "Healthy"
+                         }).ToList();
+                    break;
+
+
                 case "Expiry":
                     vm.StockBatches = _context.StockBatches
                         .Where(x => x.BatchExpiryDate <= DateTime.Now.AddDays(30))
@@ -98,5 +119,7 @@ namespace Invexaaa.Controllers
 
             return vm;
         }
+        
+
     }
 }

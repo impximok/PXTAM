@@ -33,17 +33,22 @@ namespace Invexaaa.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Category category)
+        public IActionResult Create(Category category, string submitAction)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Categories.Add(category);
-                _context.SaveChanges();
-                return RedirectToAction(nameof(CategoryIndex));
-            }
+            if (!ModelState.IsValid)
+                return View("CreateCategory", category);
 
-            return View("CreateCategory", category);
+            submitAction ??= "save"; // optional
+
+            _context.Categories.Add(category);
+            _context.SaveChanges();
+
+            if (submitAction == "saveNew")
+                return RedirectToAction(nameof(Create));
+
+            return RedirectToAction(nameof(CategoryIndex));
         }
+
 
         // =========================
         // EDIT
@@ -125,6 +130,7 @@ namespace Invexaaa.Controllers
 
             return Json(categories);
         }
+
 
     }
 }

@@ -44,6 +44,15 @@ namespace Invexaaa.Data
                 entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
                 entity.Property(e => e.Subtotal).HasPrecision(18, 2);
             });
+
+            modelBuilder.Entity<Inventory>()
+    .Property(i => i.RowVersion)
+    .IsRowVersion();
+
+            modelBuilder.Entity<StockBatch>()
+                .Property(b => b.RowVersion)
+                .IsRowVersion();
+
         }
     }
 }

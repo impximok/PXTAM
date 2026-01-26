@@ -6,6 +6,8 @@ namespace Invexaaa.Models.Invexa
     {
         public int BatchID { get; set; }
         public string ItemName { get; set; } = string.Empty;
+
+        public int CategoryID { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public string BatchNumber { get; set; } = string.Empty;
         public int Quantity { get; set; }

@@ -2,8 +2,10 @@
 {
     public class ItemCardViewModel
     {
+        public int InventoryID { get; set; }
         public int ItemID { get; set; }
         public string ItemName { get; set; }
+        public int CategoryID { get; set; }
         public string CategoryName { get; set; }
         public string SupplierName { get; set; }
 

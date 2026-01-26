@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Invexaaa.Data;
 using Invexaaa.Models.Invexa;
 using System;
-using System.Linq;
 
 namespace Invexaaa.Controllers
 {
@@ -17,11 +16,11 @@ namespace Invexaaa.Controllers
         }
 
         public IActionResult ExpiryTrackingIndex(
-    string? search,
-    int? categoryId,
-    string? expiryStatus,
-    string? expiryRange
-)
+            string? search,
+            int? categoryId,
+            string? expiryStatus,
+            string? expiryRange
+        )
         {
             var today = DateTime.Today;
 
@@ -29,11 +28,15 @@ namespace Invexaaa.Controllers
                 from batch in _context.StockBatches
                 join item in _context.Items on batch.ItemID equals item.ItemID
                 join category in _context.Categories on item.CategoryID equals category.CategoryID
+                where item.ItemStatus == "Active"   // 🔒 HIDE INACTIVE ITEMS
                 select new ExpiryTrackingViewModel
                 {
                     BatchID = batch.BatchID,
                     ItemName = item.ItemName,
+
+                    CategoryID = category.CategoryID,
                     CategoryName = category.CategoryName,
+
                     BatchNumber = batch.BatchNumber,
                     Quantity = batch.BatchQuantity,
                     ExpiryDate = batch.BatchExpiryDate,
@@ -43,16 +46,13 @@ namespace Invexaaa.Controllers
                         "Safe"
                 };
 
-            if (!string.IsNullOrEmpty(search))
+            if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(x => x.ItemName.Contains(search));
 
             if (categoryId.HasValue)
-                query = query.Where(x =>
-                    _context.Categories.Any(c =>
-                        c.CategoryID == categoryId &&
-                        c.CategoryName == x.CategoryName));
+                query = query.Where(x => x.CategoryID == categoryId);
 
-            if (!string.IsNullOrEmpty(expiryStatus))
+            if (!string.IsNullOrWhiteSpace(expiryStatus))
                 query = query.Where(x => x.ExpiryStatus == expiryStatus);
 
             if (expiryRange == "7")
@@ -64,6 +64,5 @@ namespace Invexaaa.Controllers
 
             return View(query.OrderBy(x => x.ExpiryDate).ToList());
         }
-
     }
 }

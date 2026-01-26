@@ -20,67 +20,73 @@ namespace Invexaaa.Controllers
 
             var viewModel = new AlertsDashboardViewModel
             {
-                // 🔴 Expired Batches
-                ExpiredItems = _context.StockBatches
-                    .Where(b => b.BatchExpiryDate < today)
-                    .Select(b => new ExpiryTrackingViewModel
-                    {
-                        BatchID = b.BatchID,
-                        BatchNumber = b.BatchNumber,
-                        Quantity = b.BatchQuantity,
-                        ExpiryDate = b.BatchExpiryDate,
-                        ExpiryStatus = "Expired"
-                    })
-                    .ToList(),
+                // 🔴 EXPIRED BATCHES
+                ExpiredItems =
+                    (from b in _context.StockBatches
+                     where b.BatchQuantity > 0 &&
+                           b.BatchExpiryDate < today
+                     select new ExpiryTrackingViewModel
+                     {
+                         BatchID = b.BatchID,
+                         BatchNumber = b.BatchNumber,
+                         Quantity = b.BatchQuantity,
+                         ExpiryDate = b.BatchExpiryDate,
+                         ExpiryStatus = "Expired"
+                     }).ToList(),
 
-                // 🟠 Near Expiry Batches
-                NearExpiryItems = _context.StockBatches
-                    .Where(b => b.BatchExpiryDate >= today &&
-                                b.BatchExpiryDate <= nearExpiryThreshold)
-                    .Select(b => new ExpiryTrackingViewModel
-                    {
-                        BatchID = b.BatchID,
-                        BatchNumber = b.BatchNumber,
-                        Quantity = b.BatchQuantity,
-                        ExpiryDate = b.BatchExpiryDate,
-                        ExpiryStatus = "Near Expiry"
-                    })
-                    .ToList(),
+                // 🟠 NEAR EXPIRY BATCHES
+                NearExpiryItems =
+                    (from b in _context.StockBatches
+                     where b.BatchQuantity > 0 &&
+                           b.BatchExpiryDate >= today &&
+                           b.BatchExpiryDate <= nearExpiryThreshold
+                     select new ExpiryTrackingViewModel
+                     {
+                         BatchID = b.BatchID,
+                         BatchNumber = b.BatchNumber,
+                         Quantity = b.BatchQuantity,
+                         ExpiryDate = b.BatchExpiryDate,
+                         ExpiryStatus = "Near Expiry"
+                     }).ToList(),
 
-                // 🟡 Low Stock Items
-                LowStockItems = _context.Inventories
-                    .Where(i => i.InventoryTotalQuantity <= 10)
-                    .Select(i => new InventoryOverviewViewModel
-                    {
-                        InventoryID = i.InventoryID,
-                        ItemID = i.ItemID,
-                        TotalQuantity = i.InventoryTotalQuantity,
-                        HealthStatus = "Low",
-                        LastUpdated = i.InventoryLastUpdated
-                    })
-                    .ToList(),
+                // 🟡 LOW STOCK (item-aware, no magic number)
+                LowStockItems =
+                    (from inv in _context.Inventories
+                     join item in _context.Items on inv.ItemID equals item.ItemID
+                     where inv.InventoryTotalQuantity > item.ReorderPoint &&
+                           inv.InventoryTotalQuantity <= item.ItemReorderLevel
+                     select new InventoryOverviewViewModel
+                     {
+                         InventoryID = inv.InventoryID,
+                         ItemID = inv.ItemID,
+                         ItemName = item.ItemName,
+                         TotalQuantity = inv.InventoryTotalQuantity,
+                         HealthStatus = "Low",
+                         LastUpdated = inv.InventoryLastUpdated
+                     }).ToList(),
 
-                // 🔵 Reorder Required Items
-                ReorderItems = _context.Items
-                    .Where(i => i.ReorderPoint <= i.ItemReorderLevel)
-                    .Select(i => new ItemCardViewModel
-                    {
-                        ItemID = i.ItemID,
-                        ItemName = i.ItemName,
-
-                        ItemSellPrice = i.ItemSellPrice,
-                        ItemStatus = "Reorder Needed",
-                        ItemImageUrl = i.ItemImageUrl,
-                        ItemBarcode = i.ItemBarcode,
-
-                        ReorderLevel = i.ItemReorderLevel,
-                        SafetyStock = i.SafetyStock,
-                        CurrentBalance = i.ReorderPoint
-                    })
-                    .ToList()
+                // 🔵 REORDER REQUIRED (true reorder logic)
+                ReorderItems =
+                    (from inv in _context.Inventories
+                     join item in _context.Items on inv.ItemID equals item.ItemID
+                     where inv.InventoryTotalQuantity <= item.ReorderPoint
+                     select new ItemCardViewModel
+                     {
+                         InventoryID = inv.InventoryID,
+                         ItemID = item.ItemID,
+                         ItemName = item.ItemName,
+                         ItemSellPrice = item.ItemSellPrice,
+                         ItemStatus = "Reorder Needed",
+                         ItemImageUrl = item.ItemImageUrl,
+                         ItemBarcode = item.ItemBarcode,
+                         ReorderLevel = item.ItemReorderLevel,
+                         SafetyStock = item.SafetyStock,
+                         CurrentBalance = inv.InventoryTotalQuantity
+                     }).ToList()
             };
 
             return View("AlertsIndex", viewModel);
         }
+
     }
 }

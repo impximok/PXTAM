@@ -9,68 +9,74 @@
 <div class="container-fluid">
 
     <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-semibold">Expiry Tracking</h3>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-semibold mb-0">Expiry Tracking</h3>
     </div>
 
     <!-- FILTERS -->
-    <form method="get" class="row g-2 mb-3">
+    <form method="get" class="row g-2 mb-4">
 
         <div class="col-md-3">
             <input type="text"
                    name="search"
-                   class="form-control"
-                   placeholder="Search item name..." />
+                   value="@Context.Request.Query["search"]"
+                   class="form-control form-control-sm"
+                   placeholder="Search item..." />
         </div>
 
         <div class="col-md-2">
-            <select name="categoryId" class="form-select">
-                <option value="">Category</option>
+            <select name="categoryId" class="form-select form-select-sm">
+                <option value="">All Categories</option>
                 @foreach (var c in ViewBag.Categories)
                 {
-                    <option value="@c.CategoryID">@c.CategoryName</option>
+                    <option value="@c.CategoryID"
+                            selected="@(Context.Request.Query["categoryId"] == c.CategoryID.ToString())">
+                        @c.CategoryName
+                    </option>
                 }
             </select>
         </div>
 
         <div class="col-md-2">
-            <select name="expiryStatus" class="form-select">
-                <option value="">Expiry Status</option>
-                <option value="Safe">Safe</option>
-                <option value="Near Expiry">Near Expiry</option>
-                <option value="Expired">Expired</option>
+            <select name="expiryStatus" class="form-select form-select-sm">
+                <option value="">All Status</option>
+                <option value="Safe" selected="@(Context.Request.Query["expiryStatus"] == "Safe")">Safe</option>
+                <option value="Near Expiry" selected="@(Context.Request.Query["expiryStatus"] == "Near Expiry")">Near Expiry</option>
+                <option value="Expired" selected="@(Context.Request.Query["expiryStatus"] == "Expired")">Expired</option>
             </select>
         </div>
 
         <div class="col-md-2">
-            <select name="expiryRange" class="form-select">
-                <option value="">Expiry Date Range</option>
-                <option value="7">Next 7 Days</option>
-                <option value="30">Next 30 Days</option>
+            <select name="expiryRange" class="form-select form-select-sm">
+                <option value="">Any Date</option>
+                <option value="7" selected="@(Context.Request.Query["expiryRange"] == "7")">Next 7 Days</option>
+                <option value="30" selected="@(Context.Request.Query["expiryRange"] == "30")">Next 30 Days</option>
             </select>
         </div>
 
         <div class="col-md-2">
-            <button type="submit" class="btn btn-outline-secondary w-100">
-                Filter
+            <button type="submit"
+                    class="btn btn-sm btn-outline-dark w-100">
+                Apply
             </button>
         </div>
 
     </form>
 
     <!-- TABLE -->
-    <div class="card">
+    <div class="border rounded">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-secondary small">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="border-bottom small text-muted">
                     <tr>
                         <th>ID</th>
                         <th>Item</th>
                         <th>Category</th>
-                        <th>Batch No</th>
-                        <th>Quantity</th>
-                        <th>Expiry Date</th>
+                        <th>Batch</th>
+                        <th class="text-end">Qty</th>
+                        <th>Expiry</th>
                         <th>Status</th>
+                        <th class="text-end">Action</th>
                     </tr>
                 </thead>
 
@@ -80,54 +86,51 @@
                         foreach (var item in Model)
                         {
                             <tr>
-                                <!-- ID -->
                                 <td>@item.BatchID</td>
 
-                                <!-- ITEM -->
-                                <td class="fw-semibold">
+                                <td class="fw-medium">
                                     @item.ItemName
                                 </td>
 
-                                <!-- CATEGORY -->
-                                <td>@item.CategoryName</td>
+                                <td class="text-muted">
+                                    @item.CategoryName
+                                </td>
 
-                                <!-- BATCH -->
-                                <td>@item.BatchNumber</td>
+                                <td>
+                                    @item.BatchNumber
+                                </td>
 
-                                <!-- QTY -->
-                                <td class="fw-semibold">
+                                <td class="text-end fw-medium">
                                     @item.Quantity
                                 </td>
 
-                                <!-- EXPIRY -->
                                 <td>
                                     @item.ExpiryDate.ToString("dd/MM/yyyy")
                                 </td>
 
-                                <!-- STATUS -->
                                 <td>
-                                    @if (item.ExpiryStatus == "Safe")
-                                    {
-                                        <span class="badge bg-success">Safe</span>
-                                    }
-                                    else if (item.ExpiryStatus == "Near Expiry")
-                                    {
-                                        <span class="badge bg-warning text-dark">
-                                            Near Expiry
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">Expired</span>
-                                    }
+                                    <span class="badge border text-dark fw-normal">
+                                        @item.ExpiryStatus
+                                    </span>
                                 </td>
+
+                                <td class="text-end">
+                                    <a asp-controller="Stock"
+                                       asp-action="EditExpiry"
+                                       asp-route-batchId="@item.BatchID"
+                                       class="btn btn-sm btn-outline-dark">
+                                        Edit
+                                    </a>
+                                </td>
+
                             </tr>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="8"
+                                class="text-center text-muted py-4">
                                 No expiry records found.
                             </td>
                         </tr>
