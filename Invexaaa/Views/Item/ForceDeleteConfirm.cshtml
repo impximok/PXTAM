@@ -1,0 +1,30 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@model Invexaaa.Models.Invexa.Item
+
+@{
+    ViewData["Title"] = "Confirm Permanent Delete";
+}
+
+<h2 class="text-danger mb-4">⚠ Permanent Delete</h2>
+
+<div class="alert alert-danger">
+    This action <strong>cannot</strong> be undone.
+</div>
+
+<form asp-controller="Item"
+      asp-action="ForceDeleteItem"
+      asp-route-id="@Model.ItemID"
+      method="post">
+    @Html.AntiForgeryToken()
+
+    <button class="btn btn-danger">
+        YES – Permanently Delete
+    </button>
+
+    <a asp-action="ItemDetail"
+       asp-route-id="@Model.ItemID"
+       class="btn btn-secondary ms-2">
+        Cancel
+    </a>
+</form>

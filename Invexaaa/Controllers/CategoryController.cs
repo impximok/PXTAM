@@ -131,6 +131,28 @@ namespace Invexaaa.Controllers
             return Json(categories);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDelete(string ids)
+        {
+            if (string.IsNullOrWhiteSpace(ids))
+                return RedirectToAction(nameof(Index));
+
+            var idList = ids.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => int.Parse(x))
+                            .ToList();
+
+            var categories = await _context.Categories
+                .Where(c => idList.Contains(c.CategoryID))
+                .ToListAsync();
+
+            _context.Categories.RemoveRange(categories);
+            await _context.SaveChangesAsync();
+
+            TempData["Info"] = $"{categories.Count} categories deleted.";
+            return RedirectToAction(nameof(Index));
+        }
+
 
     }
 }

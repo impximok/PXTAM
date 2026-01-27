@@ -1,4 +1,6 @@
-﻿@model Invexaaa.Models.Invexa.Item
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@model Invexaaa.Models.Invexa.Item
 
 @{
     ViewData["Title"] = "Deactivate Item";
@@ -8,73 +10,25 @@
 
 <div class="alert alert-warning">
     This item will be <strong>deactivated</strong>.
-    <br />
-    It will no longer appear in active inventory or sales.
 </div>
 
-<div class="card mb-4">
-    <div class="card-body">
+<form asp-controller="Item"
+      asp-action="DeactivateItem"
+      asp-route-id="@Model.ItemID"
+      method="post">
+    @Html.AntiForgeryToken()
 
-        <dl class="row">
-            <dt class="col-sm-4">Item Name</dt>
-            <dd class="col-sm-8">@Model.ItemName</dd>
+    <button type="submit" class="btn btn-warning">
+        Confirm Deactivation
+    </button>
+</form>
 
-            <dt class="col-sm-4">Barcode</dt>
-            <dd class="col-sm-8">@Model.ItemBarcode</dd>
-
-            <dt class="col-sm-4">Current Status</dt>
-            <dd class="col-sm-8">@Model.ItemStatus</dd>
-        </dl>
-
-        <!-- DEACTIVATE (DEFAULT ACTION) -->
-        <form asp-action="DeactivateItem" method="post">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="id" value="@Model.ItemID" />
-
-            <button type="submit" class="btn btn-warning">
-                Confirm Deactivation
-            </button>
-
-            <a asp-action="ItemIndex" class="btn btn-secondary ms-2">
-                Cancel
-            </a>
-        </form>
-
-    </div>
-</div>
-
-<!-- 🔥 ADMIN-ONLY: FORCE DELETE -->
 @if (User.IsInRole("Admin"))
 {
-    <div class="card border-danger">
-        <div class="card-body">
-
-            <h5 class="text-danger">
-                <i class="bi bi-exclamation-triangle"></i>
-                Danger Zone
-            </h5>
-
-            <p class="text-muted mb-3">
-                This action will permanently delete the item from the database.
-                <br />
-                <strong>This cannot be undone.</strong>
-            </p>
-
-            <form asp-controller="Item"
-                  asp-action="ForceDeleteItem"
-                  method="post"
-                  onsubmit="return confirm('This will permanently delete the item. This cannot be undone. Continue?');">
-
-
-
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="id" value="@Model.ItemID" />
-
-                <button class="btn btn-danger">
-                    Force Delete (Admin Only)
-                </button>
-            </form>
-
-        </div>
-    </div>
+    <a asp-controller="Item"
+       asp-action="ForceDeleteConfirm"
+       asp-route-id="@Model.ItemID"
+       class="btn btn-danger mt-3">
+        Force Delete (Admin Only)
+    </a>
 }

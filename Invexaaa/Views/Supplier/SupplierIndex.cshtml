@@ -6,148 +6,1284 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
+<style>
+    :root {
+        --bg: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 18px;
+        --table-edge-pad: 18px;
+    }
 
-    <!-- PAGE HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-semibold">Maintain Supplier</h3>
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
 
-        <a asp-action="Create" class="btn btn-outline-secondary">
+    /* Full width page padding */
+    .page-wrap {
+        width: 100%;
+        padding: 10px 18px 24px;
+    }
+
+    /* Header */
+    .page-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 12px;
+    }
+
+    .title {
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* Add button */
+    .icon-btn {
+        width: 44px;
+        height: 44px;
+        border: 2px solid #000 !important;
+        background: #000 !important;
+        color: #fff !important;
+        border-radius: 999px !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        transition: background-color 220ms ease, color 220ms ease;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+        .icon-btn:hover, .icon-btn:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+
+    /* Filters */
+    .filters {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr auto;
+        gap: 10px 12px;
+        align-items: end;
+        padding: 18px 0 18px;
+        border-bottom: 1.5px solid #e5e7eb;
+        margin-bottom: 18px;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #111;
+        margin-bottom: 6px;
+        font-size: 13px;
+    }
+
+    .control {
+        width: 100%;
+        border: 2px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 11px 14px !important;
+        height: 46px;
+        font-size: 15px !important;
+        background: #fff !important;
+        color: var(--text) !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+        .control:focus {
+            border-color: #000 !important;
+        }
+
+    .filter-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+        align-self: flex-end; /* ⬅ key change */
+        margin-bottom: 2px; /* fine-tune vertical alignment */
+    }
+
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 8px 14px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border: 2px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        white-space: nowrap;
+        height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 220ms ease, color 220ms ease;
+    }
+
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .pill-solid:hover, .pill-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .pill-outline:hover, .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        outline: none;
+    }
+
+    /* Table shell */
+    .table-shell {
+        border: 2px solid #e5e7eb;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: #fff;
+    }
+
+    table.sys-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .sys-table thead th {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #111;
+        padding: 16px 14px;
+        background: #f6f7f9;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+    .sys-table tbody td {
+        font-size: 13.5px;
+        font-weight: 400;
+        color: var(--text);
+        padding: 16px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+    }
+
+    .sys-table tbody tr:nth-child(even) {
+        background: #fcfcfd;
+    }
+
+    .sys-table tbody tr:hover {
+        background: #f7f7f9;
+    }
+
+    .sys-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .chk {
+        width: 16px;
+        height: 16px;
+        accent-color: #111;
+    }
+
+    .sys-table thead th:first-child {
+        padding-left: var(--table-edge-pad);
+    }
+
+    .sys-table tbody td:first-child {
+        padding-left: var(--table-edge-pad);
+    }
+
+    /* Status pill */
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #111;
+        white-space: nowrap;
+    }
+
+        .pill.active {
+            border-color: #111;
+        }
+
+        .pill.inactive {
+            color: var(--muted);
+        }
+
+    /* Actions */
+    .row-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .mini-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 1px solid #e5e7eb;
+        transition: border-color .18s ease, background-color .18s ease, color .18s ease;
+    }
+
+        .mini-btn:hover, .mini-btn:focus-visible {
+            outline: none;
+            border-color: #000;
+            background: #fafafa;
+        }
+
+    a.mini-btn {
+        border: 1px solid #2563eb;
+        color: #2563eb;
+    }
+
+        a.mini-btn:hover {
+            background: rgba(37,99,235,.08);
+        }
+
+    .mini-warn {
+        border: 1px solid #f59e0b;
+        color: #92400e;
+    }
+
+        .mini-warn:hover {
+            background: rgba(245,158,11,.10);
+            border-color: #f59e0b;
+        }
+
+    .mini-ok {
+        border: 1px solid #16a34a;
+        color: #166534;
+    }
+
+        .mini-ok:hover {
+            background: rgba(22,163,74,.10);
+            border-color: #16a34a;
+        }
+
+    .mini-danger {
+        border: 1px solid #dc2626;
+        color: #991b1b;
+    }
+
+        .mini-danger:hover {
+            background: rgba(220,38,38,.10);
+            border-color: #dc2626;
+        }
+
+    /* Empty */
+    .empty-state {
+        text-align: center;
+        padding: 48px 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    /* ===== Modal (INVEXA) ===== */
+    .ix-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        z-index: 99999;
+    }
+
+        .ix-modal.open {
+            display: block;
+        }
+
+    .ix-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        backdrop-filter: blur(2px);
+    }
+
+    .ix-dialog {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(520px, calc(100% - 32px));
+        background: #fff;
+        border: 2px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 18px 55px rgba(0,0,0,.18);
+        padding: 18px 18px 16px;
+    }
+
+    .ix-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 900;
+        color: #111;
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+
+
+    .ix-desc {
+        margin: 10px 0 0;
+        color: #111;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+        .ix-desc.ids {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+            .ix-desc.ids strong {
+                font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                color: #111;
+                font-weight: 700;
+            }
+
+    .ix-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
+        margin: 16px 0 14px;
+    }
+
+    .ix-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 0;
+    }
+
+    .ix-btn {
+        border-radius: 999px;
+        padding: 9px 16px;
+        font-size: 14px;
+        font-weight: 800;
+        border: 2px solid #000;
+        cursor: pointer;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+    @@media (max-width: 980px) {
+        .filters {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .filters {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-actions {
+            width: 100%;
+        }
+
+        .pill-btn {
+            width: 100%;
+        }
+    }
+    /* 👇 pull the + button slightly inward */
+    .page-head .icon-btn {
+        margin-right: 6px; /* subtle, not centered */
+    }
+
+    /* Category / Supplier Name → slightly right */
+    .sys-table th:nth-child(2),
+    .sys-table td:nth-child(2) {
+        padding-left: 22px;
+    }
+
+    /* Contact column → slightly left */
+    .sys-table th:nth-child(3),
+    .sys-table td:nth-child(3) {
+        padding-left: 10px;
+    }
+
+    /* ===== Custom Select (cs2 like CategoryIndex) ===== */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 11px 40px 11px 14px;
+        height: 46px;
+        background: #fff;
+        color: #111;
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cs2-value {
+        flex: 1;
+        text-align: left;
+    }
+
+    .cs2-btn:focus,
+    .cs2.open .cs2-btn {
+        border-color: #000 !important;
+        outline: none;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 9999;
+        display: none;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #111;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+        .cs2-item:hover {
+            background: #f2f2f2;
+        }
+    /* ===== Bulk selection bar (CategoryIndex style) ===== */
+    .bulkbar {
+        margin: 12px 0 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #fff;
+        padding: 10px 12px;
+        display: none;
+    }
+
+        .bulkbar.show {
+            display: block;
+        }
+
+    .bulkbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .bulkbar-left {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111;
+    }
+
+    .bulkbar-count {
+        font-weight: 800;
+    }
+
+    .bulkbar-delete {
+        border-radius: 999px;
+        padding: 9px 16px;
+        height: 42px;
+        font-size: 14px;
+        font-weight: 800;
+        border: 2px solid #dc2626;
+        background: #fff;
+        color: #dc2626;
+        cursor: pointer;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    }
+
+        .bulkbar-delete:hover,
+        .bulkbar-delete:focus-visible {
+            background: #dc2626;
+            color: #fff;
+            outline: none;
+        }
+
+    /* tighter bulk bar */
+    .bulkbar {
+        padding: 6px 10px; /* was 10px 12px */
+        margin: 10px 0 12px; /* slightly tighter */
+        border-radius: 14px; /* a bit tighter */
+    }
+
+    .bulkbar-left {
+        font-size: 13px; /* smaller text */
+    }
+
+    .bulkbar-delete {
+        height: 36px; /* was 42px */
+        padding: 6px 14px; /* tighter */
+        font-size: 13px;
+    }
+
+    /* ===== Bulk action bar (CategoryIndex style) ===== */
+    .bulk-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 10px;
+        margin: 10px 0 12px;
+        border-radius: 14px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+    }
+
+    .bulk-text {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111;
+    }
+
+    .bulk-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .bulk-delete {
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        border: 2px solid #dc2626;
+        color: #dc2626;
+        background: #fff;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    }
+
+        .bulk-delete:hover,
+        .bulk-delete:focus-visible {
+            background: #dc2626;
+            color: #fff;
+            outline: none;
+        }
+
+    /* ===== Modal (CategoryIndex style) ===== */
+    .ix-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .ix-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 900;
+        color: #111;
+        letter-spacing: -0.02em;
+    }
+
+    .ix-desc {
+        margin: 0;
+        color: #111;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    .ix-strong {
+        font-weight: 800;
+    }
+
+    .ix-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .ix-btn {
+        border-radius: 999px;
+        padding: 9px 16px;
+        font-size: 14px;
+        font-weight: 800;
+        border: 2px solid #000;
+        cursor: pointer;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    }
+
+    .ix-outline {
+        background: #fff;
+        color: #000;
+    }
+
+        .ix-outline:hover {
+            background: #000;
+            color: #fff;
+        }
+
+    .ix-danger {
+        border-color: #dc2626;
+        background: #dc2626;
+        color: #fff;
+    }
+
+        .ix-danger:hover,
+        .ix-danger:focus-visible {
+            background: #fff;
+            color: #dc2626;
+            border-color: #dc2626;
+            outline: none;
+        }
+
+</style>
+
+<div class="page-wrap">
+
+    <div class="page-head">
+        <div>
+            <h1 class="title">Maintain Supplier</h1>
+            <p class="subtitle">Search, filter and manage suppliers.</p>
+        </div>
+
+        <a asp-action="Create"
+           class="icon-btn"
+           title="Add Supplier"
+           aria-label="Add Supplier">
             <i class="bi bi-plus-lg"></i>
         </a>
     </div>
 
-    <!-- FILTER BAR (same style as Category) -->
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row g-2 align-items-end">
+    <div class="filters">
 
-                <!-- Search -->
-                <div class="col-md-3">
-                    <label class="form-label small">Search</label>
-                    <input type="text"
-                           class="form-control"
-                           placeholder="Supplier name / phone" />
+        <div>
+            <div class="label">Search</div>
+            <input id="q" type="text" class="control" placeholder="Supplier name / phone" />
+        </div>
+
+        <div>
+            <div>
+                <div class="label">Status</div>
+
+                <!-- real select (hidden but used for value) -->
+                <select class="real-select" id="SupplierStatus" name="status">
+                    <option value="">All</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+
+                <!-- custom select -->
+                <div class="cs2" data-select="SupplierStatus">
+                    <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="cs2-value">All</span>
+                        <span class="cs2-caret"></span>
+                    </button>
+
+                    <div class="cs2-menu" role="listbox">
+                        <button type="button" class="cs2-item" data-value="">All</button>
+                        <button type="button" class="cs2-item" data-value="Active">Active</button>
+                        <button type="button" class="cs2-item" data-value="Inactive">Inactive</button>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Status -->
-                <div class="col-md-3">
-                    <label class="form-label small">Status</label>
-                    <select class="form-select">
-                        <option value="">All</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
+        </div>
+
+        <div>
+            <div>
+                <div class="label">Sort</div>
+
+                <!-- real select -->
+                <select class="real-select" id="SupplierSort" name="sort">
+                    <option value="az">Name (A–Z)</option>
+                    <option value="za">Name (Z–A)</option>
+                    <option value="lt_asc">Lead Time (Low–High)</option>
+                    <option value="lt_desc">Lead Time (High–Low)</option>
+                </select>
+
+                <!-- custom dropdown -->
+                <div class="cs2" data-select="SupplierSort">
+                    <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="cs2-value">Name (A–Z)</span>
+                        <span class="cs2-caret"></span>
+                    </button>
+
+                    <div class="cs2-menu" role="listbox">
+                        <button type="button" class="cs2-item" data-value="az">Name (A–Z)</button>
+                        <button type="button" class="cs2-item" data-value="za">Name (Z–A)</button>
+                        <button type="button" class="cs2-item" data-value="lt_asc">Lead Time (Low–High)</button>
+                        <button type="button" class="cs2-item" data-value="lt_desc">Lead Time (High–Low)</button>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Sort -->
-                <div class="col-md-3">
-                    <label class="form-label small">Sort</label>
-                    <select class="form-select">
-                        <option>Name (A–Z)</option>
-                        <option>Name (Z–A)</option>
-                        <option>Lead Time (Low–High)</option>
-                        <option>Lead Time (High–Low)</option>
-                    </select>
-                </div>
+        </div>
 
-                <!-- Buttons -->
-                <div class="col-md-3 d-flex gap-2">
-                    <button class="btn btn-secondary w-100">Filter</button>
-                    <button class="btn btn-outline-secondary w-100">Reset</button>
-                </div>
+        <div class="filter-actions">
+            <button id="btnFilter" class="pill-btn pill-solid" type="button">Filter</button>
+            <button id="btnReset" class="pill-btn pill-outline" type="button">Reset</button>
+        </div>
+    </div>
 
+    <!-- Bulk selection bar (CategoryIndex-style) -->
+    <!-- Bulk bar (CategoryIndex style) -->
+    <div class="bulk-bar" id="bulkBar" hidden>
+        <span class="bulk-text" id="bulkText">0 selected</span>
+
+        <div class="bulk-actions">
+            <button type="button" class="bulk-delete" id="bulkDeleteBtn">
+                Delete
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Bulk delete form (hidden) -->
+    <form id="bulkDeleteForm" asp-action="BulkDelete" method="post" class="d-none">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="ids" id="bulkDeleteIds" />
+    </form>
+
+    <!-- Bulk Delete Confirm Modal (MATCH CategoryIndex) -->
+    <div class="ix-modal" id="bulkDeleteModal" aria-hidden="true">
+        <div class="ix-backdrop" data-close="true"></div>
+
+        <div class="ix-dialog" role="dialog" aria-modal="true" aria-labelledby="bulkTitle">
+            <div class="ix-head">
+                <h3 id="bulkTitle" class="ix-title">Delete selected suppliers?</h3>
+            </div>
+
+            <p class="ix-desc">
+                You are about to permanently delete
+                <span class="ix-strong" id="bulkModalCount">0</span>
+                suppliers.
+                This action cannot be undone.
+            </p>
+
+            <p class="ix-desc" style="margin-top:10px; color: var(--muted); font-weight:500; font-size:13px;">
+                Selected IDs: <span id="bulkIds" class="ix-strong" style="font-weight:700; color:#111;">-</span>
+            </p>
+
+            <div class="ix-actions">
+                <button type="button" class="ix-btn ix-outline" data-close="true">Cancel</button>
+                <button type="button" class="ix-btn ix-danger" id="confirmBulkDeleteBtn">Delete</button>
             </div>
         </div>
     </div>
 
-    <!-- SUPPLIER TABLE -->
-    <div class="card">
+    <div class="table-shell">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-secondary small">
+            <table class="sys-table">
+                <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Contact</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Lead Time</th>
-                        <th>Status</th>
-                        <th style="width:180px">Actions</th>
+                        <th style="width:44px">
+                            <input id="chk-all" class="chk" type="checkbox" />
+                        </th>
+                        <th style="width:100px">ID</th>
+                        <th style="min-width:160px">Name</th>
+                        <th style="min-width:160px">Contact</th>
+                        <th style="min-width:160px">Phone</th>
+                        <th style="min-width:180px">Email</th>
+                        <th style="width:180px">Lead Time</th>
+                        <th style="width:160px">Status</th>
+                        <th style="width:170px">Actions</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    @foreach (var s in Model)
+                    @if (!Model.Any())
                     {
                         <tr>
-                            <td>@s.SupplierID</td>
-                            <td>@s.SupplierName</td>
-                            <td>@s.SupplierContactPerson</td>
-                            <td>@s.SupplierPhone</td>
-                            <td>@s.SupplierEmail</td>
-                            <td>@s.SupplierLeadTimeDays</td>
-                            <td>
-                                @if (s.SupplierStatus == "Active")
-                                {
-                                    <span class="badge bg-success">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Inactive</span>
-                                }
+                            <td colspan="9">
+                                <div class="empty-state">No suppliers found.</div>
                             </td>
-                            <td class="d-flex gap-1">
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var s in Model)
+                        {
+                            <tr data-name="@s.SupplierName"
+                                data-status="@s.SupplierStatus"
+                                data-phone="@s.SupplierPhone"
+                                data-id="@s.SupplierID"
+                                data-lead="@s.SupplierLeadTimeDays">
+                                <td>
+                                    <input class="chk chk-row" type="checkbox" value="@s.SupplierID" />
 
-                                <!-- EDIT -->
-                                <a asp-action="Edit"
-                                   asp-route-id="@s.SupplierID"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
+                                </td>
 
-                                <!-- TOGGLE STATUS -->
-                                <form asp-action="ToggleStatus"
-                                      asp-route-id="@s.SupplierID"
-                                      method="post"
-                                      class="d-inline">
-                                    @Html.AntiForgeryToken()
-
+                                <td>@s.SupplierID</td>
+                                <td>@s.SupplierName</td>
+                                <td>@s.SupplierContactPerson</td>
+                                <td>@s.SupplierPhone</td>
+                                <td>@s.SupplierEmail</td>
+                                <td>@s.SupplierLeadTimeDays</td>
+                                <td>
                                     @if (s.SupplierStatus == "Active")
                                     {
-                                        <button class="btn btn-sm btn-outline-warning"
-                                                title="Deactivate">
-                                            <i class="bi bi-slash-circle"></i>
-                                        </button>
+                                        <span class="pill active">Active</span>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-sm btn-outline-success"
-                                                title="Activate">
-                                            <i class="bi bi-check-circle"></i>
-                                        </button>
+                                        <span class="pill inactive">Inactive</span>
                                     }
-                                </form>
+                                </td>
+                                <td>
+                                    <div class="row-actions">
 
-                                <!-- DELETE -->
-                                <form asp-action="Delete"
-                                      asp-route-id="@s.SupplierID"
-                                      method="post"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Delete this supplier permanently?');">
-                                    @Html.AntiForgeryToken()
-                                    <button class="btn btn-sm btn-outline-danger"
-                                            title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                        <a asp-action="Edit"
+                                           asp-route-id="@s.SupplierID"
+                                           class="mini-btn"
+                                           title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
 
-                            </td>
-                        </tr>
+                                        <form asp-action="ToggleStatus"
+                                              asp-route-id="@s.SupplierID"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+
+                                            @if (s.SupplierStatus == "Active")
+                                            {
+                                                <button type="submit" class="mini-btn mini-warn" title="Deactivate">
+                                                    <i class="bi bi-slash-circle"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="mini-btn mini-ok" title="Activate">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                            }
+                                        </form>
+
+                                        <form asp-action="Delete"
+                                              asp-route-id="@s.SupplierID"
+                                              method="post"
+                                              class="d-inline delete-form"
+                                              data-name="@s.SupplierName">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="mini-btn mini-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
         </div>
     </div>
 
+    <!-- Delete Confirm Modal (MATCH CategoryIndex) -->
+    <div class="ix-modal" id="deleteModal" aria-hidden="true">
+        <div class="ix-backdrop" data-close="true"></div>
+
+        <div class="ix-dialog" role="dialog" aria-modal="true" aria-labelledby="ixTitle">
+            <div class="ix-head">
+                <h3 id="ixTitle" class="ix-title">Delete Supplier?</h3>
+            </div>
+
+            <p class="ix-desc">
+                This will permanently delete <span class="ix-strong" id="deleteName">this supplier</span>.
+                This action cannot be undone.
+            </p>
+
+            <div class="ix-actions">
+                <button type="button" class="ix-btn ix-outline" data-close="true">Cancel</button>
+                <button type="button" class="ix-btn ix-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+
 </div>
+<script>
+    (() => {
+
+      // refs
+      const q = document.getElementById('q');
+      const statusSelect = document.getElementById('SupplierStatus');
+      const sortSelect = document.getElementById('SupplierSort');
+      const btnFilter = document.getElementById('btnFilter');
+      const btnReset  = document.getElementById('btnReset');
+
+      /* ===============================
+         Custom Select (cs2 dropdown)
+      ================================ */
+      function setupCS2(cs) {
+        const selectId = cs.dataset.select;
+        const real = document.getElementById(selectId);
+        if (!real) return;
+
+        const btn = cs.querySelector('.cs2-btn');
+        const valueEl = cs.querySelector('.cs2-value');
+        const items = Array.from(cs.querySelectorAll('.cs2-item'));
+
+        const setActive = (val) => {
+          const found = items.find(i => i.dataset.value === val);
+          valueEl.textContent = found ? found.textContent : items[0].textContent;
+        };
+
+        setActive(real.value);
+
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          cs.classList.toggle('open');
+          btn.setAttribute('aria-expanded', cs.classList.contains('open') ? 'true' : 'false');
+        });
+
+        items.forEach(i => {
+          i.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            real.value = i.dataset.value;
+            real.dispatchEvent(new Event("change", { bubbles: true }));
+            setActive(i.dataset.value);
+
+            cs.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          });
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!cs.contains(e.target)) {
+            cs.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+      document.querySelectorAll('.cs2[data-select]').forEach(setupCS2);
+
+
+      /* ===============================
+         Table / rows
+      ================================ */
+      const tbody = document.querySelector('.sys-table tbody');
+      if (!tbody) return;
+
+      const chkAll = document.getElementById('chk-all');
+
+      // store original rows (server-rendered)
+      const allRows = Array.from(tbody.querySelectorAll('tr[data-name]'));
+
+      /* ===============================
+         Bulk selection bar
+      ================================ */
+      const bulkBar = document.getElementById('bulkBar');
+      const bulkCount = document.getElementById('bulkCount');
+
+      function getSelectedIds() {
+        return Array.from(tbody.querySelectorAll('.chk-row:checked'))
+          .map(cb => cb.value)
+          .filter(Boolean);
+      }
+    function updateBulkBar() {
+      const ids = getSelectedIds();
+      const n = ids.length;
+
+      const bulkBar = document.getElementById('bulkBar');
+      const bulkText = document.getElementById('bulkText');
+
+      if (bulkText) bulkText.textContent = `${n} selected`;
+      if (bulkBar) bulkBar.hidden = (n === 0);
+    }
+
+
+
+      function getVisibleCheckboxes() {
+        return Array.from(tbody.querySelectorAll('tr[data-name] .chk-row'));
+      }
+
+      function updateHeaderCheckboxState() {
+        if (!chkAll) return;
+
+        const boxes = getVisibleCheckboxes();
+        if (boxes.length === 0) {
+          chkAll.checked = false;
+          chkAll.indeterminate = false;
+          return;
+        }
+
+        const checkedCount = boxes.filter(b => b.checked).length;
+        chkAll.checked = checkedCount === boxes.length;
+        chkAll.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+      }
+
+      chkAll?.addEventListener('change', () => {
+        const boxes = getVisibleCheckboxes();
+        boxes.forEach(b => (b.checked = chkAll.checked));
+        updateHeaderCheckboxState();
+        updateBulkBar();
+      });
+
+      tbody.addEventListener('change', (e) => {
+        const t = e.target;
+        if (t && t.classList.contains('chk-row')) {
+          updateHeaderCheckboxState();
+          updateBulkBar();
+        }
+      });
+
+      function renderRows(rows) {
+        if (chkAll) {
+          chkAll.checked = false;
+          chkAll.indeterminate = false;
+        }
+
+        tbody.innerHTML = "";
+
+        if (rows.length === 0) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td colspan="9"><div class="empty-state">No suppliers found.</div></td>`;
+          tbody.appendChild(tr);
+          updateHeaderCheckboxState();
+          updateBulkBar();
+          return;
+        }
+
+        rows.forEach(r => tbody.appendChild(r));
+
+        updateHeaderCheckboxState();
+        updateBulkBar();
+      }
+
+      function applyFilterSort() {
+        const keyword = (q?.value || "").trim().toLowerCase();
+        const status = statusSelect?.value || "";
+        const sort = sortSelect?.value || "az";
+
+        let filtered = allRows.filter(tr => {
+          const name = (tr.dataset.name || "").toLowerCase();
+          const phone = (tr.dataset.phone || "").toLowerCase();
+          const st = (tr.dataset.status || "");
+          const matchText = !keyword || name.includes(keyword) || phone.includes(keyword);
+          const matchStatus = !status || st === status;
+          return matchText && matchStatus;
+        });
+
+        filtered.sort((a, b) => {
+          if (sort === "az" || sort === "za") {
+            const an = (a.dataset.name || "").toLowerCase();
+            const bn = (b.dataset.name || "").toLowerCase();
+            if (an < bn) return sort === "az" ? -1 : 1;
+            if (an > bn) return sort === "az" ? 1 : -1;
+            return 0;
+          }
+
+          const al = parseInt(a.dataset.lead || "0", 10);
+          const bl = parseInt(b.dataset.lead || "0", 10);
+          return sort === "lt_asc" ? (al - bl) : (bl - al);
+        });
+
+        renderRows(filtered);
+      }
+
+      btnFilter?.addEventListener('click', applyFilterSort);
+      btnReset?.addEventListener('click', () => {
+        if (q) q.value = "";
+        if (statusSelect) statusSelect.value = "";
+        if (sortSelect) sortSelect.value = "az";
+        renderRows(allRows);
+      });
+
+      q?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyFilterSort();
+        }
+      });
+
+      // initial
+      updateHeaderCheckboxState();
+      updateBulkBar();
+
+
+      /* ===============================
+         Bulk delete flow (WORKING)
+      ================================ */
+      const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+      const bulkDeleteForm = document.getElementById('bulkDeleteForm');
+      const bulkDeleteIds = document.getElementById('bulkDeleteIds');
+
+      const bulkModal = document.getElementById('bulkDeleteModal');
+      const bulkN = document.getElementById('bulkN');
+      const bulkIdsText = document.getElementById('bulkIdsText');
+      const confirmBulkDeleteBtn = document.getElementById('confirmBulkDeleteBtn');
+
+    function openBulkModal() {
+      const ids = getSelectedIds();
+      if (!ids.length) return;
+
+      const bulkModal = document.getElementById('bulkDeleteModal');
+      const bulkCountEl = document.getElementById('bulkModalCount');
+      const bulkIdsEl = document.getElementById('bulkIds');
+
+      if (bulkCountEl) bulkCountEl.textContent = String(ids.length);
+      if (bulkIdsEl) bulkIdsEl.textContent = ids.join(', ');
+
+      bulkModal?.classList.add('open');
+      bulkModal?.setAttribute('aria-hidden', 'false');
+      bulkModal?.querySelector('.ix-outline')?.focus();
+    }
+
+
+      function closeBulkModal() {
+        bulkModal?.classList.remove('open');
+        bulkModal?.setAttribute('aria-hidden', 'true');
+      }
+
+      bulkDeleteBtn?.addEventListener('click', openBulkModal);
+
+      confirmBulkDeleteBtn?.addEventListener('click', () => {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+
+        if (bulkDeleteIds) bulkDeleteIds.value = ids.join(',');
+        bulkDeleteForm?.submit();
+      });
+
+      bulkModal?.addEventListener('click', (e) => {
+        if (e.target?.dataset?.close === "true") closeBulkModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && bulkModal?.classList.contains('open')) closeBulkModal();
+      });
+
+         /* ===============================
+       Single Delete Modal (ROW DELETE)
+    ================================ */
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteNameEl = document.getElementById('deleteName');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+    let pendingDeleteForm = null;
+
+    function openDeleteModal(form) {
+      pendingDeleteForm = form;
+
+      const name = form.dataset.name || "this supplier";
+      if (deleteNameEl) deleteNameEl.textContent = `"${name}"`;
+
+      deleteModal?.classList.add('open');
+      deleteModal?.setAttribute('aria-hidden', 'false');
+      deleteModal?.querySelector('.ix-outline')?.focus();
+    }
+
+    function closeDeleteModal() {
+      deleteModal?.classList.remove('open');
+      deleteModal?.setAttribute('aria-hidden', 'true');
+      pendingDeleteForm = null;
+    }
+
+    // Intercept ONLY the row delete forms
+    document.addEventListener('submit', (e) => {
+      const form = e.target.closest('form.delete-form');
+      if (!form) return;
+
+      e.preventDefault();   // stop immediate submit
+      e.stopPropagation();  // avoid other submit listeners
+      openDeleteModal(form);
+    });
+
+    // Confirm -> actually submit
+    confirmDeleteBtn?.addEventListener('click', () => {
+      if (pendingDeleteForm) pendingDeleteForm.submit();
+    });
+
+    // Close (backdrop + cancel)
+    deleteModal?.addEventListener('click', (e) => {
+      if (e.target?.dataset?.close === "true") closeDeleteModal();
+    });
+
+    // Escape closes
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && deleteModal?.classList.contains('open')) closeDeleteModal();
+    });
+
+    })();
+</script>
+
+

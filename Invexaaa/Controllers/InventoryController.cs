@@ -30,7 +30,8 @@ namespace Invexaaa.Controllers
     inv.InventoryTotalQuantity <= item.ItemReorderLevel ? "Low" :
     "Healthy",
 
-                    LastUpdated = inv.InventoryLastUpdated
+                    LastUpdated = inv.InventoryLastUpdated,
+                    ItemStatus = item.ItemStatus
                 };
 
             return View("InventoryIndex", list.ToList());

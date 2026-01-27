@@ -6,94 +6,440 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
+<style>
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 22px;
+        --shadow: 0 10px 28px rgba(0,0,0,.06);
+    }
 
-    <h3 class="fw-semibold mb-4">Create Supplier</h3>
+    /* Force layout background to white (dashboard wrappers too) */
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
 
-    <div class="card">
-        <div class="card-body">
+    .page-wrap {
+        min-height: calc(100vh - 120px);
+        display: grid;
+        place-items: center;
+        align-items: start;
+        padding: 20px 16px;
+        padding-top: 12px; /* ⬅ moves whole frame up */
+        background: var(--bg);
+    }
 
-            <!-- MODEL-LEVEL ERRORS -->
+
+    .card-clean {
+        width: min(980px, 100%);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .card-inner {
+        padding: 24px 32px 20px;
+    }
+
+    .title {
+        font-size: 35px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 6px 0 0;
+        color: var(--text);
+    }
+
+    .subtitle {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 16px;
+    }
+
+    .divider {
+        border: 0;
+        border-top: 2px solid var(--border);
+        margin: 22px 0 20px;
+    }
+
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 16px; /* tighter vertical spacing */
+        align-items: start;
+    }
+
+
+    .field {
+        margin: 0;
+    }
+
+    .span-2 {
+        grid-column: 1 / -1;
+    }
+
+    .label {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 4px; /* tighter */
+        font-size: 14px;
+    }
+
+
+    .req {
+        color: #dc2626;
+        font-weight: 400;
+        margin-left: 4px;
+    }
+
+    .control {
+        width: 100%;
+        border: 2px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 12px 14px !important; /* 👈 tighter */
+        font-size: 15.5px !important;
+        background: #fff !important;
+        color: var(--text) !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+
+        .control:focus {
+            border-color: #000 !important;
+        }
+
+    textarea.control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    /* Validation */
+    .val {
+        display: block;
+        margin-top: 8px;
+        font-size: 13px;
+    }
+
+    /* Red border when MVC adds input-validation-error */
+    .control.input-validation-error {
+        border-color: #dc2626 !important;
+    }
+
+        .control.input-validation-error:focus {
+            border-color: #dc2626 !important;
+        }
+
+    /* Custom dropdown (same as your system) */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 18px;
+        padding: 14px 44px 14px 16px;
+        background: #fff;
+        color: #111;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 9999 !important;
+        display: none;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #111;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+    }
+
+        .cs2-item:hover {
+            background: #f2f2f2;
+        }
+
+    .cs2-btn:focus {
+        border-color: #000 !important;
+        outline: none;
+    }
+
+    .cs2.open .cs2-btn {
+        border-color: #000 !important;
+    }
+
+    .real-select.input-validation-error ~ .cs2 .cs2-btn {
+        border-color: #dc2626 !important;
+    }
+
+    /* Buttons */
+    .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 12px;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 14px 18px !important;
+        font-weight: 800 !important;
+        font-size: 16px !important;
+        border: 2px solid #000 !important;
+        text-align: center;
+        user-select: none;
+        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
+    }
+
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+    .pill-outline {
+        background: transparent !important;
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+
+    .pill-solid:hover, .pill-solid:focus-visible {
+        background: #fff !important;
+        color: #000 !important;
+        border-color: #000 !important;
+    }
+
+    .pill-outline:hover, .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        border-color: #000 !important;
+        text-decoration: none !important;
+    }
+
+    @@media (max-width: 860px) {
+        .card-inner {
+            padding: 22px 18px 18px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="page-wrap">
+    <div class="card-clean">
+        <div class="card-inner">
+
+            <h1 class="title">Create Supplier</h1>
+            <p class="subtitle">Add a new supplier for procurement and replenishment.</p>
+            <hr class="divider" />
+
+            <!-- Model-level errors -->
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-            <form asp-action="Create" method="post">
+            <form id="supplierForm" asp-action="Create" method="post" novalidate>
                 @Html.AntiForgeryToken()
 
-                <!-- Supplier Name -->
-                <div class="mb-3">
-                    <label asp-for="SupplierName" class="form-label"></label>
-                    <input asp-for="SupplierName" class="form-control" />
-                    <span asp-validation-for="SupplierName" class="text-danger"></span>
+                <div class="form-grid">
+
+                    <!-- Supplier Name -->
+                    <div class="field">
+                        <label asp-for="SupplierName" class="label">Supplier Name <span class="req">*</span></label>
+                        <input asp-for="SupplierName" class="control" />
+                        <span asp-validation-for="SupplierName" class="text-danger val"></span>
+                    </div>
+
+                    <!-- Contact Person -->
+                    <div class="field">
+                        <label asp-for="SupplierContactPerson" class="label">Contact Person</label>
+                        <input asp-for="SupplierContactPerson" class="control" />
+                        <span asp-validation-for="SupplierContactPerson" class="text-danger val"></span>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="field">
+                        <label asp-for="SupplierPhone" class="label">Phone <span class="req">*</span></label>
+                        <input asp-for="SupplierPhone"
+                               class="control"
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               oninput="this.value = this.value.replace(/[^0-9]/g,'')" />
+                        <span asp-validation-for="SupplierPhone" class="text-danger val"></span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="field">
+                        <label asp-for="SupplierEmail" class="label">Email</label>
+                        <input asp-for="SupplierEmail" type="email" class="control" />
+                        <span asp-validation-for="SupplierEmail" class="text-danger val"></span>
+                    </div>
+
+                    <!-- Lead Time -->
+                    <div class="field">
+                        <label asp-for="SupplierLeadTimeDays" class="label">Lead Time (Days)</label>
+                        <input asp-for="SupplierLeadTimeDays" type="number" min="0" class="control" />
+                        <span asp-validation-for="SupplierLeadTimeDays" class="text-danger val"></span>
+                    </div>
+
+                    <!-- Status (Custom Dropdown) -->
+                    <div class="field">
+                        <label asp-for="SupplierStatus" class="label">Status <span class="req">*</span></label>
+
+                        <select asp-for="SupplierStatus" class="real-select" id="SupplierStatus">
+                            <option value="">Select Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+
+                        <div class="cs2" data-select="SupplierStatus">
+                            <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="cs2-value">Select Status</span>
+                                <span class="cs2-caret"></span>
+                            </button>
+
+                            <div class="cs2-menu" role="listbox">
+                                <button type="button" class="cs2-item" data-value="">Select Status</button>
+                                <button type="button" class="cs2-item" data-value="Active">Active</button>
+                                <button type="button" class="cs2-item" data-value="Inactive">Inactive</button>
+                            </div>
+                        </div>
+
+                        <span asp-validation-for="SupplierStatus" class="text-danger val"></span>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="field span-2">
+                        <label asp-for="SupplierAddress" class="label">Address</label>
+                        <textarea asp-for="SupplierAddress" class="control"></textarea>
+                        <span asp-validation-for="SupplierAddress" class="text-danger val"></span>
+                    </div>
+
                 </div>
 
-                <!-- Contact Person -->
-                <div class="mb-3">
-                    <label asp-for="SupplierContactPerson" class="form-label"></label>
-                    <input asp-for="SupplierContactPerson" class="form-control" />
-                    <span asp-validation-for="SupplierContactPerson" class="text-danger"></span>
-                </div>
+                <div class="actions">
+                    <button type="submit"
+                            name="submitAction"
+                            value="save"
+                            class="pill-btn pill-solid">
+                        Save
+                    </button>
 
-                <!-- Phone (NUMBERS ONLY) -->
-                <div class="mb-3">
-                    <label asp-for="SupplierPhone" class="form-label"></label>
-                    <input asp-for="SupplierPhone"
-                           class="form-control"
-                           inputmode="numeric"
-                           pattern="[0-9]*"
-                           oninput="this.value = this.value.replace(/[^0-9]/g,'')" />
-                    <span asp-validation-for="SupplierPhone" class="text-danger"></span>
-                </div>
-
-                <!-- Email -->
-                <div class="mb-3">
-                    <label asp-for="SupplierEmail" class="form-label"></label>
-                    <input asp-for="SupplierEmail" type="email" class="form-control" />
-                    <span asp-validation-for="SupplierEmail" class="text-danger"></span>
-                </div>
-
-                <!-- Address -->
-                <div class="mb-3">
-                    <label asp-for="SupplierAddress" class="form-label"></label>
-                    <textarea asp-for="SupplierAddress" class="form-control"></textarea>
-                    <span asp-validation-for="SupplierAddress" class="text-danger"></span>
-                </div>
-
-                <!-- Lead Time (NON-NEGATIVE NUMBER) -->
-                <div class="mb-3">
-                    <label asp-for="SupplierLeadTimeDays" class="form-label"></label>
-                    <input asp-for="SupplierLeadTimeDays"
-                           type="number"
-                           min="0"
-                           class="form-control" />
-                    <span asp-validation-for="SupplierLeadTimeDays" class="text-danger"></span>
-                </div>
-
-                <!-- Status -->
-                <div class="mb-4">
-                    <label asp-for="SupplierStatus" class="form-label"></label>
-                    <select asp-for="SupplierStatus" class="form-select">
-                        <option value="">-- Select Status --</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                    <span asp-validation-for="SupplierStatus" class="text-danger"></span>
-                </div>
-
-                <!-- Buttons -->
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <a asp-action="SupplierIndex" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit"
+                            name="submitAction"
+                            value="saveNew"
+                            class="pill-btn pill-outline">
+                        Save &amp; New
+                    </button>
                 </div>
 
             </form>
 
         </div>
     </div>
-
 </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
+<script>
+    (() => {
+      // Custom dropdown (SupplierStatus)
+      const cs = document.querySelector('.cs2[data-select="SupplierStatus"]');
+      if (!cs) return;
+
+      const real = document.getElementById("SupplierStatus");
+      const btn = cs.querySelector(".cs2-btn");
+      const valueEl = cs.querySelector(".cs2-value");
+      const items = Array.from(cs.querySelectorAll(".cs2-item"));
+
+      const setActive = (val) => {
+        valueEl.textContent = val || "Select Status";
+        items.forEach(i => i.classList.toggle("active", i.dataset.value === val));
+      };
+
+      setActive(real.value);
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        cs.classList.toggle("open");
+        btn.setAttribute("aria-expanded", cs.classList.contains("open") ? "true" : "false");
+      });
+
+      items.forEach(i => {
+        i.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          real.value = i.dataset.value;
+          real.dispatchEvent(new Event("change", { bubbles: true }));
+          setActive(i.dataset.value);
+
+          cs.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+        });
+      });
+
+      document.addEventListener("click", e => {
+        if (!cs.contains(e.target)) {
+          cs.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+        }
+      });
+    })();
+</script>

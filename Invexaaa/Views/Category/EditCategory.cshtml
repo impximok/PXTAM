@@ -6,53 +6,431 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
+<style>
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 22px;
+    }
 
-    <h3 class="fw-semibold mb-4">Edit Category</h3>
+    .cat-page {
+        min-height: calc(100vh - 120px);
+        display: grid;
+        place-items: center;
+        padding: 20px 16px;
+        background: var(--bg);
+        align-items: start;
+        padding-top: 26px;
+    }
 
-    <div class="card">
-        <div class="card-body">
+    .cat-card {
+        width: min(980px, 100%);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 10px 28px rgba(0,0,0,.06);
+        overflow: hidden;
+        transform: scale(0.95);
+        transform-origin: top center;
+    }
 
-            <form asp-action="Edit" method="post">
+    .cat-card-inner {
+        padding: 22px 28px 16px;
+    }
+
+    .cat-title {
+        font-size: 35px;
+        line-height: 1.05;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .cat-subtitle {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 16px;
+    }
+
+    .cat-divider {
+        border: 0;
+        border-top: 2px solid var(--border);
+        margin: 18px 0 16px;
+    }
+
+    .cat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 18px;
+    }
+
+    .cat-label {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+
+    .req-star {
+        color: #dc2626;
+        font-weight: 400;
+        margin-left: 4px;
+    }
+
+    .cat-control {
+        width: 100%;
+        border: 2px solid var(--border) !important;
+        border-radius: 18px !important;
+        padding: 12px 14px !important;
+        font-size: 16px !important;
+        background: #fff !important;
+        color: var(--text) !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+        .cat-control:focus {
+            border-color: #000 !important;
+        }
+
+    .cat-textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .cat-span-2 {
+        grid-column: 1 / -1;
+    }
+
+    .cat-validation {
+        display: block;
+        margin-top: 8px;
+        font-size: 13px;
+    }
+
+    .cat-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 12px;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 12px 16px !important;
+        font-weight: 800 !important;
+        font-size: 16px !important;
+        border: 2px solid #000 !important;
+        text-align: center;
+        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+        user-select: none;
+    }
+
+
+
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+    .pill-outline {
+        background: transparent !important;
+        color: #000 !important;
+    }
+
+
+    /* ✅ Custom Select (MUST be OUTSIDE media query) */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 18px;
+        padding: 12px 44px 12px 14px;
+        background: #fff;
+        color: #111;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 100;
+        display: none;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #111;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+    }
+
+        .cs2-item:hover {
+            background: #f2f2f2;
+        }
+
+    .cs2-btn:focus {
+        border-color: #000 !important;
+        outline: none;
+    }
+
+    .cs2.open .cs2-btn {
+        border-color: #000 !important;
+    }
+
+    .real-select.input-validation-error ~ .cs2 .cs2-btn {
+        border-color: #dc2626 !important;
+    }
+
+    /* responsive */
+    @@media (max-width: 860px) {
+        .cat-card-inner {
+            padding: 26px 20px 18px;
+        }
+
+        .cat-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .cat-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Remove underline from Cancel button */
+    .pill-outline,
+    .pill-outline:hover,
+    .pill-outline:focus,
+    .pill-outline:active {
+        text-decoration: none !important;
+    }
+
+
+    /* ===============================
+           ASP.NET MVC validation states
+           =============================== */
+
+    /* Input / textarea error */
+    .cat-control.input-validation-error {
+        border-color: #dc2626 !important; /* red */
+    }
+
+        /* Keep red even when focused */
+        .cat-control.input-validation-error:focus {
+            border-color: #dc2626 !important;
+        }
+
+    /* Custom dropdown error (Status) */
+    .real-select.input-validation-error ~ .cs2 .cs2-btn {
+        border-color: #dc2626 !important;
+    }
+    /* Primary (black) hover -> invert to white */
+    .pill-solid:hover,
+    .pill-solid:focus-visible {
+        background: #fff !important;
+        color: #000 !important;
+        border-color: #000 !important;
+        box-shadow: none !important; /* no lift */
+    }
+
+    /* Outline (white) hover -> invert to black */
+    .pill-outline:hover,
+    .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        border-color: #000 !important;
+        box-shadow: none !important; /* no lift */
+    }
+
+    /* Ensure link never underlines (all states) */
+    .pill-outline,
+    .pill-outline:hover,
+    .pill-outline:focus,
+    .pill-outline:active {
+        text-decoration: none !important;
+    }
+
+    html, body {
+        background: #ffffff !important;
+    }
+
+    /* 🔥 FORCE entire layout background to white */
+    html,
+    body,
+    main,
+    .container-fluid,
+    .content,
+    .content-body,
+    .app-content,
+    .app-wrapper {
+        background: #ffffff !important;
+    }
+</style>
+
+<div class="cat-page">
+    <div class="cat-card">
+        <div class="cat-card-inner">
+
+            <h1 class="cat-title">Edit Category</h1>
+            <p class="cat-subtitle">Update category details for item classification.</p>
+            <hr class="cat-divider" />
+
+            <form asp-action="Edit" method="post" novalidate>
                 @Html.AntiForgeryToken()
-
                 <input type="hidden" asp-for="CategoryID" />
 
-                <div class="mb-3">
-                    <label asp-for="CategoryName" class="form-label"></label>
-                    <input asp-for="CategoryName" class="form-control" />
-                    <span asp-validation-for="CategoryName" class="text-danger small"></span>
+                <div class="cat-grid">
+
+                    <!-- Category Name -->
+                    <div class="cat-field">
+                        <label asp-for="CategoryName" class="cat-label">
+                            Category Name <span class="req-star">*</span>
+                        </label>
+                        <input asp-for="CategoryName" class="cat-control"
+                               placeholder="e.g., Beverages, Snacks, Toiletries" />
+                        <span asp-validation-for="CategoryName" class="text-danger cat-validation"></span>
+                    </div>
+
+                    <!-- ✅ Status -->
+                    <div class="cat-field">
+                        <label asp-for="CategoryStatus" class="cat-label">
+                            Status <span class="req-star">*</span>
+                        </label>
+
+                        <select asp-for="CategoryStatus" class="real-select" id="CategoryStatus">
+                            <option value="">Select Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+
+                        <div class="cs2" data-select="CategoryStatus">
+                            <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="cs2-value">Select Status</span>
+                                <span class="cs2-caret"></span>
+                            </button>
+
+                            <div class="cs2-menu" role="listbox">
+                                <button type="button" class="cs2-item" data-value="">Select Status</button>
+                                <button type="button" class="cs2-item" data-value="Active">Active</button>
+                                <button type="button" class="cs2-item" data-value="Inactive">Inactive</button>
+                            </div>
+                        </div>
+
+                        <span asp-validation-for="CategoryStatus" class="text-danger cat-validation"></span>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="cat-field cat-span-2">
+                        <label asp-for="CategoryDescription" class="cat-label">Description</label>
+                        <textarea asp-for="CategoryDescription"
+                                  class="cat-control cat-textarea"
+                                  placeholder="Optional — notes about this category, usage, etc."></textarea>
+                    </div>
+
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="CategoryDescription" class="form-label"></label>
-                    <textarea asp-for="CategoryDescription"
-                              class="form-control"
-                              rows="3"></textarea>
+                <div class="cat-actions">
+                    <button type="submit" class="pill-btn pill-solid">Update</button>
+                    <a asp-action="CategoryIndex" class="pill-btn pill-outline">Cancel</a>
                 </div>
-
-                <div class="mb-4">
-                    <label asp-for="CategoryStatus" class="form-label"></label>
-                    <select asp-for="CategoryStatus" class="form-select">
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        Update
-                    </button>
-
-                    <a asp-action="CategoryIndex"
-                       class="btn btn-outline-secondary">
-                        Cancel
-                    </a>
-                </div>
-
             </form>
 
         </div>
     </div>
-
 </div>
+
+<script>
+    (() => {
+      const cs = document.querySelector('.cs2[data-select="CategoryStatus"]');
+      if (!cs) return;
+
+      const real = document.getElementById("CategoryStatus");
+      const btn = cs.querySelector(".cs2-btn");
+      const valueEl = cs.querySelector(".cs2-value");
+      const items = Array.from(cs.querySelectorAll(".cs2-item"));
+
+      const setActive = (val) => {
+        valueEl.textContent = val || "Select Status";
+        items.forEach(i => i.classList.toggle("active", i.dataset.value === val));
+      };
+
+      setActive(real.value);
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        cs.classList.toggle("open");
+        btn.setAttribute("aria-expanded", cs.classList.contains("open") ? "true" : "false");
+      });
+
+      items.forEach(i => {
+        i.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          real.value = i.dataset.value;
+          real.dispatchEvent(new Event("change", { bubbles: true }));
+          setActive(i.dataset.value);
+
+          cs.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+        });
+      });
+
+      document.addEventListener("click", e => {
+        if (!cs.contains(e.target)) {
+          cs.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+        }
+      });
+    })();
+</script>

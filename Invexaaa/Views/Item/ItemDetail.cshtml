@@ -1,8 +1,10 @@
 ﻿@model Invexaaa.Models.ViewModels.ItemDetailViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Item Detail";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    bool isInactive = Model.Status == "Inactive";
 }
 
 <style>
@@ -123,13 +125,25 @@
         font-size: 0.75rem;
     }
 
-    @@media (max-width: 900px) {
-        .item-detail-container
-
-    {
-        grid-template-columns: 1fr;
+    .locked {
+        opacity: 0.55;
+        pointer-events: none;
+        filter: grayscale(100%);
     }
 
+    .status-badge-inactive {
+        background: #e5e7eb;
+        color: #374151;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 900px) {
+        .item-detail-container {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -139,8 +153,8 @@
     <div class="image-panel">
         <img class="main-image"
              src="@(string.IsNullOrWhiteSpace(Model.ImageUrl)
-                                              ? "/images/no-image.png"
-                                              : Model.ImageUrl)" />
+                                 ? "/images/no-image.png"
+                                 : Model.ImageUrl)" />
 
         <div class="thumb-row">
             <div class="thumb"></div>
@@ -159,7 +173,6 @@
                 <span class="text-muted">No barcode available</span>
             }
         </div>
-
     </div>
 
     <!-- RIGHT : DETAILS -->
@@ -179,47 +192,66 @@
             <strong>Unit:</strong> @Model.UnitOfMeasure <br />
             <strong>Buy Price:</strong> RM @Model.BuyPrice.ToString("0.00") <br />
             <strong>Sell Price:</strong> RM @Model.SellPrice.ToString("0.00") <br />
-            <strong>Status:</strong> @Model.Status
+            <strong>Status:</strong>
+            @if (isInactive)
+            {
+                <span class="status-badge-inactive">INACTIVE · LOCKED</span>
+            }
+            else
+            {
+                <span class="badge-ok">ACTIVE</span>
+            }
         </div>
+
+        @if (isInactive)
+        {
+            <div class="alert alert-secondary small mt-3">
+                This item is inactive.
+                Stock adjustment, restocking, and expiry edits are disabled.
+            </div>
+        }
 
         <div class="divider"></div>
 
         <h6 class="fw-semibold">Batch Information</h6>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Batch No</th>
-                    <th>Expiry Date</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var b in Model.Batches)
-                {
+        <!-- 🔒 LOCK batch table if inactive -->
+        <div class="@(isInactive ? "locked" : "")">
+            <table>
+                <thead>
                     <tr>
-                        <td>@b.BatchNo</td>
-                        <td>@b.ExpiryDate.ToString("dd/MM/yyyy")</td>
-                        <td>@b.Quantity</td>
-                        <td>
-                            @if (b.ExpiryStatus == "Near Expiry")
-                            {
-                                <span class="badge-warn">Near Expiry</span>
-                            }
-                            else if (b.ExpiryStatus == "Reorder")
-                            {
-                                <span class="badge-danger">Reorder</span>
-                            }
-                            else
-                            {
-                                <span class="badge-ok">OK</span>
-                            }
-                        </td>
+                        <th>Batch No</th>
+                        <th>Expiry Date</th>
+                        <th>Quantity</th>
+                        <th>Status</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.Batches)
+                    {
+                        <tr>
+                            <td>@b.BatchNo</td>
+                            <td>@b.ExpiryDate.ToString("dd/MM/yyyy")</td>
+                            <td>@b.Quantity</td>
+                            <td>
+                                @if (b.ExpiryStatus == "Near Expiry")
+                                {
+                                    <span class="badge-warn">Near Expiry</span>
+                                }
+                                else if (b.ExpiryStatus == "Reorder")
+                                {
+                                    <span class="badge-danger">Reorder</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-ok">OK</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
     </div>
 

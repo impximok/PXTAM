@@ -1,137 +1,130 @@
-﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-@model IEnumerable<Invexaaa.Models.Invexa.ExpiryTrackingViewModel>
+﻿@model IEnumerable<Invexaaa.Models.ViewModels.ExpiryTrackingViewModel>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Expiry Tracking";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    .expiry-safe {
+        background: #e6f7ec;
+        color: #15803d;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .expiry-warning {
+        background: #fff7ed;
+        color: #b45309;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .expiry-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    /* 🔒 Inactive rows */
+    .inactive-row {
+        opacity: 0.55;
+        filter: grayscale(100%);
+    }
+
+    .inactive-badge {
+        background: #e5e7eb;
+        color: #374151;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+</style>
+
 <div class="container-fluid">
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-semibold mb-0">Expiry Tracking</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-semibold">Expiry Tracking</h3>
+        <span class="text-muted small">
+            Batch-level expiry monitoring
+        </span>
     </div>
 
-    <!-- FILTERS -->
-    <form method="get" class="row g-2 mb-4">
-
-        <div class="col-md-3">
-            <input type="text"
-                   name="search"
-                   value="@Context.Request.Query["search"]"
-                   class="form-control form-control-sm"
-                   placeholder="Search item..." />
-        </div>
-
-        <div class="col-md-2">
-            <select name="categoryId" class="form-select form-select-sm">
-                <option value="">All Categories</option>
-                @foreach (var c in ViewBag.Categories)
-                {
-                    <option value="@c.CategoryID"
-                            selected="@(Context.Request.Query["categoryId"] == c.CategoryID.ToString())">
-                        @c.CategoryName
-                    </option>
-                }
-            </select>
-        </div>
-
-        <div class="col-md-2">
-            <select name="expiryStatus" class="form-select form-select-sm">
-                <option value="">All Status</option>
-                <option value="Safe" selected="@(Context.Request.Query["expiryStatus"] == "Safe")">Safe</option>
-                <option value="Near Expiry" selected="@(Context.Request.Query["expiryStatus"] == "Near Expiry")">Near Expiry</option>
-                <option value="Expired" selected="@(Context.Request.Query["expiryStatus"] == "Expired")">Expired</option>
-            </select>
-        </div>
-
-        <div class="col-md-2">
-            <select name="expiryRange" class="form-select form-select-sm">
-                <option value="">Any Date</option>
-                <option value="7" selected="@(Context.Request.Query["expiryRange"] == "7")">Next 7 Days</option>
-                <option value="30" selected="@(Context.Request.Query["expiryRange"] == "30")">Next 30 Days</option>
-            </select>
-        </div>
-
-        <div class="col-md-2">
-            <button type="submit"
-                    class="btn btn-sm btn-outline-dark w-100">
-                Apply
-            </button>
-        </div>
-
-    </form>
-
-    <!-- TABLE -->
-    <div class="border rounded">
+    <div class="card">
         <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
-                <thead class="border-bottom small text-muted">
+            <table class="table align-middle mb-0">
+                <thead class="table-secondary small">
                     <tr>
-                        <th>ID</th>
                         <th>Item</th>
                         <th>Category</th>
                         <th>Batch</th>
-                        <th class="text-end">Qty</th>
-                        <th>Expiry</th>
+                        <th>Expiry Date</th>
+                        <th>Quantity</th>
                         <th>Status</th>
-                        <th class="text-end">Action</th>
+                        <th style="width:140px">Action</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @if (Model.Any())
+                    @foreach (var row in Model)
                     {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.BatchID</td>
+                        bool isInactive = row.ItemStatus == "Inactive";
 
-                                <td class="fw-medium">
-                                    @item.ItemName
-                                </td>
+                        string statusClass =
+                        row.ExpiryStatus == "Expired" ? "expiry-danger" :
+                        row.ExpiryStatus == "Near Expiry" ? "expiry-warning" :
+                        "expiry-safe";
 
-                                <td class="text-muted">
-                                    @item.CategoryName
-                                </td>
+                        <tr class="@(isInactive ? "inactive-row" : "")">
+                            <td class="fw-semibold">
+                                @row.ItemName
+                                @if (isInactive)
+                                {
+                                    <div class="mt-1">
+                                        <span class="inactive-badge">INACTIVE</span>
+                                    </div>
+                                }
+                            </td>
 
-                                <td>
-                                    @item.BatchNumber
-                                </td>
+                            <td>@row.CategoryName</td>
 
-                                <td class="text-end fw-medium">
-                                    @item.Quantity
-                                </td>
+                            <td>@row.BatchNumber</td>
 
-                                <td>
-                                    @item.ExpiryDate.ToString("dd/MM/yyyy")
-                                </td>
+                            <td>@row.ExpiryDate.ToString("dd/MM/yyyy")</td>
 
-                                <td>
-                                    <span class="badge border text-dark fw-normal">
-                                        @item.ExpiryStatus
-                                    </span>
-                                </td>
+                            <td>@row.Quantity</td>
 
-                                <td class="text-end">
+                            <td>
+                                <span class="@statusClass">
+                                    @row.ExpiryStatus
+                                </span>
+                            </td>
+
+                            <td>
+                                @if (isInactive)
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Locked
+                                    </button>
+                                }
+                                else
+                                {
                                     <a asp-controller="Stock"
                                        asp-action="EditExpiry"
-                                       asp-route-batchId="@item.BatchID"
-                                       class="btn btn-sm btn-outline-dark">
+                                       asp-route-batchId="@row.BatchID"
+                                       class="btn btn-sm btn-outline-primary">
                                         Edit
                                     </a>
-                                </td>
-
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="8"
-                                class="text-center text-muted py-4">
-                                No expiry records found.
+                                }
                             </td>
                         </tr>
                     }

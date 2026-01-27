@@ -261,14 +261,28 @@ namespace Invexaaa.Controllers
         }
 
         // ========================= LOGOUT =========================
+
+        [Authorize]
+        [HttpGet("Logout")]
+        public IActionResult LogoutConfirm()
+        {
+            return View("Logout");
+        }
+
         [Authorize]
         [HttpPost("Logout")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
+            // Clear authentication cookie
             await HttpContext.SignOutAsync("MyCookieAuth");
+
+            // Clear session (IMPORTANT)
+            HttpContext.Session.Clear();
+
             return RedirectToAction("Login");
         }
+
 
         // ========================= ACCESS DENIED =========================
         [HttpGet("AccessDenied")]

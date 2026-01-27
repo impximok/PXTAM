@@ -51,11 +51,7 @@ namespace Invexaaa.Controllers
                     ItemBarcode = i.ItemBarcode
                 };
 
-            // 🔥 DEFAULT RULE: only ACTIVE items
-            if (string.IsNullOrEmpty(status))
-            {
-                items = items.Where(x => x.ItemStatus == "Active");
-            }
+           
 
             if (!string.IsNullOrWhiteSpace(search))
                 items = items.Where(x => x.ItemName.Contains(search));
@@ -253,11 +249,11 @@ namespace Invexaaa.Controllers
         public IActionResult DeactivateItem(int id)
         {
             var item = _context.Items.Find(id);
-            if (item == null)
-                return NotFound();
+            if (item == null) return NotFound();
 
             return View("DeactivateItem", item);
         }
+
 
         [Authorize(Roles = "Admin,Manager")]
         [HttpPost("DeactivateItem/{id}")]
@@ -265,19 +261,34 @@ namespace Invexaaa.Controllers
         public IActionResult DeactivateItemConfirmed(int id)
         {
             var item = _context.Items.Find(id);
-            if (item == null)
-                return NotFound();
+            if (item == null) return NotFound();
 
             item.ItemStatus = "Inactive";
             _context.SaveChanges();
 
-            TempData["Success"] = "Item deactivated successfully.";
             return RedirectToAction("ItemIndex");
         }
 
 
+        // =====================================================
+        // FORCE DELETE CONFIRMATION (GET)
+        // Admin only
+        // URL: /Item/ForceDeleteConfirm/{id}
+        // =====================================================
         [Authorize(Roles = "Admin")]
-        [HttpPost("ForceDeleteItem")]
+        [HttpGet("ForceDeleteConfirm/{id}")]
+        public IActionResult ForceDeleteConfirm(int id)
+        {
+            var item = _context.Items.Find(id);
+            if (item == null) return NotFound();
+
+            return View("ForceDeleteConfirm", item);
+        }
+
+
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("ForceDeleteItem/{id}")]
         [ValidateAntiForgeryToken]
         public IActionResult ForceDeleteItem(int id)
         {

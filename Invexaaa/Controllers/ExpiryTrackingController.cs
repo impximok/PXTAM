@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Invexaaa.Data;
 using Invexaaa.Models.Invexa;
 using System;
+using Invexaaa.Models.ViewModels;
+
 
 namespace Invexaaa.Controllers
 {
@@ -28,7 +30,6 @@ namespace Invexaaa.Controllers
                 from batch in _context.StockBatches
                 join item in _context.Items on batch.ItemID equals item.ItemID
                 join category in _context.Categories on item.CategoryID equals category.CategoryID
-                where item.ItemStatus == "Active"   // 🔒 HIDE INACTIVE ITEMS
                 select new ExpiryTrackingViewModel
                 {
                     BatchID = batch.BatchID,
@@ -40,6 +41,8 @@ namespace Invexaaa.Controllers
                     BatchNumber = batch.BatchNumber,
                     Quantity = batch.BatchQuantity,
                     ExpiryDate = batch.BatchExpiryDate,
+
+                    ItemStatus = item.ItemStatus,
                     ExpiryStatus =
                         batch.BatchExpiryDate < today ? "Expired" :
                         batch.BatchExpiryDate <= today.AddDays(30) ? "Near Expiry" :

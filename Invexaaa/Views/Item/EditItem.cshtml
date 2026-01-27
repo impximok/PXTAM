@@ -1,98 +1,1568 @@
 ﻿@model Invexaaa.Models.ViewModels.ItemFormViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Edit Item";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="mb-4">✏️ Edit Item</h2>
+<style>
+    :root {
+        --page-bg: #ffffff;
+        --card-bg: #ffffff;
+        --border: #e3e3e3;
+        --text: #111;
+        --muted: #7a7a7a;
+        --radius: 18px;
+    }
 
-<form asp-action="EditItem" asp-controller="Item" method="post">
-    @Html.AntiForgeryToken()
 
-    <!-- Hidden ID -->
-    <input type="hidden" asp-for="Item.ItemID" />
+    body {
+        background: #fff !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        color: var(--text);
+    }
 
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label asp-for="Item.ItemName" class="form-label"></label>
-            <input asp-for="Item.ItemName" class="form-control" />
-            <span asp-validation-for="Item.ItemName" class="text-danger"></span>
-        </div>
+    main {
+        background: #fff !important;
+    }
 
-        <div class="col-md-6 mb-3">
-            <label class="form-label">Barcode</label>
-            <input class="form-control" value="@Model.Item.ItemBarcode" disabled />
-        </div>
 
-        <div class="col-md-6 mb-3">
-            <label class="form-label">Category</label>
-            <select asp-for="Item.CategoryID"
-                    asp-items="@(new SelectList(Model.Categories, "CategoryID", "CategoryName"))"
-                    class="form-select">
-                <option value="">-- Select Category --</option>
-            </select>
-            <span asp-validation-for="Item.CategoryID" class="text-danger"></span>
-        </div>
 
-        <div class="col-md-6 mb-3">
-            <label class="form-label">Supplier</label>
-            <select asp-for="Item.SupplierID"
-                    asp-items="@(new SelectList(Model.Suppliers, "SupplierID", "SupplierName"))"
-                    class="form-select">
-                <option value="">-- Select Supplier --</option>
-            </select>
-            <span asp-validation-for="Item.SupplierID" class="text-danger"></span>
-        </div>
+    .two-card {
+        width: 100%;
+        max-width: 1400px;
+        display: grid;
+        gap: 26px;
+        align-items: stretch;
+        /* ✅ auto layout: becomes 1 column automatically on small screens */
+        grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    }
 
-        <div class="col-md-4 mb-3">
-            <label asp-for="Item.ItemBuyPrice" class="form-label"></label>
-            <input asp-for="Item.ItemBuyPrice" class="form-control" />
-        </div>
+    @@media (max-width: 950px) {
+        .two-card {
+            grid-template-columns: 1fr; /* stack */
+        }
+    }
 
-        <div class="col-md-4 mb-3">
-            <label asp-for="Item.ItemSellPrice" class="form-label"></label>
-            <input asp-for="Item.ItemSellPrice" class="form-control" />
-        </div>
+    .form-grid {
+        display: grid;
+        gap: 12px 16px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
 
-        <div class="col-md-4 mb-3">
-            <label asp-for="Item.ItemUnitOfMeasure" class="form-label"></label>
-            <input asp-for="Item.ItemUnitOfMeasure" class="form-control" />
-        </div>
 
-        <div class="col-md-4 mb-3">
-            <label asp-for="Item.ItemReorderLevel" class="form-label"></label>
-            <input asp-for="Item.ItemReorderLevel" class="form-control" />
-        </div>
+    .basic-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 16px;
+    }
 
-        <div class="col-md-4 mb-3">
-            <label asp-for="Item.SafetyStock" class="form-label"></label>
-            <input asp-for="Item.SafetyStock" class="form-control" />
-        </div>
+        .basic-grid .span-2 {
+            grid-column: 1 / -1;
+        }
 
-        <div class="col-md-4 mb-3">
-            <label asp-for="Item.ItemStatus" class="form-label"></label>
-            <select asp-for="Item.ItemStatus" class="form-select">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-            </select>
-        </div>
+    /* mobile */
+    @@media (max-width: 950px) {
+        .basic-grid {
+            grid-template-columns: 1fr;
+        }
 
-        <div class="col-12 mb-3">
-            <label asp-for="Item.ItemImageUrl" class="form-label"></label>
-            <input asp-for="Item.ItemImageUrl" class="form-control" />
-        </div>
-    </div>
+            .basic-grid .span-2 {
+                grid-column: auto;
+            }
+    }
 
-    <div class="mt-4">
-        <button type="submit" class="btn btn-primary">
-            💾 Save Changes
-        </button>
-        <a asp-action="ItemDetail" asp-route-id="@Model.Item.ItemID"
-           class="btn btn-secondary ms-2">
-            Cancel
-        </a>
-    </div>
-</form>
+
+    .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: none;
+        padding: 32px 26px 22px; /* ⬅统一 top padding */
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        overflow: visible;
+    }
+
+
+    .subtitle {
+        margin-top: 8px;
+        font-size: 0.9rem;
+        color: var(--muted);
+        text-align: center;
+    }
+
+    /* LEFT: square preview */
+    .photo-circle {
+        width: 210px;
+        height: 210px;
+        margin: 18px auto 16px;
+        border-radius: 14px; /* ✅ square but slightly rounded */
+        border: 1px solid var(--border);
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        transition: border-color .2s ease, background-color .2s ease, transform .15s ease;
+        cursor: pointer;
+    }
+
+        .photo-circle:hover {
+            border-color: #bdbdbd;
+            background: #f1f1f1;
+            transform: translateY(-1px);
+        }
+
+        .photo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* text centered nicely */
+        .photo-circle .placeholder {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: #9a9a9a;
+            font-size: 16px;
+            font-weight: 600;
+            user-select: none;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+
+        .photo-circle .preview-text {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            /* force text to look like text */
+            background: transparent !important;
+            color: #9a9a9a !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+            /* make sure it's above everything */
+            z-index: 999 !important;
+            pointer-events: none;
+        }
+
+
+
+
+
+        .photo-circle * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .photo-circle img {
+            position: relative;
+            z-index: 1;
+        }
+
+
+    /* Upload button */
+    .upload-row {
+        width: 260px;
+        max-width: 100%;
+        margin: 0 auto 16px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .upload-pill {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 6px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+    }
+
+        .upload-pill label {
+            flex: 1;
+            text-align: center;
+            border-radius: 999px;
+            padding: 10px 12px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.92rem;
+            margin: 0;
+            transition: background-color .2s ease, transform .15s ease;
+            background: #111; /* ✅ default black */
+            border: 1px solid #111; /* ✅ needed so hover can show outline cleanly */
+        }
+
+
+
+            .upload-pill label:active {
+                transform: scale(0.97);
+            }
+    /* Dropzone */
+    .dropzone {
+        border: 1.6px dashed #d8d8d8;
+        border-radius: 16px;
+        text-align: center;
+        background: #fff;
+        margin-top: 18px;
+        padding: 28px 20px; /* more vertical air */
+        transition: border-color .2s ease, background-color .2s ease;
+    }
+
+        .dropzone .icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid #ededed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2px auto 10px;
+            color: #666;
+            background: #fafafa;
+            font-weight: 800;
+        }
+
+        .dropzone .hint {
+            margin: 8px 0 10px;
+            color: #666;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+
+    .choose-btn {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 650;
+        font-size: 0.92rem;
+    }
+
+    .dropzone small {
+        display: block;
+        margin-top: 10px;
+        color: #9a9a9a;
+        font-size: 0.78rem;
+    }
+
+    /* RIGHT: form */
+    .form-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 16px; /* row gap 12px, column gap unchanged */
+    }
+
+    .form-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px 16px; /* row gap 12px, column gap unchanged */
+    }
+
+    .field label {
+        margin: 10px 0 4px; /* ⬅ was 14px 0 6px */
+        font-size: 13px;
+        font-weight: 500;
+        color: #000;
+        display: block;
+    }
+
+
+
+    .field input,
+    .field select {
+        width: 100%;
+        padding: 10px 12px; /* ⬅ was 12px */
+        border-radius: 12px;
+        border: 2px solid transparent; /* 👈 reserve space */
+        background: #fff;
+        font-size: 0.95rem;
+        outline: none;
+        box-shadow: none !important;
+    }
+
+    /* Default (unfocused) look */
+    .field input,
+    .field select {
+        border-color: #dedede; /* grey */
+    }
+
+        /* Focused */
+        .field input:focus,
+        .field select:focus {
+            border-color: #000; /* black */
+        }
+
+
+    .help-box {
+        border-radius: 14px;
+        background: #f7f7f7;
+        border: 1px dashed #d8d8d8;
+        margin-top: 8px; /* ⬅ was 12px */
+        padding: 10px 12px; /* slightly slimmer */
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .text-danger {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.78rem;
+    }
+
+    .primary-btn {
+        margin-top: 18px;
+        width: 100%;
+        padding: 11px 14px;
+        border: 1px solid #111; /* ✅ so hover outline shows */
+        border-radius: 999px;
+        background: #111;
+        color: #fff;
+        font-weight: 750;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+    }
+
+        /* ✅ SAMPLE HOVER (white pill outline) */
+        .primary-btn:hover,
+        .upload-pill label:hover {
+            background: #fff !important;
+            color: #000 !important;
+            border-color: #000 !important;
+        }
+
+        /* Pressed/click feedback (optional) */
+        .primary-btn:active,
+        .upload-pill label:active {
+            background: #f2f2f2 !important;
+            color: #000 !important;
+            border-color: #000 !important;
+        }
+
+
+    .back-link {
+        margin-top: 18px;
+        text-align: center;
+    }
+
+        .back-link a {
+            color: #111;
+            text-decoration: underline;
+            font-size: 0.88rem;
+            transition: color 0.2s ease;
+        }
+
+            .back-link a:hover {
+                color: #2563eb; /* blue hover */
+            }
+
+
+    @@media (max-width: 950px) {
+        .two-card {
+            grid-template-columns: 1fr;
+        }
+
+        .card h2 {
+            font-size: 1.55rem;
+        }
+
+        .form-grid-2, .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+
+    /* --- Hover polish additions --- */
+    .photo-circle {
+        cursor: pointer;
+        position: relative; /* ✅ REQUIRED */
+        margin: 22px auto 22px
+    }
+
+        .photo-circle:active {
+            transform: translateY(0);
+        }
+
+    .choose-btn {
+        transition: background-color .2s ease, border-color .2s ease, transform .15s ease;
+    }
+
+        .choose-btn:hover {
+            background: #f5f5f5;
+            border-color: #cfcfcf;
+        }
+
+        .choose-btn:active {
+            transform: scale(0.98);
+        }
+
+    .upload-pill label:hover {
+        background: #000;
+    }
+
+    .dropzone {
+        transition: border-color .2s ease, background-color .2s ease, transform .15s ease;
+    }
+
+        .dropzone:active {
+            transform: scale(0.995);
+        }
+
+    /* Focus ring (buttons only) */
+    .photo-circle:focus-visible,
+    .upload-pill label:focus-visible,
+    .choose-btn:focus-visible,
+    .primary-btn:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(0,0,0,0.08);
+    }
+
+    /* ====== Editor modal ====== */
+    .editor {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(0,0,0,.55);
+        display: grid;
+        place-items: center;
+        padding: 20px;
+    }
+
+        .editor.hidden {
+            display: none;
+        }
+
+    .editor-box {
+        width: min(480px, 94vw);
+        background: #fff;
+        border-radius: 24px;
+        padding: 18px;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+
+    .editor-close {
+        position: absolute;
+        top: 14px; /* ⬅ more space from top */
+        right: 14px; /* ⬅ more space from right */
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,0,0,.15);
+        background: #fff;
+        cursor: pointer;
+    }
+
+        .editor-close:hover {
+            background: #f4f4f4;
+        }
+
+
+    .editor-canvasWrap {
+        width: min(360px, 82vw);
+        height: min(360px, 82vw);
+        margin: 10px auto 0;
+        border-radius: 14px; /* ✅ square crop */
+        background: #f4f5f7;
+        border: 1px solid rgba(0,0,0,.12);
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+    }
+
+
+    .editor-controls {
+        margin-top: 16px;
+        display: grid;
+        gap: 16px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(0,0,0,.08);
+    }
+
+    .editor-zoom {
+        display: grid;
+        grid-template-columns: 46px 1fr;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .zoom-label {
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .editor-zoom input[type="range"] {
+        width: 100%;
+    }
+
+    .editor-actions {
+        display: grid;
+        gap: 14px;
+        justify-items: center;
+    }
+
+    .rotate-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn.icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        border: 1px solid #000;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .btn.solid.use-btn {
+        width: 50%; /* 🔥 shorter */
+        max-width: 160px; /* 🔥 tighter */
+        height: 42px; /* slightly slimmer */
+        border-radius: 999px;
+        border: 1px solid #000;
+        background: #000;
+        color: #fff;
+        cursor: pointer;
+    }
+
+
+        /* Hover like your login sample */
+        .btn.solid.use-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+
+    /* ===== Zoom slider (clean single track) ===== */
+    .editor-zoom input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 16px; /* bigger click area */
+        background: transparent; /* ✅ IMPORTANT: remove the extra grey line */
+        outline: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        /* Track (Chrome/Safari) */
+        .editor-zoom input[type="range"]::-webkit-slider-runnable-track {
+            height: 4px;
+            border-radius: 999px;
+            background: linear-gradient( to right, #000 0%, #000 var(--value, 0%), #e5e5e5 var(--value, 0%), #e5e5e5 100% );
+        }
+
+        /* Thumb (Chrome/Safari) */
+        .editor-zoom input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #000;
+            border: 0;
+            margin-top: -6px; /* centers thumb on 4px track */
+            cursor: pointer;
+        }
+
+        /* Firefox track */
+        .editor-zoom input[type="range"]::-moz-range-track {
+            height: 4px;
+            background: #e5e5e5;
+            border-radius: 999px;
+        }
+
+        .editor-zoom input[type="range"]::-moz-range-progress {
+            height: 4px;
+            background: #000;
+            border-radius: 999px;
+        }
+
+        .editor-zoom input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #000;
+            border: 0;
+            cursor: pointer;
+        }
+
+
+
+
+    .card-photo {
+        padding: 18px 18px 16px; /* ✅ smaller padding */
+    }
+
+
+    .photo-circle {
+        width: 190px;
+        height: 190px; /* ✅ slightly smaller preview */
+    }
+
+
+
+
+    /* Choose Image button - NOT full width */
+    .card-photo .primary-btn {
+        width: auto;
+        min-width: 180px;
+        max-width: 220px;
+        margin: 14px auto 0; /* center */
+        display: block;
+    }
+
+    /* ===== Custom Dropdown (FIXED) ===== */
+    .dd {
+        position: relative;
+        width: 100%;
+    }
+
+    /* CLOSED field */
+    .dd-btn {
+        width: 100%;
+        height: 48px;
+        padding: 0 28px 0 18px; /* ⬅ smaller right padding = arrow goes more right */
+        border-radius: 16px;
+        background: #fff;
+        color: #111;
+        border: 1px solid #dedede !important; /* ✅ default grey border */
+        box-shadow: none !important; /* ✅ remove weird double border */
+        outline: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        box-sizing: border-box;
+        position: relative; /* ✅ needed */
+        padding-right: 44px; /* ⬅ more space for arrow */
+    }
+
+    /* When open, add soft shadow like sample */
+    .dd.open .dd-btn {
+        border-color: #dcdcdc !important;
+        box-shadow: 0 12px 26px rgba(0,0,0,0.06) !important;
+    }
+
+    /* Focus (keep grey, no black border jump) */
+    .dd-btn:focus,
+    .dd-btn:focus-visible {
+        border: 1px solid #dedede !important;
+    }
+
+    /* Text */
+    .dd-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #111;
+    }
+
+    .dd-placeholder {
+        color: #999;
+    }
+
+    /* Arrow */
+    /* Arrow like sample (thin V) */
+    .dd-arrow {
+        width: 18px;
+        height: 18px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        position: absolute;
+        right: 16px; /* ⬅ move right */
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+        .dd-arrow::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-right: 2px solid #111;
+            border-bottom: 2px solid #111;
+            transform: rotate(45deg); /* makes a V chevron */
+            margin-top: -2px;
+        }
+
+
+    /* MENU container */
+    .dd-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 10px);
+        z-index: 999;
+        background: #fff;
+        border-radius: 18px;
+        padding: 10px;
+        display: none;
+        max-height: 260px; /* ✅ FIX: missing semicolon before */
+        overflow: auto; /* ✅ FIX */
+    }
+
+    .dd.open .dd-menu {
+        display: block;
+    }
+
+    /* Items (full width rows like sample) */
+    .dd-item {
+        padding: 14px 18px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #111;
+        cursor: pointer;
+    }
+
+        .dd-item:hover {
+            background: #f1f1f1;
+        }
+
+
+
+    /* ===== Make dropdown menu more compact ===== */
+    .dd-menu {
+        top: calc(100% + 6px); /* was 10px */
+        padding: 6px; /* was 10px */
+        border-radius: 14px; /* was 18px */
+        max-height: 180px; /* was 260px */
+        border: 1px solid #e6e6e6; /* add a clean edge */
+        box-shadow: 0 14px 30px rgba(0,0,0,0.08);
+    }
+
+    .dd-item {
+        padding: 10px 14px; /* was 14px 18px */
+        font-size: 0.92rem; /* slightly smaller */
+        border-radius: 12px;
+        line-height: 1.2;
+    }
+
+    /* Optional: also reduce the closed field height a bit */
+    .dd-btn {
+        height: 44px; /* was 48px */
+        border-radius: 14px; /* was 16px */
+    }
+
+
+    .card-title {
+        margin: 0;
+        padding-top: 8px;
+        padding-bottom: 24px;
+        font-size: 30px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: #000;
+        text-align: center;
+    }
+
+
+
+    .dropzone {
+        cursor: pointer;
+    }
+
+        .dropzone:hover {
+            border-color: #bdbdbd;
+            background: #fafafa;
+        }
+
+        .dropzone:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.08);
+        }
+
+    /* LEFT CARD = consistent vertical spacing */
+    .card-photo {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 32px; /* ✅ match .card padding-top */
+        padding-bottom: 26px;
+        gap: 22px; /* ✅ makes spacing equal */
+    }
+
+        /* title: remove extra bottom margin */
+        .card-photo .card-title {
+            margin: 0; /* ✅ let gap control spacing */
+            line-height: 1.15;
+        }
+
+        /* preview box: remove random margins */
+        .card-photo .photo-circle {
+            margin: 0; /* ✅ let gap control spacing */
+        }
+
+        /* dropzone: remove random top margin */
+        .card-photo .dropzone {
+            margin-top: 0; /* ✅ let gap control spacing */
+            width: 100%; /* looks cleaner */
+        }
+
+        /* bottom button: remove random margin-top */
+        .card-photo .primary-btn {
+            margin-top: 0; /* ✅ gap controls spacing */
+        }
+
+    .page-wrap {
+        padding: 6px 14px;
+        display: flex;
+        justify-content: flex-start;
+        background: #fff !important;
+    }
+
+
+    .card {
+        padding-top: 16px;
+    }
+    /* reduce card top padding */
+
+    .bw-icon {
+        filter: grayscale(100%) brightness(0);
+        margin-right: 6px;
+    }
+
+    /* ===== Validation error (match Register page) ===== */
+    .field input.input-validation-error,
+    .field select.input-validation-error {
+        border-color: #dc2626 !important; /* red */
+    }
+
+        /* Optional: red focus ring when errored */
+        .field input.input-validation-error:focus,
+        .field select.input-validation-error:focus {
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15);
+        }
+
+
+    /* ===== Validation error for custom dropdown ===== */
+    .dd.error .dd-btn {
+        border: 2px solid #dc2626 !important; /* IMPORTANT: override border shorthand */
+    }
+
+    .dd.error.dd.open .dd-btn {
+        border: 2px solid #dc2626 !important;
+    }
+
+    .dd.error .dd-btn:focus,
+    .dd.error .dd-btn:focus-visible {
+        border: 2px solid #dc2626 !important;
+    }
+
+    /* ===== Save button loading state ===== */
+    .primary-btn.is-loading {
+        opacity: 0.85;
+        cursor: not-allowed;
+    }
+
+    .primary-btn .btn-spinner {
+        width: 16px;
+        height: 16px;
+        margin-left: 10px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.45);
+        border-top-color: #fff;
+        display: none;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+    }
+
+    .primary-btn.is-loading .btn-spinner {
+        display: inline-block;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .req {
+        color: #dc2626;
+        font-weight: 800;
+        margin-left: 4px;
+    }
+
+    .btn-row {
+        position: sticky;
+        bottom: 0;
+        background: #fff;
+        padding: 12px 0 6px;
+        margin-top: 12px;
+        border-top: 1px solid #ededed;
+        display: flex;
+        gap: 12px;
+    }
+
+        .btn-row .primary-btn {
+            flex: 1;
+            margin-top: 0;
+        }
+    /* ✅ remove extra top margin */
+    .card[aria-label="Add New Item Form"] {
+        overflow: visible;
+    }
+
+
+
+    .primary-btn.secondary {
+        background: #fff;
+        color: #111;
+        border: 1px solid #111;
+    }
+
+        .primary-btn.secondary:hover {
+            background: #111 !important;
+            color: #fff !important;
+            border-color: #111 !important;
+        }
+
+
+    /* ===== Searchable dropdown ===== */
+    .dd-search {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid #e6e6e6;
+        outline: none;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+
+        .dd-search:focus {
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.06);
+        }
+
+    .dd-item.hidden {
+        display: none;
+    }
+
+    /* highlight keyboard selected item */
+    .dd-item.kb-active {
+        background: #f1f1f1;
+    }
+
+    .dd-item.dd-new {
+        font-weight: 700;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 6px;
+    }
+
+        .dd-item.dd-new:hover {
+            background: #f7f7f7;
+        }
+
+    .dd-item.dd-new,
+    .dd-item.dd-refresh {
+        font-weight: 700;
+        background: #fafafa;
+    }
+
+    .dd-item.dd-refresh {
+        border-bottom: 1px solid #eee;
+        margin-bottom: 6px;
+    }
+
+    .dd-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .dd-head .dd-btn {
+            flex: 1;
+        }
+
+    .dd-action {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid #e6e8ec;
+        background: #fff;
+        color: #111;
+        transition: .15s ease;
+    }
+
+        .dd-action:hover {
+            background: #f5f6f8;
+            border-color: #d7dae0;
+        }
+
+
+    .dropzone.is-dragover {
+        border-color: #000;
+        background: #fafafa;
+    }
+
+    .editor-zoom input[type="range"]::-moz-range-progress {
+        background: #000;
+        height: 4px;
+        border-radius: 999px;
+    }
+
+    .editor-zoom input[type="range"]::-moz-range-track {
+        background: #e5e5e5;
+        height: 4px;
+        border-radius: 999px;
+    }
+
+    /* ===== FINAL compact spacing for daily ops ===== */
+    .card {
+        padding: 18px 22px;
+    }
+
+    .card-title {
+        margin: 6px 0 14px;
+        padding: 0; /* ✅ remove the big padding you set earlier */
+        font-size: 28px; /* slightly smaller to save height */
+    }
+
+    .field {
+        margin-bottom: 12px;
+    }
+        /* ✅ you don't have this now */
+        .field label {
+            margin: 0 0 6px; /* ✅ override your 10px top margin */
+            font-size: 14px;
+        }
+
+    .form-grid, .form-grid-2, .form-grid-3 {
+        gap: 12px 16px;
+    }
+
+    /* ===== UOM quick fill (clean) ===== */
+    .uom-row {
+        display: grid;
+        gap: 10px;
+    }
+
+    .uom-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid #ededed;
+        background: #fafafa;
+        border-radius: 14px;
+    }
+
+    .uom-chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid #e3e3e3;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 0.88rem;
+        line-height: 1;
+        transition: background .15s ease, border-color .15s ease, transform .08s ease;
+    }
+
+        .uom-chip:hover {
+            background: #f3f3f3;
+            border-color: #d6d6d6;
+        }
+
+        .uom-chip:active {
+            transform: scale(0.98);
+        }
+
+        /* nice focus for keyboard */
+        .uom-chip:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.08);
+        }
+
+
+    /* ===== Dropdown menu: always above + scrollable ===== */
+    .dd {
+        position: relative;
+        z-index: 30;
+    }
+
+        .dd.open {
+            z-index: 9999;
+        }
+    /* only when open, jump to top */
+
+    .dd-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 6px);
+        z-index: 9999;
+        max-height: 220px;
+        overflow: auto;
+    }
+
+    .uom-chip.is-active {
+        border-color: #000;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    }
+
+    .dd-uom .dd-input {
+        width: 100%;
+        height: 44px;
+        padding: 0 44px 0 18px;
+        border-radius: 14px;
+        border: 2px solid #dedede; /* ✅ 2px default */
+        font-size: 0.95rem;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+        .dd-uom .dd-input:focus {
+            border-color: #000; /* ✅ black focus */
+        }
+
+
+    /* ===== DD-style input for UOM ===== */
+    .dd-uom .dd-head {
+        position: relative;
+        width: 100%;
+    }
+
+    .dd-uom .dd-input {
+        width: 100%;
+        height: 44px;
+        padding: 0 44px 0 18px; /* leave room for arrow */
+        border-radius: 12px;
+        border: 1px solid #dedede;
+        font-size: 0.95rem;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+        .dd-uom .dd-input:focus {
+            border-color: #000;
+        }
+
+    .dd-uom.open .dd-input {
+        box-shadow: 0 12px 26px rgba(0,0,0,0.06);
+    }
+
+    .dd-uom .dd-arrow {
+        pointer-events: none;
+    }
+
+    .section-label {
+        margin: 18px 0 10px;
+        padding-bottom: 10px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        border-bottom: 1px solid #ededed; /* ✅ thin line */
+    }
+
+        .section-label:first-of-type {
+            margin-top: 0;
+        }
+
+    .dd-uom .dd-arrow {
+        pointer-events: auto; /* ✅ allow clicking */
+        cursor: pointer;
+    }
+
+    .text-danger {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.82rem;
+        color: #dc2626;
+    }
+
+    .dd-uom .dd-input.input-validation-error {
+        border: 2px solid #dc2626 !important;
+    }
+
+
+    .field textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 2px solid #dedede;
+        font-size: 0.95rem;
+        outline: none;
+        box-shadow: none !important;
+    }
+
+        .field textarea:focus {
+            border-color: #000;
+        }
+
+        .field textarea.input-validation-error {
+            border-color: #dc2626 !important;
+        }
+
+
+    .char-hint {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.75rem;
+        color: #6b7280; /* muted grey */
+        text-align: right;
+    }
+
+    /* ===== EXTRA-TIGHT BASIC INFO SPACING ===== */
+
+    /* overall grid row spacing */
+    .basic-grid {
+        row-gap: 4px; /* was 8px / 12px */
+    }
+
+        /* reduce bottom gap of each field */
+        .basic-grid .field {
+            margin-bottom: 2px; /* was 6px / 12px */
+        }
+
+            /* labels closer to inputs */
+            .basic-grid .field label {
+                margin-bottom: 3px; /* was 4px–6px */
+            }
+
+            /* description textarea → next row tighter */
+            .basic-grid .field.span-2 {
+                margin-bottom: 0; /* key change */
+            }
+
+        /* character counter closer */
+        .basic-grid .char-hint {
+            margin-top: 2px; /* was 4px */
+        }
+
+        /* error message closer to field */
+        .basic-grid .text-danger {
+            margin-top: 2px; /* was 6px */
+        }
+
+    /* ===== Tighten RIGHT form only ===== */
+
+    /* reduce card internal padding */
+    .card[aria-label="Add New Item Form"] {
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
+
+        /* reduce section spacing */
+        .card[aria-label="Add New Item Form"] .section-label {
+            margin: 12px 0 6px;
+            padding-bottom: 6px;
+        }
+
+        /* tighten grids */
+        .card[aria-label="Add New Item Form"] .basic-grid,
+        .card[aria-label="Add New Item Form"] .form-grid-2,
+        .card[aria-label="Add New Item Form"] .form-grid-3 {
+            row-gap: 6px; /* was 10–12px */
+        }
+
+        /* tighten each field block */
+        .card[aria-label="Add New Item Form"] .field {
+            margin-bottom: 6px; /* was ~12px */
+        }
+
+            /* labels closer to inputs */
+            .card[aria-label="Add New Item Form"] .field label {
+                margin-bottom: 4px;
+            }
+
+        /* error text closer */
+        .card[aria-label="Add New Item Form"] .text-danger {
+            margin-top: 2px;
+        }
+
+        /* description → category gap */
+        .card[aria-label="Add New Item Form"] .field.span-2 {
+            margin-bottom: 2px;
+        }
+
+        /* barcode help box tighter */
+        .card[aria-label="Add New Item Form"] .help-box {
+            margin-top: 4px;
+            padding: 8px 12px;
+        }
+
+        /* buttons row tighter */
+        .card[aria-label="Add New Item Form"] .btn-row {
+            margin-top: 10px;
+            padding-top: 8px;
+        }
+
+    .soft-divider {
+        height: 1px;
+        background: #ededed;
+        margin: 10px 0; /* tighter */
+    }
+
+    /* ===== Compact mode (right form tighter) ===== */
+    .card[aria-label="Add New Item Form"] .field {
+        margin-bottom: 8px; /* was 12px+ */
+    }
+
+        .card[aria-label="Add New Item Form"] .field label {
+            margin: 0 0 4px; /* tighter label spacing */
+            font-size: 13px;
+        }
+
+    .card[aria-label="Add New Item Form"] .form-grid-2,
+    .card[aria-label="Add New Item Form"] .form-grid-3,
+    .card[aria-label="Add New Item Form"] .basic-grid {
+        gap: 10px 14px; /* tighter row/col gap */
+    }
+
+    .card[aria-label="Add New Item Form"] textarea {
+        min-height: 78px; /* shorter description box */
+    }
+
+    /* ===== UOM focus behavior (match Category/Supplier) ===== */
+
+
+    /* focus = light shadow, keep grey border */
+    .dd-uom .dd-input:focus {
+        border-color: #dedede !important;
+        box-shadow: 0 12px 26px rgba(0,0,0,0.06) !important;
+        border: 2px solid #000 !important;
+    }
+
+
+    /* error state */
+    .dd-uom.error .dd-input {
+        border: 2px solid #dc2626 !important;
+        box-shadow: none !important;
+    }
+
+    /* ===== UOM visual states ===== */
+
+    /* DEFAULT */
+    .dd-uom .dd-input {
+        border: 2px solid #dedede !important;
+        box-shadow: none !important;
+    }
+
+        /* FOCUS */
+        .dd-uom .dd-input:focus {
+            border-color: #000 !important;
+            box-shadow: none !important;
+        }
+
+    /* ERROR */
+    .dd-uom.error .dd-input {
+        border: 2px solid #dc2626 !important;
+        box-shadow: none !important;
+    }
+
+        /* ERROR + FOCUS */
+        .dd-uom.error .dd-input:focus {
+            border: 2px solid #dc2626 !important;
+            box-shadow: 0 0 0 4px rgba(220,38,38,0.15) !important;
+        }
+
+    /* ===== Category/Supplier visual states (default/focus/error) ===== */
+
+    /* DEFAULT */
+    .dd:not(.dd-uom) .dd-btn {
+        border: 2px solid #dedede !important;
+        box-shadow: none !important;
+    }
+
+    /* FOCUS / OPEN (like your current dropdown style) */
+    .dd:not(.dd-uom).open .dd-btn {
+        border-color: #000 !important;
+        box-shadow: 0 12px 26px rgba(0,0,0,0.06) !important;
+    }
+
+    /* ERROR (only when we add .error after submit) */
+    .dd:not(.dd-uom).error .dd-btn {
+        border: 2px solid #dc2626 !important;
+        box-shadow: none !important;
+    }
+
+    /* ERROR + OPEN (keep red, optional soft red ring) */
+    .dd:not(.dd-uom).error.open .dd-btn {
+        border: 2px solid #dc2626 !important;
+        box-shadow: 0 0 0 4px rgba(220,38,38,0.10) !important;
+    }
+
+    .card-title {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+</style>
+
+
+<div class="page-wrap">
+    <form asp-action="EditItem"
+          asp-controller="Item"
+          method="post"
+          enctype="multipart/form-data"
+          class="two-card"
+          id="itemForm"
+          novalidate>
+
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Item.ItemID" />
+
+        <!-- ================= LEFT CARD ================= -->
+        <section class="card card-photo" aria-label="Item Photo">
+            <h2 class="card-title">Item Photo</h2>
+
+            <div class="photo-circle" id="photoCircle" tabindex="0" role="button">
+                <img id="previewImage"
+                     src="@Model.Item?.ItemImageUrl"
+                     alt="Preview"
+                     style="@(string.IsNullOrEmpty(Model.Item?.ItemImageUrl) ? "display:none;" : "display:block;")" />
+
+                <div class="placeholder preview-text"
+                     id="previewPlaceholder"
+                     style="@(string.IsNullOrEmpty(Model.Item?.ItemImageUrl) ? "" : "display:none;")">
+                    Preview
+                </div>
+            </div>
+
+            <input type="hidden" id="EditedImageData" name="EditedImageData" />
+
+            <input type="file"
+                   id="ItemImageInput"
+                   name="ItemImage"
+                   accept="image/*"
+                   hidden />
+
+            <div class="dropzone" id="dropzone" tabindex="0">
+                <div class="icon">↑</div>
+                <div class="hint">Drag & drop an image here</div>
+                <div class="choose-text">Choose File</div>
+                <small>JPG / PNG / GIF — up to 2MB</small>
+            </div>
+
+            <button type="button"
+                    class="primary-btn"
+                    onclick="document.getElementById('ItemImageInput').click();">
+                Change Image
+            </button>
+        </section>
+
+        <!-- ================= RIGHT CARD ================= -->
+        <section class="card" aria-label="Edit Item Form">
+            <h2 class="card-title">Edit Item</h2>
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="basic-grid">
+                <div class="field">
+                    <label>Item Name <span class="req">*</span></label>
+                    <input asp-for="Item.ItemName" />
+                    <span asp-validation-for="Item.ItemName" class="text-danger"></span>
+                </div>
+
+                <div class="field">
+                    <label>Unit of Measure <span class="req">*</span></label>
+                    <input asp-for="Item.ItemUnitOfMeasure" readonly />
+                </div>
+
+                <div class="field span-2">
+                    <label>Description</label>
+                    <textarea asp-for="Item.ItemDescription" rows="3"></textarea>
+                    <span asp-validation-for="Item.ItemDescription" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="field">
+                    <label>Category</label>
+                    <input class="form-control"
+                           value="@Model.Categories.FirstOrDefault(c => c.CategoryID == Model.Item.CategoryID)?.CategoryName"
+                           readonly />
+                </div>
+
+                <div class="field">
+                    <label>Supplier</label>
+                    <input class="form-control"
+                           value="@Model.Suppliers.FirstOrDefault(s => s.SupplierID == Model.Item.SupplierID)?.SupplierName"
+                           readonly />
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Barcode</label>
+                <input class="form-control"
+                       value="@Model.Item.ItemBarcode"
+                       readonly />
+            </div>
+
+            <div class="soft-divider"></div>
+
+            <div class="form-grid-2">
+                <div class="field">
+                    <label>Buy Price</label>
+                    <input asp-for="Item.ItemBuyPrice" type="number" step="0.01" />
+                    <span asp-validation-for="Item.ItemBuyPrice" class="text-danger"></span>
+                </div>
+
+                <div class="field">
+                    <label>Sell Price</label>
+                    <input asp-for="Item.ItemSellPrice" type="number" step="0.01" />
+                    <span asp-validation-for="Item.ItemSellPrice" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="soft-divider"></div>
+
+            <div class="form-grid-3">
+                <div class="field">
+                    <label>Reorder Level</label>
+                    <input asp-for="Item.ItemReorderLevel" type="number" />
+                </div>
+
+                <div class="field">
+                    <label>Safety Stock</label>
+                    <input asp-for="Item.SafetyStock" type="number" />
+                </div>
+
+                <div class="field">
+                    <label>Reorder Point</label>
+                    <input asp-for="Item.ReorderPoint" type="number" />
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Average Daily Demand</label>
+                <input asp-for="Item.AverageDailyDemand" type="number" step="0.01" />
+            </div>
+
+            <div class="btn-row">
+                <button type="submit" class="primary-btn" id="saveBtn">
+                    <span class="btn-text">Save Changes</span>
+                    <span class="btn-spinner"></span>
+                </button>
+            </div>
+
+            <div class="back-link">
+                <a asp-action="Index" asp-controller="Item">← Back</a>
+            </div>
+        </section>
+    </form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
