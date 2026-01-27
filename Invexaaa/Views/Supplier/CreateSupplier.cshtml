@@ -297,6 +297,8 @@
 
             <form id="supplierForm" asp-action="Create" method="post" novalidate>
                 @Html.AntiForgeryToken()
+                <input type="hidden" name="submitAction" id="submitAction" />
+
 
                 <div class="form-grid">
 
@@ -376,19 +378,18 @@
 
                 <div class="actions">
                     <button type="submit"
-                            name="submitAction"
-                            value="save"
-                            class="pill-btn pill-solid">
+                            class="pill-btn pill-solid js-submit"
+                            data-action="save">
                         Save
                     </button>
 
                     <button type="submit"
-                            name="submitAction"
-                            value="saveNew"
-                            class="pill-btn pill-outline">
+                            class="pill-btn pill-outline js-submit"
+                            data-action="saveNew">
                         Save &amp; New
                     </button>
                 </div>
+
 
             </form>
 
@@ -440,6 +441,29 @@
           cs.classList.remove("open");
           btn.setAttribute("aria-expanded", "false");
         }
+      });
+    })();
+
+        (() => {
+      // =========================
+      // Save / Save & New logic
+      // =========================
+      const form = document.getElementById("supplierForm");
+      const hiddenAction = document.getElementById("submitAction");
+
+      form.querySelectorAll(".js-submit").forEach(btn => {
+        btn.addEventListener("click", () => {
+          hiddenAction.value = btn.dataset.action;
+        });
+      });
+
+      form.addEventListener("submit", () => {
+        form.querySelectorAll(".js-submit").forEach(b => {
+          b.disabled = true;
+          if (b.dataset.action === hiddenAction.value) {
+            b.textContent = "Saving...";
+          }
+        });
       });
     })();
 </script>

@@ -31,25 +31,44 @@ namespace Invexaaa.Controllers
         public IActionResult ItemIndex(string search, int? categoryId, string status, int page = 1, int pageSize = 12)
         {
             var items =
-                from i in _context.Items
-                join c in _context.Categories on i.CategoryID equals c.CategoryID
-                join s in _context.Suppliers on i.SupplierID equals s.SupplierID
-                join inv in _context.Inventories on i.ItemID equals inv.ItemID
-                select new ItemCardViewModel
-                {
-                    ItemID = i.ItemID,
-                    ItemName = i.ItemName,
-                    CategoryID = i.CategoryID,
-                    CategoryName = c.CategoryName,
-                    SupplierName = s.SupplierName,
-                    ItemSellPrice = i.ItemSellPrice,
-                    ItemStatus = i.ItemStatus,
-                    ItemImageUrl = i.ItemImageUrl,
-                    ReorderLevel = i.ItemReorderLevel,
-                    SafetyStock = i.SafetyStock,
-                    CurrentBalance = inv.InventoryTotalQuantity,
-                    ItemBarcode = i.ItemBarcode
-                };
+    from i in _context.Items
+
+    join c in _context.Categories
+        on i.CategoryID equals c.CategoryID
+
+    join s in _context.Suppliers
+        on i.SupplierID equals s.SupplierID
+
+    // ✅ LEFT JOIN Inventory (CRITICAL FIX)
+    join inv in _context.Inventories
+        on i.ItemID equals inv.ItemID into invGroup
+    from inv in invGroup.DefaultIfEmpty()
+
+    select new ItemCardViewModel
+    {
+        ItemID = i.ItemID,
+        ItemName = i.ItemName,
+
+        CategoryID = i.CategoryID,
+        CategoryName = c.CategoryName,
+
+        SupplierName = s.SupplierName,
+
+        ItemSellPrice = i.ItemSellPrice,
+        ItemStatus = i.ItemStatus,
+
+        // ✅ Image now ALWAYS reaches the view
+        ItemImageUrl = i.ItemImageUrl,
+
+        ReorderLevel = i.ItemReorderLevel,
+        SafetyStock = i.SafetyStock,
+
+        // ✅ Inventory-safe (null-proof)
+        CurrentBalance = inv != null ? inv.InventoryTotalQuantity : 0,
+
+        ItemBarcode = i.ItemBarcode
+    };
+
 
             // ✅ Filters
             if (!string.IsNullOrWhiteSpace(search))
@@ -337,6 +356,46 @@ namespace Invexaaa.Controllers
 
             item.ItemStatus = "Inactive";
             _context.SaveChanges();
+
+            return RedirectToAction("ItemIndex");
+        }
+
+        // =====================================================
+        // ACTIVATE ITEM (CONFIRMATION)
+        // =====================================================
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("ActivateItem/{id}")]
+        public IActionResult ActivateItem(int id)
+        {
+            var item = _context.Items.FirstOrDefault(i => i.ItemID == id);
+            if (item == null) return NotFound();
+
+            var categoryName = _context.Categories
+                .Where(c => c.CategoryID == item.CategoryID)
+                .Select(c => c.CategoryName)
+                .FirstOrDefault();
+
+            ViewBag.CategoryName = categoryName;
+
+            return View("ActivateItem", item);
+        }
+
+
+        // =====================================================
+        // ACTIVATE ITEM (POST)
+        // =====================================================
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPost("ActivateItem/{id}")]
+        [ValidateAntiForgeryToken]
+        public IActionResult ActivateItemConfirmed(int id)
+        {
+            var item = _context.Items.Find(id);
+            if (item == null) return NotFound();
+
+            item.ItemStatus = "Active";
+            _context.SaveChanges();
+
+            TempData["Success"] = "Item has been activated.";
 
             return RedirectToAction("ItemIndex");
         }

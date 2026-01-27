@@ -1,7 +1,10 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject IConfiguration Configuration
+
 
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var systemUrl = Configuration["PublicBaseUrl"];
 }
 
 <link rel="stylesheet"
@@ -29,37 +32,10 @@
         }
 
     /* Toggle button */
-    .invexa-side-toggle {
-        height: 44px;
-        width: 44px;
-        margin: 0 auto 16px;
-        background: none;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
 
-        .invexa-side-toggle:hover {
-            background: #f0f0f0;
-        }
 
-    /* Logo */
-    .invexa-side-logo {
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        font-weight: 700;
-        font-size: 18px;
-        margin-bottom: 20px;
-        white-space: nowrap;
-        overflow: hidden;
-    }
+    
+
 
     /* Menu links */
     .invexa-side-link {
@@ -104,11 +80,12 @@
     }
 
     /* Hide text when collapsed */
+    /* Hide menu text & sections when collapsed */
     .invexa-side:not(:hover):not(.expanded) .invexa-side-text,
-    .invexa-side:not(:hover):not(.expanded) .invexa-side-section,
-    .invexa-side:not(:hover):not(.expanded) .invexa-side-logo span {
+    .invexa-side:not(:hover):not(.expanded) .invexa-side-section {
         display: none;
     }
+
 
     /* Section label */
     .invexa-side-section {
@@ -126,39 +103,68 @@
     .invexa-submenu {
         display: none;
         flex-direction: column;
-        margin-left: 36px;
         margin-bottom: 6px;
     }
 
+
         .invexa-submenu .invexa-side-link {
+            justify-content: flex-start;
+            padding-left: 42px; /* visual nesting */
             height: 38px;
             border-radius: 10px;
             font-size: 13px;
         }
 
-    /* Show submenu ONLY when Stock is active / hovered */
-    .invexa-side:hover .stock-parent + .invexa-submenu,
-    .invexa-side.expanded .stock-parent + .invexa-submenu,
-    .stock-parent:hover + .invexa-submenu,
-    .stock-parent.active + .invexa-submenu {
+    /* Show submenu ONLY when sidebar is expanded AND Stock is active */
+    .invexa-side:hover .stock-parent.active + .invexa-submenu,
+    .invexa-side.expanded .stock-parent.active + .invexa-submenu {
         display: flex;
     }
+
+
+    /* Push QR to bottom */
+    .invexa-side-spacer {
+        flex-grow: 1;
+    }
+
+    /* QR container */
+    .invexa-side-qr {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 12px 0 6px;
+        border-top: 1px dashed #e5e7eb;
+    }
+
+    /* QR image */
+    .invexa-qr-img {
+        width: 72px;
+        height: 72px;
+        padding: 6px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+    }
+
+    /* QR text */
+    .invexa-qr-text {
+        font-size: 11px;
+        color: #6b7280;
+    }
+    /* Hide QR when side menu is collapsed */
+    .invexa-side:not(:hover):not(.expanded) .invexa-side-qr {
+        display: none;
+    }
+
 </style>
 
 <aside class="invexa-side" id="invexaSideMenu">
 
     <!-- TOGGLE -->
-    <button class="invexa-side-toggle"
-            onclick="toggleInvexaSide()"
-            aria-label="Toggle menu">
-        <i class="bi bi-list"></i>
-    </button>
+
 
     <!-- LOGO -->
-    <div class="invexa-side-logo">
-        <i class="bi bi-box"></i>
-        <span>Invexa</span>
-    </div>
 
     <!-- MAIN -->
     <a asp-controller="Dashboard" asp-action="Index"
@@ -169,7 +175,7 @@
 
     <a asp-controller="Item" asp-action="ItemIndex"
        class="invexa-side-link @(currentController == "Item" ? "active" : "")">
-        <i class="bi bi-box-seam"></i>
+        <i class="bi bi-pencil-square"></i>
         <span class="invexa-side-text">Manage Items</span>
     </a>
 
@@ -211,7 +217,7 @@
 
     <a asp-controller="Inventory" asp-action="InventoryIndex"
        class="invexa-side-link @(currentController == "Inventory" ? "active" : "")">
-        <i class="bi bi-box-seam"></i>
+        <i class="bi bi-archive"></i>
         <span class="invexa-side-text">Inventory</span>
     </a>
 
@@ -253,12 +259,21 @@
         <span class="invexa-side-text">Logout</span>
     </a>
 
+    <!-- PUSH MENU CONTENT UP -->
+    <div class="invexa-side-spacer"></div>
+    <!-- =========================
+         MOBILE ACCESS QR
+    ========================= -->
+    <div class="invexa-side-qr">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=@systemUrl"
+             alt="Scan to open Invexa system"
+             class="invexa-qr-img" />
+
+
+        <span class="invexa-side-text invexa-qr-text">
+            Scan on phone
+        </span>
+    </div>
 </aside>
 
-<script>
-    function toggleInvexaSide() {
-        document
-            .getElementById("invexaSideMenu")
-            .classList.toggle("expanded");
-    }
-</script>
+

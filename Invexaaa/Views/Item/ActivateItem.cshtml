@@ -1,0 +1,644 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Invexaaa.Models.Invexa.Item
+
+@{
+    ViewData["Title"] = "Activate Item";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- 🔁 SAME CSS AS DEACTIVATE PAGE -->
+<style>
+    :root {
+        --bg: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 18px;
+    }
+
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
+
+    .page-wrap {
+        width: 100%;
+        padding: 12px 20px 26px;
+    }
+
+    .page-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 16px;
+    }
+
+    .title {
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* Card shell */
+    .shell {
+        border: 1px solid #e5e7eb;
+        border-radius: var(--radius);
+        background: #fff;
+        padding: 18px;
+        max-width: 760px;
+    }
+
+    /* Warning strip */
+    .warn {
+        border: 1px solid #f59e0b;
+        background: rgba(245,158,11,.08);
+        border-radius: 16px;
+        padding: 12px 14px;
+        color: #111;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+        .warn small {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+    /* Item summary */
+    .meta {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 12px;
+    }
+
+        .meta .k {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 4px;
+        }
+
+        .meta .v {
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+            background: #fff;
+        }
+
+    @@media (max-width: 700px) {
+        .meta {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Buttons (Invexa pills) */
+    .actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 9px 16px !important;
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        border: 2px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        white-space: nowrap;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        cursor: pointer;
+        transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+    }
+
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .pill-solid:hover, .pill-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .pill-outline:hover, .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        outline: none;
+    }
+
+    /* Deactivate warning button */
+    .pill-warn {
+        border-color: #f59e0b !important;
+        color: #92400e !important;
+        background: #fff !important;
+    }
+
+        .pill-warn:hover, .pill-warn:focus-visible {
+            background: rgba(245,158,11,.12) !important;
+            border-color: #f59e0b !important;
+            outline: none;
+        }
+
+    /* Admin danger */
+    .pill-danger {
+        border-color: #dc2626 !important;
+        color: #dc2626 !important;
+        background: #fff !important;
+    }
+
+        .pill-danger:hover, .pill-danger:focus-visible {
+            background: #dc2626 !important;
+            color: #fff !important;
+            outline: none;
+        }
+    /* ===== Big Center Card (Create Category style) ===== */
+    .center-wrap {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 22px 18px 30px;
+    }
+
+    .form-card {
+        width: min(760px, 100%); /* ⬅ narrower */
+        background: #fff;
+        border: 2px solid #e5e7eb;
+        border-radius: 22px; /* ⬅ slightly smaller radius */
+        padding: 20px 22px 18px; /* ⬅ less padding */
+        box-shadow: 0 8px 22px rgba(0,0,0,.05);
+    }
+
+
+
+    /* Title zone */
+    .card-head {
+        margin-bottom: 14px;
+    }
+
+    .card-title {
+        margin: 0;
+        font-size: 34px; /* ⬅ smaller but still strong */
+        font-weight: 900;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        color: #111;
+    }
+
+    .card-subtitle {
+        margin: 10px 0 0;
+        font-size: 14px;
+        font-weight: 500;
+        color: #6b7280;
+    }
+
+    /* Divider */
+    .card-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 18px 0 18px;
+    }
+
+    /* Content layout spacing */
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Two columns row (like CategoryName + Status) */
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    @@media(max - width: 900px) {
+        .two-col {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Bottom action buttons (big pills, 2 columns) */
+    .card-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 8px; /* ⬅ tighter */
+    }
+
+    @@media(max - width: 700px) {
+        .card-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Big pill buttons (match screenshot) */
+    .big-pill {
+        height: 42px; /* ⬅ was 46 */
+        font-size: 13.5px;
+        border-radius: 999px !important;
+        font-weight: 800 !important; /* ⬅ less bulky */
+        border: 2px solid #000 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    }
+
+
+    .big-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .big-solid:hover, .big-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .big-outline {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+        .big-outline:hover, .big-outline:focus-visible {
+            background: #000 !important;
+            color: #fff !important;
+            outline: none;
+        }
+
+    .control {
+        font-size: 14px !important;
+        padding: 10px 12px !important;
+    }
+
+    .warn {
+        padding: 10px 14px;
+        font-size: 13.5px;
+    }
+    /* ===== Improved info display ===== */
+    .info-grid {
+        margin-top: 4px;
+    }
+
+    /* Card-like info container */
+    .info-box {
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: #fff;
+    }
+
+    /* Label */
+    .info-label {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--muted);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    /* Value */
+    .info-value {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    /* Status pill */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 800;
+        color: #92400e;
+        border: 1.5px solid #f59e0b;
+        background: rgba(245,158,11,.12);
+        width: fit-content;
+    }
+
+    /* Status dot */
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #f59e0b;
+    }
+
+    /* ===== Info grid (4 boxes) ===== */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    /* Tablet */
+    @@media (max-width: 900px) {
+        .info-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Mobile */
+    @@media (max-width: 600px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+
+    @@media (max-width: 900px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        /* stack on small screens */
+    }
+
+    /* Info cards */
+    .info-box {
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 10px 12px; /* ⬅ smaller */
+        background: #fff;
+    }
+
+    .info-label {
+        font-size: 11.5px;
+        margin-bottom: 4px;
+        font-weight: 800;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .info-value {
+        font-size: 15px; /* ⬅ down from 16 */
+        font-weight: 900;
+        color: var(--text);
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    /* ===== Status pill (base) ===== */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 900;
+        border: 1.5px solid var(--border);
+        background: #f9fafb;
+        color: #111;
+        width: fit-content;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: currentColor; /* inherits from status color */
+    }
+
+    /* ✅ Auto colors */
+    .status-active {
+        border-color: #16a34a;
+        background: rgba(22,163,74,.12);
+        color: #166534;
+    }
+
+    .status-inactive {
+        border-color: #f59e0b;
+        background: rgba(245,158,11,.12);
+        color: #92400e;
+    }
+
+    .status-neutral {
+        border-color: #6b7280;
+        background: rgba(107,114,128,.10);
+        color: #374151;
+    }
+    /* ===== Danger Zone ===== */
+    .danger-zone {
+        margin-top: 14px;
+        border: 1.5px solid #fecaca;
+        background: rgba(220, 38, 38, 0.06);
+        border-radius: 16px;
+        padding: 14px;
+    }
+
+    .danger-title {
+        font-weight: 900;
+        font-size: 13px;
+        color: #991b1b;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 6px;
+    }
+
+    .danger-text {
+        color: #7f1d1d;
+        font-size: 13.5px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    /* Force delete button */
+    .danger-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        font-weight: 900;
+        font-size: 14px;
+        text-decoration: none !important;
+        border: 2px solid #dc2626;
+        color: #dc2626;
+        background: #fff;
+        transition: background-color .18s ease, color .18s ease;
+    }
+
+        .danger-btn:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+    /* ===== Bottom layout: left danger, right buttons ===== */
+    .bottom-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 14px;
+        align-items: start;
+    }
+
+    /* Stack buttons nicely */
+    .btn-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+        /* Make sure buttons same width */
+        .btn-stack .big-pill {
+            width: 100%;
+        }
+
+    /* Responsive */
+    @@media (max-width: 800px) {
+        .bottom-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    /* ✅ Danger Zone as separate card */
+    .danger-card {
+        margin-top: 10px; /* ⬅ closer to buttons */
+        padding: 12px 14px; /* ⬅ less padding */
+        border: 1.5px solid #fecaca;
+        background: rgba(220, 38, 38, 0.06);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    .danger-left {
+        flex: 1;
+    }
+
+    @@media (max-width: 700px) {
+        .danger-card {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .danger-btn {
+            width: 100%;
+        }
+    }
+
+    .danger-text {
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .danger-btn {
+        height: 40px; /* ⬅ slightly smaller */
+        font-size: 13px;
+    }
+</style>
+
+<div class="center-wrap">
+    <div class="form-card">
+
+        <!-- ===== HEADER ===== -->
+        <div class="card-head">
+            <h1 class="card-title">Activate Item</h1>
+            <p class="card-subtitle">
+                This item will be reactivated and made available for inventory operations.
+            </p>
+        </div>
+
+        <div class="card-divider"></div>
+
+        <!-- ===== BODY ===== -->
+        <div class="card-body">
+
+            <!-- ===== INFO GRID (IDENTICAL) ===== -->
+            <div class="info-grid">
+
+                <div class="info-box">
+                    <div class="info-label">Item ID</div>
+                    <div class="info-value">@Model.ItemID</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-label">Item Name</div>
+                    <div class="info-value">@Model.ItemName</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-label">Category</div>
+                    <div class="info-value">@((ViewBag.CategoryName as string) ?? "-")</div>
+                </div>
+
+            </div>
+
+            <!-- ===== STATUS PILL ===== -->
+            <div class="info-box" style="margin-top:12px;">
+                <div class="info-label">Current Status</div>
+
+                <div class="status-pill status-inactive">
+                    <span class="status-dot"></span>
+                    Inactive
+                </div>
+            </div>
+
+            <!-- ===== PRIMARY ACTIONS ===== -->
+            <div class="card-actions">
+
+                <a class="big-pill big-outline"
+                   asp-controller="Item"
+                   asp-action="ItemIndex">
+                    Cancel
+                </a>
+
+                <form asp-controller="Item"
+                      asp-action="ActivateItem"
+                      asp-route-id="@Model.ItemID"
+                      method="post"
+                      style="margin:0;">
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit" class="big-pill big-solid w-100">
+                        Confirm Activation
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>

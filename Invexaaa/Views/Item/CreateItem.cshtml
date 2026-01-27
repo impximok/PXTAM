@@ -1437,9 +1437,10 @@
 
             <input type="file"
                    id="ItemImageInput"
-                   name="ItemImage"
+                   name="ImageFile"
                    accept="image/*"
                    hidden />
+
 
 
             <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload image">
@@ -1623,14 +1624,32 @@
             <div class="soft-divider"></div>
             <div class="form-grid-2">
                 <div class="field">
-                    <label>Buy Price <span class="req">*</span></label>
-                    <input asp-for="Item.ItemBuyPrice" type="number" step="0.01" inputmode="decimal" />
+                    <label>
+                        Buy Price <span class="req">*</span>
+                        <span class="label-unit">(RM)</span>
+                    </label>
+
+                    <input asp-for="Item.ItemBuyPrice"
+                           class="money num-dec auto-clear"
+                           type="text"
+                           inputmode="decimal"
+                           placeholder="0.00" />
+
                     <span asp-validation-for="Item.ItemBuyPrice" class="text-danger"></span>
                 </div>
 
                 <div class="field">
-                    <label>Sell Price <span class="req">*</span></label>
-                    <input asp-for="Item.ItemSellPrice" type="number" step="0.01" inputmode="decimal" />
+                    <label>
+                        Sell Price <span class="req">*</span>
+                        <span class="label-unit">(RM)</span>
+                    </label>
+
+                    <input asp-for="Item.ItemSellPrice"
+                           class="money num-dec auto-clear"
+                           type="text"
+                           inputmode="decimal"
+                           placeholder="0.00" />
+
                     <span asp-validation-for="Item.ItemSellPrice" class="text-danger"></span>
                 </div>
             </div>
@@ -2601,6 +2620,7 @@
 
                     const paint = () => {
                         const len = desc.value.length;
+                        counter.textContent = len;
                         counter.textContent = len;
 
                         counter.style.color =

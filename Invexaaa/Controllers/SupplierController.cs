@@ -32,17 +32,28 @@ namespace Invexaaa.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Supplier supplier)
+        public IActionResult Create(Supplier supplier, string submitAction)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Suppliers.Add(supplier);
-                _context.SaveChanges();
-                return RedirectToAction(nameof(SupplierIndex));
+                // Validation failed → stay on same page with data
+                return View("CreateSupplier", supplier);
             }
 
-            return View("CreateSupplier", supplier);
+            _context.Suppliers.Add(supplier);
+            _context.SaveChanges();
+
+            // SAVE & NEW → stay on page and clear form
+            if (submitAction == "saveNew")
+            {
+                ModelState.Clear();          // clears validation + old values
+                return View("CreateSupplier", new Supplier());
+            }
+
+            // SAVE → go back to list
+            return RedirectToAction(nameof(SupplierIndex));
         }
+
 
         // =========================
         // EDIT
