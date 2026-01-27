@@ -4,215 +4,547 @@
 @{
     ViewData["Title"] = "Adjust Stock by Batch";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
-    // Controller sets this for inactive items
     bool isInactive = ViewBag.IsInactive == true;
+    bool hasErrors = !ViewData.ModelState.IsValid;
 }
 
 <style>
-    .adjust-page {
-        max-width: 900px;
+    :root {
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --card: #fff;
+        --soft: #f9fafb;
+        --orange: #f59e0b;
+        --orangeBg: rgba(245,158,11,.08);
+        --red: #dc2626;
+        --redBg: rgba(220,38,38,.08);
+        --greenBg: rgba(22,163,74,.10);
+        /* === Type + weight system (use these everywhere) === */
+        --fs-1: 34px; /* page title */
+        --fs-2: 14px; /* body / subtitle */
+        --fs-3: 13px; /* helper text / pills / notes */
+        --fs-4: 12px; /* table header / mini labels */
+
+        --fw-900: 900; /* titles only */
+        --fw-700: 700; /* strong text */
+        --fw-600: 600; /* normal emphasis */
+        --fw-500: 500; /* regular */
+        /* Only 3 text colors */
+        --c-text: #111827;
+        --c-muted: #6b7280;
+        --c-soft: #374151; /* optional mid tone */
     }
 
-    .header-sub {
-        color: #6b7280;
-        margin-bottom: 16px;
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #fff !important;
     }
 
-    .qty-pill {
-        display: inline-block;
-        padding: 6px 14px;
-        border-radius: 999px;
-        background: #f3f4f6;
-        font-weight: 600;
+    .center-wrap {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 22px 18px 30px;
     }
 
-    table td, table th {
-        vertical-align: middle;
+    .form-card {
+        width: min(980px, 100%);
+        background: var(--card);
+        border: 2px solid #e5e7eb;
+        border-radius: 26px;
+        padding: 26px 28px 22px;
+        box-shadow: 0 8px 22px rgba(0,0,0,.05);
+    }
+
+    .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+    }
+
+    .card-title {
+        font-size: var(--fs-1);
+        font-weight: var(--fw-900);
+        color: var(--c-text);
+    }
+
+    .card-subtitle {
+        font-size: var(--fs-2);
+        font-weight: var(--fw-500);
+        color: var(--c-muted);
+    }
+
+
+    .header-mini {
+        border: 1.5px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 10px 12px;
+        background: #fff;
+        min-width: 210px;
+        flex: 0 0 auto;
+    }
+
+    .mini-k {
+        font-size: var(--fs-4);
+        font-weight: var(--fw-700);
+        color: var(--c-muted);
+    }
+
+    .mini-v {
+        font-size: var(--fs-2);
+        font-weight: var(--fw-700);
+        color: var(--c-text);
+    }
+
+
+    .info-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .pill {
+        font-size: var(--fs-3);
+        font-weight: var(--fw-600);
+        color: var(--c-text);
+    }
+
+        .pill .k {
+            color: var(--c-muted);
+            font-weight: var(--fw-600);
+        }
+
+    .note {
+        font-size: var(--fs-3);
+        font-weight: var(--fw-600);
+        color: var(--c-text);
+    }
+
+    .note-warn {
+        border-color: rgba(245,158,11,.40);
+        background: var(--orangeBg);
+    }
+
+    .note-danger {
+        border-color: rgba(220,38,38,.40);
+        background: var(--redBg);
+    }
+
+    .card-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 18px 0 20px;
+    }
+
+    .table-wrap {
+        border: 1.5px solid #e5e7eb;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    table {
+        margin: 0;
+    }
+
+    thead.table-light th {
+        background: #f8fafc !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        font-size: 12.5px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #374151; /* darker = more confident */
+    }
+
+
+    tbody td {
+        font-size: var(--fs-2);
+        font-weight: var(--fw-500);
+        color: var(--c-text);
     }
 
     .expired {
-        background-color: #fff1f2 !important;
+        background: rgba(220,38,38,.06) !important;
     }
 
         .expired .expiry-text {
-            color: #dc2626;
-            font-weight: 600;
+            color: var(--red);
+            font-weight: 900;
         }
 
     .delta-input {
-        width: 120px;
+        width: 140px;
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        font-weight: 500;
+    }
+
+        .delta-input:focus {
+            border-color: #111;
+            box-shadow: none;
+        }
+
+    .reason {
+        margin-top: 16px;
+    }
+
+        .reason textarea {
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            font-weight: 600;
+        }
+
+            .reason textarea:focus {
+                border-color: #111;
+                box-shadow: none;
+            }
+
+    .footer-zone {
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px solid #eef0f2;
     }
 
     .delta-summary {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 12px;
-        margin-top: 16px;
-        font-weight: 600;
+        padding: 14px 16px;
+        border-radius: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        font-weight: 900;
+    }
+
+    .delta-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1.5px solid var(--border);
+        background: var(--soft);
+        font-size: 13.5px;
+        font-weight: 900;
     }
 
     .delta-positive {
-        color: #16a34a;
+        border-color: rgba(22,163,74,.45) !important;
+        background: var(--greenBg) !important;
+        color: #166534 !important;
     }
 
     .delta-negative {
-        color: #dc2626;
+        border-color: rgba(220,38,38,.45) !important;
+        background: var(--redBg) !important;
+        color: #991b1b !important;
     }
 
-    .hint {
-        font-size: 13px;
-        color: #6b7280;
+    .btn-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 14px;
     }
 
-    /* 🔒 LOCKED STATE */
+    @@media (max-width:700px) {
+        .btn-row {
+            grid-template-columns: 1fr;
+        }
+
+        .header-mini {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .card-head {
+            flex-direction: column;
+        }
+    }
+
+    .big-pill {
+        height: 46px;
+        border-radius: 999px !important;
+        font-size: 14px !important;
+        font-weight: 900 !important;
+        border: 2px solid #000 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+        cursor: pointer;
+    }
+
+    .big-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .big-solid:hover, .big-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .big-outline {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+        .big-outline:hover, .big-outline:focus-visible {
+            background: #000 !important;
+            color: #fff !important;
+            outline: none;
+        }
+
+    .big-pill:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+    }
+
     .locked {
-        opacity: 0.55;
+        opacity: .55;
         pointer-events: none;
         filter: grayscale(100%);
     }
+
+    .delta-input,
+    .reason textarea {
+        font-weight: var(--fw-500) !important;
+        font-size: var(--fs-2);
+        color: var(--c-text);
+    }
+
+    .delta-summary {
+        font-weight: var(--fw-700);
+        font-size: var(--fs-2);
+        color: var(--c-text);
+    }
+
+    .delta-badge {
+        font-size: var(--fs-3);
+        font-weight: var(--fw-700);
+    }
+    /* Fix head alignment */
+    .head-left {
+        min-width: 0;
+    }
+
+    .meta-row {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* Make note look like your system and not “stuck” */
+    .note {
+        margin: 14px 0 18px;
+        padding: 12px 16px;
+        border-radius: 16px;
+        line-height: 1.35;
+    }
+
+    /* Give table breathing space */
+    .table-wrap {
+        margin-top: 6px;
+    }
+
+    /* Table header padding so it doesn't look cramped */
+    thead.table-light th {
+        padding: 14px 16px !important;
+    }
+
+    tbody td {
+        padding: 14px 16px !important;
+    }
+
+    /* On small screen, stack nicely */
+    @@media (max-width: 700px) {
+        .card-head {
+            flex-direction: column;
+        }
+
+        .header-mini {
+            width: 100%;
+            min-width: 0;
+        }
+    }
+
+    /* Validation error state */
+    .table-wrap.has-error {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 1px rgba(220,38,38,.15);
+    }
+
+    .empty-row td {
+        padding: 28px 16px !important;
+    }
+
+    .empty-state {
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: #6b7280;
+    }
+
 </style>
 
-<div class="container-fluid adjust-page">
+<div class="center-wrap">
+    <div class="form-card">
 
-    <h3>Adjust Stock – @Model.ItemName</h3>
+        <div class="card-head">
+            <div class="head-left">
+                <h1 class="card-title">Adjust Stock</h1>
+                <p class="card-subtitle">Adjust stock by batch for <strong>@Model.ItemName</strong>.</p>
 
-    <div class="header-sub">
-        Current Inventory:
-        <span class="qty-pill">
-            @Model.CurrentInventoryQuantity @Model.ItemUnitOfMeasure
-        </span>
+                <div class="meta-row">
+                    <span class="pill">
+                        <span class="k">Item</span>
+                        <span>#@Model.ItemID</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="header-mini">
+                <div class="mini-k">Current Inventory</div>
+                <div class="mini-v">@Model.CurrentInventoryQuantity @Model.ItemUnitOfMeasure</div>
+            </div>
+        </div>
+
+        @if (isInactive)
+        {
+            <div class="note note-danger">
+                This item is <strong>inactive</strong>. Stock adjustment is disabled.
+            </div>
+        }
+        else
+        {
+            <div class="note note-warn">
+                Manual corrections only (damage, miscount, system fixes).
+            </div>
+        }
+
+        <div class="card-divider"></div>
+
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+        <div class="card-divider"></div>
+
+        <form asp-action="AdjustStockByBatch"
+              method="post"
+              id="adjustForm"
+              class="@(isInactive ? "locked" : "")">
+
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="InventoryID" />
+            <input type="hidden" asp-for="ItemID" />
+
+            <div class="table-wrap">
+                <table class="table table-borderless">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:22%;">Batch</th>
+                            <th style="width:22%;">Expiry</th>
+                            <th style="width:18%;">Available</th>
+                            <th style="width:38%;">Adjust (+ / −)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Batches.Count; i++)
+                        {
+                            var expired = Model.Batches[i].BatchExpiryDate < DateTime.Today;
+
+                            <tr class="@(expired ? "expired" : "")">
+                                <td>
+                                    @Model.Batches[i].BatchNumber
+                                    <input type="hidden" asp-for="Batches[i].BatchID" />
+                                </td>
+                                <td class="expiry-text">
+                                    @Model.Batches[i].BatchExpiryDate.ToString("dd MMM yyyy")
+                                </td>
+                                <td>@Model.Batches[i].AvailableQuantity</td>
+                                <td>
+                                    <input asp-for="Batches[i].AdjustQuantity"
+                                           type="number"
+                                           class="form-control delta-input adjust-input"
+                                           placeholder="0"
+                                           disabled="@isInactive" />
+                                </td>
+                            </tr>
+                        }
+                        @if (Model.Batches == null || Model.Batches.Count == 0)
+                        {
+                            <tr class="empty-row">
+                                <td colspan="4">
+                                    <div class="empty-state">
+                                        No batches found.
+                                    </div>
+                                </td>
+                            </tr>
+
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="reason">
+                <label class="form-label fw-semibold">
+                    Adjustment Reason <span class="text-danger">*</span>
+                </label>
+                <textarea asp-for="AdjustmentReason"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Damage, recount, correction..."
+                          disabled="@isInactive"></textarea>
+                <span asp-validation-for="AdjustmentReason" class="text-danger small"></span>
+            </div>
+
+            <div class="footer-zone">
+                <div class="delta-summary">
+                    <span>Total Adjustment</span>
+                    <span id="deltaBadge" class="delta-badge">
+                        <span id="deltaValue">0</span> @Model.ItemUnitOfMeasure
+                    </span>
+                </div>
+
+                <div class="btn-row">
+                    <a asp-action="StockIndex" class="big-pill big-outline">Cancel</a>
+                    <button type="submit" class="big-pill big-solid" disabled="@isInactive">
+                        Confirm Adjustment
+                    </button>
+                </div>
+            </div>
+
+        </form>
     </div>
-
-    @if (isInactive)
-    {
-        <div class="alert alert-danger">
-            This item is <strong>inactive</strong>.
-            Stock adjustment is disabled.
-        </div>
-    }
-    else
-    {
-        <div class="alert alert-warning small">
-            Use this for <strong>manual corrections only</strong>
-            (damage, miscount, system fixes).
-        </div>
-    }
-
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-    <!-- 🔒 Lock entire form if inactive -->
-    <form asp-action="AdjustStockByBatch"
-          method="post"
-          id="adjustForm"
-          class="@(isInactive ? "locked" : "")">
-
-        @Html.AntiForgeryToken()
-
-        <input type="hidden" asp-for="InventoryID" />
-        <input type="hidden" asp-for="ItemID" />
-
-        <table class="table table-bordered">
-            <thead class="table-light">
-                <tr>
-                    <th>Batch</th>
-                    <th>Expiry</th>
-                    <th>Available</th>
-                    <th>Adjust (+ / −)</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @for (int i = 0; i < Model.Batches.Count; i++)
-                {
-                    var isExpired = Model.Batches[i].BatchExpiryDate < DateTime.Today;
-
-                    <tr class="@(isExpired ? "expired" : "")">
-                        <td>
-                            @Model.Batches[i].BatchNumber
-                            <input type="hidden" asp-for="Batches[i].BatchID" />
-                        </td>
-
-                        <td class="expiry-text">
-                            @Model.Batches[i].BatchExpiryDate.ToString("dd MMM yyyy")
-                        </td>
-
-                        <td>
-                            @Model.Batches[i].AvailableQuantity
-                        </td>
-
-                        <td>
-                            <input asp-for="Batches[i].AdjustQuantity"
-                                   type="number"
-                                   class="form-control delta-input adjust-input"
-                                   placeholder="0"
-                                   disabled="@isInactive" />
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <div class="delta-summary">
-            Total Adjustment:
-            <span id="deltaValue">0</span>
-            @Model.ItemUnitOfMeasure
-        </div>
-
-        <p class="hint mt-2">
-            Positive = add stock • Negative = deduct stock
-        </p>
-
-        <div class="mb-3 mt-3">
-            <label class="form-label">
-                Adjustment Reason <span class="text-danger">*</span>
-            </label>
-
-            <textarea asp-for="AdjustmentReason"
-                      class="form-control"
-                      rows="3"
-                      placeholder="Damage, recount, correction..."
-                      disabled="@isInactive"></textarea>
-
-            <span asp-validation-for="AdjustmentReason"
-                  class="text-danger small"></span>
-        </div>
-
-
-        <div class="d-flex gap-2">
-            <button class="btn btn-danger"
-                    type="submit"
-                    disabled="@isInactive">
-                Confirm Adjustment
-            </button>
-
-            <a asp-action="StockIndex"
-               class="btn btn-outline-secondary">
-                Cancel
-            </a>
-        </div>
-
-    </form>
 </div>
 
 @section Scripts {
     <script>
         const inputs = document.querySelectorAll(".adjust-input");
         const deltaEl = document.getElementById("deltaValue");
+        const badge = document.getElementById("deltaBadge");
 
         function updateDelta() {
             let total = 0;
-
-            inputs.forEach(i => {
-                const val = parseInt(i.value || 0);
-                total += val;
-            });
-
+            inputs.forEach(i => total += parseInt(i.value || 0));
             deltaEl.textContent = total;
-            deltaEl.className =
-                total > 0 ? "delta-positive" :
-                total < 0 ? "delta-negative" : "";
+
+            badge.classList.remove("delta-positive", "delta-negative");
+            if (total > 0) badge.classList.add("delta-positive");
+            else if (total < 0) badge.classList.add("delta-negative");
         }
 
         inputs.forEach(i => i.addEventListener("input", updateDelta));

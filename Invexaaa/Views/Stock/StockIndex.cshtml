@@ -7,159 +7,767 @@
 }
 
 <style>
-    /* ===============================
-       MANAGE STOCK PAGE
-    =============================== */
+    :root {
+        --bg: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 18px;
+        --table-edge-pad: 18px;
+    }
 
-    .stock-page h3 {
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
+
+    /* Full width page padding */
+    .page-wrap {
+        width: 100%;
+        padding: 10px 18px 24px;
+    }
+
+    /* Header */
+    .page-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 12px;
+    }
+
+    .title {
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* Add button (black + label, hover invert) */
+    .add-btn {
+        height: 44px;
+        padding: 0 16px;
+        border: 2px solid #000 !important;
+        background: #000 !important;
+        color: #fff !important;
+        border-radius: 999px !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none !important;
+        transition: background-color 220ms ease, color 220ms ease, opacity 220ms ease;
+        user-select: none;
+        white-space: nowrap;
+        cursor: pointer;
+        font-weight: 800;
+        font-size: 14px;
+    }
+
+        .add-btn:hover, .add-btn:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+        .add-btn:disabled,
+        .add-btn[disabled] {
+            opacity: .45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .add-btn i {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+    /* Filters */
+    .filters {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr auto;
+        gap: 10px 12px;
+        align-items: end;
+        padding: 18px 0 18px;
+        border-bottom: 1.5px solid #e5e7eb;
+        margin-bottom: 18px;
+    }
+
+    .label {
         font-weight: 600;
+        color: #111;
+        margin-bottom: 6px;
+        font-size: 13px;
     }
 
-    #bulkAddBtn {
-        width: 42px;
-        height: 42px;
-        font-size: 20px;
+    .control {
+        width: 100%;
+        border: 2px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 11px 14px !important;
+        height: 46px;
+        font-size: 15px !important;
+        background: #fff !important;
+        color: var(--text) !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+        .control:focus {
+            border-color: #000 !important;
+        }
+
+    .filter-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+        align-self: flex-end;
+        margin-bottom: 2px;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 8px 14px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border: 2px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        white-space: nowrap;
+        height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 220ms ease, color 220ms ease;
+    }
+
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .pill-solid:hover, .pill-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .pill-outline:hover, .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        outline: none;
+    }
+
+    /* ===== Custom Select (cs2) ===== */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 11px 40px 11px 14px;
+        height: 46px;
+        background: #fff;
+        color: #111;
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cs2-value {
+        flex: 1;
+        text-align: left;
+    }
+
+    .cs2-btn:focus,
+    .cs2.open .cs2-btn {
+        border-color: #000 !important;
+        outline: none;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 9999;
+        display: none;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #111;
+        padding: 10px 12px;
         border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+        font-weight: 500;
+        font-size: 14px;
     }
 
-    .table th,
-    .table td {
+        .cs2-item:hover {
+            background: #f2f2f2;
+        }
+
+    /* Table shell */
+    .table-shell {
+        border: 2px solid #e5e7eb;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: #fff;
+    }
+
+    table.sys-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    /* === MONOCHROME TABLE (black/grey/white only) === */
+    .sys-table thead th {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #111;
+        padding: 16px 14px;
+        background: #f6f7f9;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+    .sys-table tbody td {
+        font-size: 13.5px;
+        font-weight: 400;
+        color: #111;
+        padding: 16px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+        background: #fff;
+    }
+    /* Global column shift → slightly to the right */
+    .sys-table thead th,
+    .sys-table tbody td {
+        padding-left: 22px; /* ← this moves EVERYTHING right */
+        padding-right: 18px;
+    }
+
+
+    .sys-table tbody tr:nth-child(even) td {
+        background: #fcfcfd;
+    }
+
+    .sys-table tbody tr:hover td {
+        background: #f2f4f7;
+    }
+
+    .sys-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .chk {
+        width: 16px;
+        height: 16px;
+        accent-color: #111;
+    }
+
+
+
+    /* Equal left & right table edge spacing */
+    .sys-table thead th,
+    .sys-table tbody td {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+
+
+    /* Status pill (allowed colors) */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 92px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        border: 1.5px solid #111;
+        background: #fff;
+        color: #111;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+        .status-pill.low {
+            border-color: #f59e0b;
+            color: #a16207;
+        }
+
+        .status-pill.out {
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+
+        .status-pill.in {
+            border-color: #111;
+            color: #111;
+        }
+
+    /* Inactive row */
+    .inactive-row {
+        opacity: 0.55;
+    }
+    /* Inactive label under item */
+    .inactive-badge {
+        margin-top: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: .02em;
+    }
+
+    /* Action button (monochrome) */
+    .action-btn {
+        border-radius: 999px !important;
+        padding: 8px 24px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        border: 2px solid #111 !important;
+        background: #fff !important;
+        color: #111 !important;
+        white-space: nowrap;
+        transition: background-color 180ms ease, color 180ms ease, transform 160ms ease;
+        text-decoration: none !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+    }
+
+        .action-btn:hover, .action-btn:focus-visible {
+            background: #111 !important;
+            color: #fff !important;
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+    /* Empty */
+    .empty-state {
+        text-align: center;
+        padding: 48px 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    @@media (max-width: 980px) {
+        .filters {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .filters {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-actions {
+            width: 100%;
+        }
+
+        .pill-btn {
+            width: 100%;
+        }
+    }
+
+    /* Smaller Filter / Reset buttons */
+    .filter-actions .pill-btn {
+        height: 43px; /* was 46px */
+        padding: 6px 12px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        border-width: 2px !important;
+    }
+
+    /* optional: slightly tighter spacing */
+    .filter-actions {
+        gap: 8px; /* was 10px */
+    }
+
+    /* Status action pill (Reorder) */
+    .status-pill {
+        min-width: auto;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        border-radius: 999px;
+        background: #fff;
+        border: 1.5px solid #ef4444;
+        color: #dc2626;
+        transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+    }
+
+
+
+        /* keep color logic */
+        .status-pill.low {
+            border-color: #f59e0b;
+            color: #a16207;
+        }
+
+            .status-pill.low:hover {
+                background: #f59e0b;
+                color: #fff;
+            }
+
+        .status-pill.out {
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+
+
+
+    /* Item column text – NOT bold */
+    .sys-table tbody td strong {
+        font-weight: 500; /* normal / medium */
+        display: block;
+        line-height: 1.3;
+    }
+    /* === Force uniform row height === */
+    .sys-table tbody tr {
+        height: 76px; /* adjust: 72–80px sweet spot */
+    }
+
+    .sys-table tbody td {
         vertical-align: middle;
     }
 
-    .table thead {
-        background: #f8f9fa;
+    /* Item cell layout */
+    .item-cell {
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* keeps it vertically centered in the row */
+        gap: 6px;
+        min-height: 52px; /* prevents squishy look */
     }
 
-    .stock-checkbox {
-        width: 18px;
-        height: 18px;
+    .item-name {
+        font-weight: 500; /* not bold */
+        color: #111;
+        line-height: 1.25;
+        letter-spacing: .1px;
     }
 
-    .stock-row:hover {
-        background: #fafafa;
+
+
+    /* Optional: make inactive rows feel softer but readable */
+    .inactive-row .item-name {
+        color: #9ca3af;
     }
 
-    .inactive-row {
-        opacity: 0.5;
-        background: #f1f5f9;
+    /* Item cell: name + badge inline */
+    .item-inline {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Item name */
+    .item-name {
+        font-weight: 500;
+        color: #111;
+        line-height: 1.2;
     }
 
     .inactive-badge {
-        background: #e5e7eb;
-        color: #374151;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         padding: 4px 10px;
         border-radius: 999px;
+        background: #f5f6f8;
+        border: 1px solid #e5e7eb;
+        color: #9ca3af;
         font-size: 12px;
         font-weight: 600;
+        letter-spacing: .02em;
+        line-height: 1;
+        white-space: nowrap;
     }
+
+
+    /* Dim inactive row text slightly */
+    .inactive-row .item-name {
+        color: #9ca3af;
+    }
+    /* Item text (no bold, still readable) */
+    .item-name {
+        font-weight: 600; /* or 500 if you want softer */
+        color: #111;
+    }
+
+    /* Locked pill in Actions */
+    .lock-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        color: #9ca3af;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+        .lock-pill i {
+            font-size: 13px;
+            opacity: .85;
+        }
+
+    .inactive-row td {
+        color: #b6bcc6;
+    }
+
+    .inactive-row .status-pill {
+        opacity: .85;
+    }
+
 </style>
 
-<div class="container-fluid stock-page">
+<div class="page-wrap">
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-semibold">Manage Stock</h3>
+    <div class="page-head">
+        <div>
+            <h1 class="title">Manage Stock</h1>
+            <p class="subtitle">Search, filter and manage inventory stock.</p>
+        </div>
 
-        <!-- PLUS BUTTON (BULK ADD) -->
+        <!-- Bulk Add button (keeps same id + logic) -->
         <button id="bulkAddBtn"
-                class="btn btn-success"
+                class="add-btn"
+                type="button"
                 disabled
-                title="Add stock to selected items">
-            ＋
+                title="Add stock to selected items"
+                aria-label="Add stock to selected items">
+            <i class="bi bi-plus-lg"></i>
+            <span>Add Stock</span>
         </button>
     </div>
 
-    <!-- TABLE -->
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0" id="stockTable">
+    <!-- FILTERS (SupplierIndex-style) -->
+    <div class="filters">
 
+        <div>
+            <div class="label">Search</div>
+            <input id="searchBox" type="text" class="control" placeholder="Item name / category" />
+        </div>
+
+        <div>
+            <div class="label">Status</div>
+
+            <!-- real select -->
+            <select class="real-select" id="statusFilter">
+                <option value="">All</option>
+                <option value="In Stock">In Stock</option>
+                <option value="Low Stock">Low Stock</option>
+                <option value="Out of Stock">Out of Stock</option>
+            </select>
+
+            <!-- cs2 -->
+            <div class="cs2" data-select="statusFilter">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">All</span>
+                    <span class="cs2-caret"></span>
+                </button>
+
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="">All</button>
+                    <button type="button" class="cs2-item" data-value="In Stock">In Stock</button>
+                    <button type="button" class="cs2-item" data-value="Low Stock">Low Stock</button>
+                    <button type="button" class="cs2-item" data-value="Out of Stock">Out of Stock</button>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="label">Sort</div>
+
+            <!-- real select -->
+            <select class="real-select" id="sortBy">
+                <option value="nameAsc">Name (A–Z)</option>
+                <option value="nameDesc">Name (Z–A)</option>
+                <option value="qtyAsc">Quantity (Low–High)</option>
+                <option value="qtyDesc">Quantity (High–Low)</option>
+            </select>
+
+            <!-- cs2 -->
+            <div class="cs2" data-select="sortBy">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">Name (A–Z)</span>
+                    <span class="cs2-caret"></span>
+                </button>
+
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="nameAsc">Name (A–Z)</button>
+                    <button type="button" class="cs2-item" data-value="nameDesc">Name (Z–A)</button>
+                    <button type="button" class="cs2-item" data-value="qtyAsc">Quantity (Low–High)</button>
+                    <button type="button" class="cs2-item" data-value="qtyDesc">Quantity (High–Low)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button id="applyFilter" class="pill-btn pill-solid" type="button">Filter</button>
+            <button id="resetFilter" class="pill-btn pill-outline" type="button">Reset</button>
+        </div>
+    </div>
+
+    <!-- TABLE (SupplierIndex-style) -->
+    <div class="table-shell">
+        <div class="table-responsive">
+            <table class="sys-table" id="stockTable">
                 <thead>
                     <tr>
-                        <th style="width:40px">
-                            <input type="checkbox"
-                                   id="selectAll"
-                                   class="stock-checkbox" />
+                        <th style="width:70px">
+                            <input type="checkbox" id="selectAll" class="chk" />
                         </th>
-                        <th>Item</th>
-                        <th>Category</th>
-                        <th>Available</th>
-                        <th>Status</th>
-                        <th>Updated</th>
-                        <th style="width:120px">Actions</th>
+                        <th style="min-width:160px">Item Name</th>
+                        <th style="min-width:160px">Category</th>
+                        <th style="width:190px">Available</th>
+                        <th style="width:190px">Status</th>
+                        <th style="width:190px">Updated</th>
+                        <th style="width:190px">Actions</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @foreach (var s in Model)
+                    @if (Model == null || !Model.Any())
                     {
-                        bool isInactive = s.ItemStatus == "Inactive";
-
-                        <tr class="stock-row @(isInactive ? "inactive-row" : "")"
-                            data-status="@s.StockStatus">
-
-
-                            <!-- CHECKBOX -->
-                            <td>
-                                <input type="checkbox"
-                                       class="row-check stock-checkbox"
-                                       value="@s.InventoryID"
-                                       @(isInactive ? "disabled" : "") />
-
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">No stock items found.</div>
                             </td>
-
-                            <!-- ITEM -->
-                            <td>
-                                <strong>@s.ItemName</strong>
-
-                                @if (isInactive)
-                                {
-                                    <div class="mt-1">
-                                        <span class="inactive-badge">INACTIVE</span>
-                                    </div>
-                                }
-                        </td>
-
-
-                            <!-- CATEGORY -->
-                            <td>@s.CategoryName</td>
-
-                            <!-- QUANTITY -->
-                            <td>@s.AvailableQuantity</td>
-
-                            <!-- STATUS -->
-                            <td>
-                                <span class="badge
-                                    @(s.StockStatus == "In Stock" ? "bg-success" :
-                                                                        s.StockStatus == "Low Stock" ? "bg-warning" :
-                                                                        "bg-danger")">
-                                @s.StockStatus
-                            </span>
-                        </td>
-
-                            <!-- UPDATED -->
-                            <td>@s.LastUpdated.ToString("dd/MM/yyyy")</td>
-
-                            <!-- ACTION -->
-                            <td>
-                            @if (isInactive)
-                                {
-                                    <span class="inactive-badge">Locked</span>
-                                }
-                                else
-                                {
-                                    <a asp-action="AdjustStockByBatch"
-                                       asp-route-inventoryId="@s.InventoryID"
-                                       class="btn btn-sm btn-outline-primary">
-                                        Adjust
-                                    </a>
-                                }
-                            </td>
-
-
                         </tr>
-                                        }
+                    }
+                    else
+                    {
+                        @foreach (var s in Model)
+                        {
+                            bool isInactive = s.ItemStatus == "Inactive";
+                            string statusClass =
+                            s.StockStatus == "In Stock" ? "in" :
+                            s.StockStatus == "Low Stock" ? "low" : "out";
+
+                            <tr class="@(isInactive ? "inactive-row" : "")"
+                                data-status="@s.StockStatus"
+                                data-name="@s.ItemName"
+                                data-category="@s.CategoryName"
+                                data-qty="@s.AvailableQuantity">
+
+                                <td>
+                                    <input type="checkbox"
+                                           class="row-check chk"
+                                           value="@s.InventoryID"
+                                           @(isInactive ? "disabled" : "") />
+                                </td>
+                                <td>
+                                    <span class="item-name">@s.ItemName</span>
+                                </td>
+
+
+
+
+                                <td>@s.CategoryName</td>
+
+                                <td><strong>@s.AvailableQuantity</strong></td>
+
+                                <td>
+                                    <span class="status-pill @statusClass">@s.StockStatus</span>
+                                </td>
+
+                                <td>@s.LastUpdated.ToString("dd/MM/yyyy")</td>
+
+                                <td>
+                                    @if (isInactive)
+                                    {
+                                        <span class="lock-pill" title="This item is inactive and cannot be adjusted">
+                                            <i class="bi bi-lock-fill"></i>
+                                            Locked
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="AdjustStockByBatch"
+                                           asp-route-inventoryId="@s.InventoryID"
+                                           class="action-btn">
+                                            Adjust
+                                        </a>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
                 </tbody>
 
             </table>
@@ -170,51 +778,190 @@
 
 @section Scripts {
     <script>
-        /* ===============================
-           BULK SELECT + ADD LOGIC
-        =============================== */
+        (() => {
+            /* ===============================
+               Custom Select (cs2 dropdown)
+               ✅ update real select ONLY (NO auto filter)
+            ================================ */
+            function setupCS2(cs) {
+                const selectId = cs.dataset.select;
+                const real = document.getElementById(selectId);
+                if (!real) return;
 
-        const selectAll = document.getElementById("selectAll");
-        const checks = document.querySelectorAll(".row-check");
-        const bulkBtn = document.getElementById("bulkAddBtn");
+                const btn = cs.querySelector('.cs2-btn');
+                const valueEl = cs.querySelector('.cs2-value');
+                const items = Array.from(cs.querySelectorAll('.cs2-item'));
 
-                function updateBulkButton() {
-            const validChecks =
-                Array.from(document.querySelectorAll(".row-check:checked"))
-                     .filter(c => !c.disabled);
+                const setActive = (val) => {
+                    const found = items.find(i => i.dataset.value === val);
+                    valueEl.textContent = found ? found.textContent : items[0].textContent;
+                };
 
-            bulkBtn.disabled = validChecks.length === 0;
-        }
+                setActive(real.value);
+
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    cs.classList.toggle('open');
+                    btn.setAttribute('aria-expanded', cs.classList.contains('open') ? 'true' : 'false');
+                });
+
+                items.forEach(i => {
+                    i.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // ✅ set value only (no change event)
+                        real.value = i.dataset.value;
+                        setActive(i.dataset.value);
+
+                        cs.classList.remove('open');
+                        btn.setAttribute('aria-expanded', 'false');
+                    });
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!cs.contains(e.target)) {
+                        cs.classList.remove('open');
+                        btn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+            document.querySelectorAll('.cs2[data-select]').forEach(setupCS2);
 
 
-        /* Select all */
-                selectAll.addEventListener("change", function () {
-            checks.forEach(c => {
-                if (!c.disabled) {
-                    c.checked = this.checked;
+            /* ===============================
+               BULK SELECT + ADD (your logic)
+            =============================== */
+            const selectAll = document.getElementById("selectAll");
+            const bulkBtn = document.getElementById("bulkAddBtn");
+
+            function updateBulkButton() {
+                const validChecks =
+                    Array.from(document.querySelectorAll(".row-check:checked"))
+                        .filter(c => !c.disabled);
+                bulkBtn.disabled = validChecks.length === 0;
+            }
+
+            selectAll.addEventListener("change", function () {
+                document.querySelectorAll(".row-check").forEach(c => {
+                    if (!c.disabled) c.checked = this.checked;
+                });
+                updateBulkButton();
+            });
+
+            document.querySelectorAll(".row-check").forEach(c =>
+                c.addEventListener("change", updateBulkButton)
+            );
+
+            bulkBtn.addEventListener("click", function () {
+                const ids = Array.from(document.querySelectorAll(".row-check:checked"))
+                    .filter(c => !c.disabled)
+                    .map(c => c.value)
+                    .join(",");
+                window.location.href = `/Stock/AddStockBatch?inventoryIds=${ids}`;
+            });
+
+
+            /* ===============================
+               FILTER + SEARCH + SORT
+               ✅ ONLY run on Filter click / Enter
+            =============================== */
+            const searchBox = document.getElementById("searchBox");
+            const statusFilter = document.getElementById("statusFilter"); // real select (hidden)
+            const sortBy = document.getElementById("sortBy");             // real select (hidden)
+            const applyBtn = document.getElementById("applyFilter");
+            const resetBtn = document.getElementById("resetFilter");
+            const tbody = document.querySelector("#stockTable tbody");
+
+            const allRows = Array.from(tbody.querySelectorAll("tr"))
+                .filter(r => r.querySelector(".row-check"));
+
+            function applySortToVisibleRows() {
+                const rows = allRows.filter(r => r.style.display !== "none");
+                const mode = sortBy?.value || "nameAsc";
+
+                rows.sort((a, b) => {
+                    const nameA = (a.dataset.name || "").toLowerCase();
+                    const nameB = (b.dataset.name || "").toLowerCase();
+                    const qtyA = parseFloat(a.dataset.qty || "0");
+                    const qtyB = parseFloat(b.dataset.qty || "0");
+
+                    if (mode === "nameAsc") return nameA.localeCompare(nameB);
+                    if (mode === "nameDesc") return nameB.localeCompare(nameA);
+                    if (mode === "qtyAsc") return qtyA - qtyB;
+                    if (mode === "qtyDesc") return qtyB - qtyA;
+                    return 0;
+                });
+
+                rows.forEach(r => tbody.appendChild(r));
+            }
+
+            function applyUIFilters() {
+                const q = (searchBox?.value || "").trim().toLowerCase();
+                const st = statusFilter?.value || "";
+
+                allRows.forEach(r => {
+                    const name = (r.dataset.name || "").toLowerCase();
+                    const cat = (r.dataset.category || "").toLowerCase();
+                    const status = r.dataset.status || "";
+
+                    const matchText = !q || name.includes(q) || cat.includes(q);
+                    const matchStatus = !st || status === st;
+
+                    r.style.display = (matchText && matchStatus) ? "" : "none";
+                });
+
+                applySortToVisibleRows();
+                updateBulkButton();
+            }
+
+            // ✅ ONLY these triggers
+            applyBtn?.addEventListener("click", applyUIFilters);
+
+            searchBox?.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    applyUIFilters();
                 }
             });
+
+            resetBtn?.addEventListener("click", () => {
+                if (searchBox) searchBox.value = "";
+                if (statusFilter) statusFilter.value = "";
+                if (sortBy) sortBy.value = "nameAsc";
+
+                // show all rows
+                allRows.forEach(r => r.style.display = "");
+
+                // restore original order exactly (like SupplierIndex)
+                tbody.innerHTML = "";
+                allRows.forEach(r => tbody.appendChild(r));
+
+                // sync cs2 labels with the real selects
+                document.querySelectorAll('.cs2[data-select]').forEach(cs => {
+                    const id = cs.dataset.select;
+                    const real = document.getElementById(id);
+                    const valueEl = cs.querySelector('.cs2-value');
+                    const items = Array.from(cs.querySelectorAll('.cs2-item'));
+                    const found = items.find(i => i.dataset.value === (real?.value || ""));
+                    if (valueEl) valueEl.textContent = found ? found.textContent : items[0]?.textContent || "All";
+                    cs.classList.remove('open');
+                    cs.querySelector('.cs2-btn')?.setAttribute('aria-expanded', 'false');
+                });
+
+                // clear header checkbox
+                if (selectAll) selectAll.checked = false;
+
+                updateBulkButton();
+            });
+
+            // ✅ do NOT auto-filter at load
             updateBulkButton();
-        });
-
-
-        /* Individual checkbox */
-        checks.forEach(c =>
-            c.addEventListener("change", updateBulkButton)
-        );
-
-        /* Bulk add click */
-        bulkBtn.addEventListener("click", function () {
-                    const ids = Array.from(
-            document.querySelectorAll(".row-check:checked")
-        )
-        .filter(c => !c.disabled)   // 🔒 FINAL GUARD
-        .map(c => c.value)
-        .join(",");
-
-
-            window.location.href =
-                `/Stock/AddStockBatch?inventoryIds=${ids}`;
-        });
+        })();
     </script>
 }
+
+
+
+
