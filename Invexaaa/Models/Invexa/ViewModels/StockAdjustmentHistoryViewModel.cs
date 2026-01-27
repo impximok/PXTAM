@@ -13,5 +13,7 @@
 
         public string AdjustmentReason { get; set; }
         public string AdjustmentStatus { get; set; }
+
+        public string ItemStatus { get; set; } = "Active";
     }
 }

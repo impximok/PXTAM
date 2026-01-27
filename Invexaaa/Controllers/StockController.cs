@@ -114,6 +114,13 @@ namespace Invexaaa.Controllers
                 return RedirectToAction("ItemDetail", "Item", new { id = vm.ItemID });
             }
 
+            // ✅ VALIDATION GUARD (MISSING)
+            if (!ModelState.IsValid)
+            {
+                return View(vm);
+            }
+
+
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             using var tx = _context.Database.BeginTransaction();
@@ -347,7 +354,8 @@ namespace Invexaaa.Controllers
                     QuantityAfter = d.QuantityAfter,
                     QuantityDifference = d.QuantityDifference,
                     AdjustmentStatus = a.AdjustmentStatus,
-                    AdjustmentReason = a.AdjustmentReason
+                    AdjustmentReason = a.AdjustmentReason,
+                    ItemStatus = i.ItemStatus
                 };
 
             return View("StockAdjustmentHistory", history.ToList());

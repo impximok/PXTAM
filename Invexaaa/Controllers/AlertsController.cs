@@ -20,9 +20,10 @@ namespace Invexaaa.Controllers
 
             var viewModel = new AlertsDashboardViewModel
             {
-                // 🔴 EXPIRED BATCHES
+                // 🔴 EXPIRED BATCHES (ACTIVE + INACTIVE)
                 ExpiredItems =
                     (from b in _context.StockBatches
+                     join i in _context.Items on b.ItemID equals i.ItemID
                      where b.BatchQuantity > 0 &&
                            b.BatchExpiryDate < today
                      select new ExpiryTrackingViewModel
@@ -31,12 +32,14 @@ namespace Invexaaa.Controllers
                          BatchNumber = b.BatchNumber,
                          Quantity = b.BatchQuantity,
                          ExpiryDate = b.BatchExpiryDate,
-                         ExpiryStatus = "Expired"
+                         ExpiryStatus = "Expired",
+                         ItemStatus = i.ItemStatus   // ✅ PASS STATUS
                      }).ToList(),
 
-                // 🟠 NEAR EXPIRY BATCHES
+                // 🟠 NEAR EXPIRY BATCHES (ACTIVE + INACTIVE)
                 NearExpiryItems =
                     (from b in _context.StockBatches
+                     join i in _context.Items on b.ItemID equals i.ItemID
                      where b.BatchQuantity > 0 &&
                            b.BatchExpiryDate >= today &&
                            b.BatchExpiryDate <= nearExpiryThreshold
@@ -46,10 +49,11 @@ namespace Invexaaa.Controllers
                          BatchNumber = b.BatchNumber,
                          Quantity = b.BatchQuantity,
                          ExpiryDate = b.BatchExpiryDate,
-                         ExpiryStatus = "Near Expiry"
+                         ExpiryStatus = "Near Expiry",
+                         ItemStatus = i.ItemStatus   // ✅ PASS STATUS
                      }).ToList(),
 
-                // 🟡 LOW STOCK (item-aware, no magic number)
+                // 🟡 LOW STOCK (ACTIVE + INACTIVE)
                 LowStockItems =
                     (from inv in _context.Inventories
                      join item in _context.Items on inv.ItemID equals item.ItemID
@@ -62,10 +66,11 @@ namespace Invexaaa.Controllers
                          ItemName = item.ItemName,
                          TotalQuantity = inv.InventoryTotalQuantity,
                          HealthStatus = "Low",
+                         ItemStatus = item.ItemStatus,   // ✅ REQUIRED
                          LastUpdated = inv.InventoryLastUpdated
                      }).ToList(),
 
-                // 🔵 REORDER REQUIRED (true reorder logic)
+                // 🔵 REORDER REQUIRED (ACTIVE + INACTIVE)
                 ReorderItems =
                     (from inv in _context.Inventories
                      join item in _context.Items on inv.ItemID equals item.ItemID
@@ -76,7 +81,7 @@ namespace Invexaaa.Controllers
                          ItemID = item.ItemID,
                          ItemName = item.ItemName,
                          ItemSellPrice = item.ItemSellPrice,
-                         ItemStatus = "Reorder Needed",
+                         ItemStatus = item.ItemStatus,   // ✅ DO NOT OVERRIDE
                          ItemImageUrl = item.ItemImageUrl,
                          ItemBarcode = item.ItemBarcode,
                          ReorderLevel = item.ItemReorderLevel,
@@ -87,6 +92,7 @@ namespace Invexaaa.Controllers
 
             return View("AlertsIndex", viewModel);
         }
+
 
     }
 }

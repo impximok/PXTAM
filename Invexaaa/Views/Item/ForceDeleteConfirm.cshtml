@@ -1,30 +1,274 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-
 @model Invexaaa.Models.Invexa.Item
 
 @{
     ViewData["Title"] = "Confirm Permanent Delete";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="text-danger mb-4">⚠ Permanent Delete</h2>
+<style>
+    :root {
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+    }
 
-<div class="alert alert-danger">
-    This action <strong>cannot</strong> be undone.
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
+
+    /* center frame */
+    .center-wrap {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 22px 18px 30px;
+    }
+
+    .form-card {
+        width: min(760px, 100%);
+        background: #fff;
+        border: 2px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 20px 22px 18px;
+        box-shadow: 0 8px 22px rgba(0,0,0,.05);
+    }
+
+    .card-title {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        color: #111;
+    }
+
+    .card-subtitle {
+        margin-top: 8px;
+        margin-bottom: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--muted);
+    }
+
+    .card-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 12px 0;
+    }
+
+    /* info grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 18px; /* was effectively too tight */
+    }
+
+    @@media (max-width: 900px) {
+        .info-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .info-box {
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 10px 12px;
+        background: #fff;
+    }
+
+    .info-label {
+        font-size: 11.5px;
+        font-weight: 800;
+        color: var(--muted);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+
+    .info-value {
+        font-size: 15px;
+        font-weight: 900;
+        color: var(--text);
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    /* danger zone */
+    .danger-card {
+        margin-top: 20px; /* more separation */
+        padding: 16px 18px; /* slightly more air */
+        border-radius: 18px;
+        border: 1.5px solid #fecaca;
+        background: rgba(220, 38, 38, 0.06);
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+
+    @@media (max-width: 700px) {
+        .danger-card {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+
+    .danger-left {
+        min-width: 0;
+    }
+
+    .danger-title {
+        font-weight: 900;
+        font-size: 13px;
+        color: #991b1b;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 6px;
+    }
+
+    .danger-text {
+        color: #7f1d1d;
+        font-size: 11.5px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    /* buttons */
+    .btn-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 18px; /* was 12px */
+    }
+
+    @@media (max-width: 700px) {
+        .btn-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .big-pill {
+        height: 42px;
+        border-radius: 999px !important;
+        font-size: 13.5px !important;
+        font-weight: 900 !important;
+        border: 2px solid #000 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+        cursor: pointer;
+    }
+
+    .big-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .big-solid:hover, .big-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .big-outline {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+        .big-outline:hover, .big-outline:focus-visible {
+            background: #000 !important;
+            color: #fff !important;
+            outline: none;
+        }
+
+    /* Danger button – behaves like Cancel but red */
+    .big-danger {
+        background: #dc2626 !important;
+        color: #fff !important;
+        border-color: #dc2626 !important;
+    }
+
+        /* Hover = invert (same pattern as Cancel) */
+        .big-danger:hover,
+        .big-danger:focus-visible {
+            background: #fff !important;
+            color: #dc2626 !important;
+            border-color: #dc2626 !important;
+            outline: none;
+        }
+
+</style>
+
+<div class="center-wrap">
+    <div class="form-card">
+
+        <h1 class="card-title">Permanent Delete</h1>
+        <p class="card-subtitle">
+            This will remove the item and related records permanently. This action cannot be undone.
+        </p>
+
+        <div class="card-divider"></div>
+
+        <!-- Info -->
+        <div class="info-grid">
+            <div class="info-box">
+                <div class="info-label">Item ID</div>
+                <div class="info-value">@Model.ItemID</div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-label">Item Name</div>
+                <div class="info-value">@Model.ItemName</div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-label">Barcode</div>
+                <div class="info-value">@(!string.IsNullOrWhiteSpace(Model.ItemBarcode) ? Model.ItemBarcode : "-")</div>
+            </div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="danger-card">
+            <div class="danger-left">
+                <div class="danger-title">Danger Zone</div>
+                <p class="danger-text">
+                    Deleting will permanently remove this item and its related records. Please confirm carefully.
+                </p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="btn-row">
+            <a asp-controller="Item"
+               asp-action="ItemDetail"
+               asp-route-id="@Model.ItemID"
+               class="big-pill big-outline">
+                Cancel
+            </a>
+
+            <form asp-controller="Item"
+                  asp-action="ForceDeleteItem"
+                  asp-route-id="@Model.ItemID"
+                  method="post"
+                  style="margin:0;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="big-pill big-danger w-100">
+                    Yes, Permanently Delete
+                </button>
+            </form>
+        </div>
+
+    </div>
 </div>
-
-<form asp-controller="Item"
-      asp-action="ForceDeleteItem"
-      asp-route-id="@Model.ItemID"
-      method="post">
-    @Html.AntiForgeryToken()
-
-    <button class="btn btn-danger">
-        YES – Permanently Delete
-    </button>
-
-    <a asp-action="ItemDetail"
-       asp-route-id="@Model.ItemID"
-       class="btn btn-secondary ms-2">
-        Cancel
-    </a>
-</form>

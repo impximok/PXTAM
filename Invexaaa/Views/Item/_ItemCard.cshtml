@@ -1,109 +1,491 @@
 ﻿@model Invexaaa.Models.ViewModels.ItemCardViewModel
 
-<div class="card h-100 shadow-sm item-card
-     @(Model.ItemStatus == "Inactive" ? "inactive-card" : "")">
 
-    <!-- CLICKABLE CONTENT -->
-    <a href="@(Model.ItemStatus == "Active" ? $"/Item/ItemDetail/{Model.ItemID}" : "javascript:void(0)")"
-       class="item-card-link @(Model.ItemStatus == "Inactive" ? "disabled-link" : "")">
+<div class="itemCard @(Model.ItemStatus == "Inactive" ? "isInactive" : "")">
 
-        <!-- ITEM IMAGE -->
-        <img src="@(string.IsNullOrWhiteSpace(Model.ItemImageUrl)
-                                  ? "/images/no-image.png"
-                                  : Model.ItemImageUrl)"
-             class="card-img-top"
-             style="height:180px; object-fit:contain;" />
+    <a href="/Item/ItemDetail/@Model.ItemID"
+       class="itemCard__link">
 
-        <div class="card-body">
 
-            <!-- NAME + STATUS -->
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <h6 class="fw-bold mb-0">@Model.ItemName</h6>
-                <span class="badge @(Model.ItemStatus == "Active" ? "bg-success" : "bg-secondary")">
-                    @Model.ItemStatus
-                </span>
+        <div class="itemCard__media">
+            <img src="@(string.IsNullOrWhiteSpace(Model.ItemImageUrl)
+                                             ? "/images/no-image.png"
+                                             : Model.ItemImageUrl)"
+                 alt="@Model.ItemName"
+                 class="itemCard__img"
+                 onerror="this.onerror=null;this.src='/images/no-image.png';" />
+
+            <span class="itemCard__statusPill @(Model.ItemStatus == "Active" ? "isActive" : "isInactive")">
+                @Model.ItemStatus
+            </span>
+        </div>
+
+        <div class="itemCard__body">
+            <div class="itemCard__top">
+                <div class="itemCard__title" title="@Model.ItemName">@Model.ItemName</div>
+                <div class="itemCard__code">#@Model.ItemID</div>
             </div>
 
-            <!-- CATEGORY + SUPPLIER -->
-            <small class="text-muted d-block">@Model.CategoryName</small>
-            <small class="text-muted d-block mb-2">@Model.SupplierName</small>
+            <div class="itemCard__meta">
+                <div class="itemCard__metaRow">
+                    <span class="label">Category</span>
+                    <span class="value">@Model.CategoryName</span>
+                </div>
+                <div class="itemCard__metaRow">
+                    <span class="label">Supplier</span>
+                    <span class="value">@Model.SupplierName</span>
+                </div>
+            </div>
 
-            <!-- PRICE -->
-            <div class="fw-semibold mb-2">
+            <div class="itemCard__price">
                 RM @Model.ItemSellPrice.ToString("0.00")
             </div>
 
-            <!-- INVENTORY INFO -->
-            <div class="small text-muted mb-2">
-                Balance: @Model.CurrentBalance <br />
-                Reorder Level: @Model.ReorderLevel
+            <div class="itemCard__stats">
+                <div class="stat
+    @(Model.CurrentBalance <= 0
+                                                  ? "stat--zero"
+                                                  : (Model.CurrentBalance <= Model.ReorderLevel ? "stat--low" : ""))">
+                    <div class="stat__k">Balance</div>
+                    <div class="stat__v">@Model.CurrentBalance</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat__k">Reorder</div>
+                    <div class="stat__v">@Model.ReorderLevel</div>
+                </div>
             </div>
 
-            <!-- BARCODE -->
             @if (!string.IsNullOrEmpty(Model.ItemBarcode))
             {
-                <div class="small text-muted">
-                    Barcode:
-                    <span class="fw-semibold">@Model.ItemBarcode</span>
+                <div class="itemCard__barcode">
+                    <span class="label">Barcode</span>
+                    <span class="value">@Model.ItemBarcode</span>
                 </div>
             }
-
         </div>
     </a>
 
-    <!-- ACTION BUTTONS -->
-    <div class="card-footer bg-white border-top d-flex justify-content-between gap-2">
+    <div class="itemCard__footer">
 
+        <!-- Edit (disabled if inactive) -->
         <a href="/Item/EditItem/@Model.ItemID"
-           class="btn btn-sm btn-outline-primary w-50
-                  @(Model.ItemStatus == "Inactive" ? "disabled-btn" : "")">
-            <i class="bi bi-pencil-square"></i> Edit
+           class="btn btn-sm itemBtn itemBtn--outline
+              @(Model.ItemStatus == "Inactive" ? "btnDisabled" : "")">
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit</span>
         </a>
 
-        <a href="/Item/DeactivateItem/@Model.ItemID"
-           class="btn btn-sm btn-outline-warning w-50
-                  @(Model.ItemStatus == "Inactive" ? "disabled-btn" : "")">
-            <i class="bi bi-slash-circle"></i> Deactivate
-        </a>
+        @if (Model.ItemStatus == "Active")
+        {
+            <a href="/Item/DeactivateItem/@Model.ItemID"
+               class="btn btn-sm itemBtn itemBtn--warn">
+                <i class="bi bi-slash-circle"></i>
+                <span>Deactivate</span>
+            </a>
+        }
+        else
+        {
+            <a href="/Item/ActivateItem/@Model.ItemID"
+               class="btn btn-sm itemBtn itemBtn--success">
+                <i class="bi bi-check-circle"></i>
+                <span>Activate</span>
+            </a>
+        }
 
     </div>
+
+
 </div>
-
-        <style>
-    /* ============================= */
-    /* INACTIVE ITEM CARD STYLING */
-    /* ============================= */
-
-    .inactive-card {
-        opacity: 0.55;
-        filter: grayscale(100%);
-        background-color: #f8f9fa;
+<style>
+    /* ===== Item Card (System Style) ===== */
+    .itemCard {
+        border: 2px solid #e6e6e6;
+        border-radius: 16px;
+        background: #fff;
+        overflow: hidden;
+        transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
     }
 
-    /* Disable clicking on card */
-    .disabled-link {
-        pointer-events: none;
-        cursor: not-allowed;
+        .itemCard:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0,0,0,.06);
+            border-color: #dedede;
+        }
+
+    /* Remove default <a> styling */
+    .itemCard__link {
+        display: block;
+        color: inherit;
+        text-decoration: none !important;
     }
 
-    /* Disable buttons */
-    .disabled-btn {
-        pointer-events: none;
-        opacity: 0.6;
+        .itemCard__link * {
+            text-decoration: none !important;
+        }
+
+    /* Media / image area */
+    .itemCard__media {
+        position: relative;
+        background: #fafafa;
+        border-bottom: 1px solid #ededed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
     }
 
-    /* Optional visual cue */
-    .inactive-card::after {
-        content: "INACTIVE";
+    .itemCard__img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 10px;
+    }
+
+    /* Status pill top-right */
+    /* ===== Status Pill (More Obvious) ===== */
+    .itemCard__statusPill {
         position: absolute;
         top: 10px;
-        left: 10px;
-        background: #6c757d;
-        color: white;
-        font-size: 0.7rem;
-        padding: 2px 6px;
-        border-radius: 4px;
-        z-index: 5;
+        right: 10px;
+        padding: 6px 12px;
+        font-size: .75rem;
+        font-weight: 900;
+        letter-spacing: .08em;
+        border-radius: 999px;
+        border: none;
+        text-transform: uppercase;
+        box-shadow: 0 2px 6px rgba(0,0,0,.12);
     }
 
-        </style>
+
+        .itemCard__statusPill.isActive {
+            color: #111;
+        }
+
+        .itemCard__statusPill.isInactive {
+            color: #6b7280;
+            background: #f7f7f7;
+        }
+
+    /* Body */
+    .itemCard__body {
+        padding: 10px 12px 8px;
+    }
+
+
+    .itemCard__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .itemCard__title {
+        font-weight: 700;
+        font-size: .98rem;
+        line-height: 1.2;
+        max-width: 70%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .itemCard__code {
+        font-size: .78rem;
+        color: #777;
+        border: 1px solid #ededed;
+        border-radius: 999px;
+        padding: 2px 8px;
+    }
+
+    /* Meta rows */
+    .itemCard__meta {
+        display: grid;
+        gap: 6px;
+        margin: 8px 0 10px;
+    }
+
+    .itemCard__metaRow {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: .85rem;
+    }
+
+        .itemCard__metaRow .label {
+            color: #7a7a7a;
+        }
+
+        .itemCard__metaRow .value {
+            color: #111;
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    /* Price */
+    .itemCard__price {
+        font-weight: 800;
+        font-size: 1.05rem;
+        margin: 6px 0 10px;
+    }
+
+    /* Stats */
+    .itemCard__stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .stat {
+        border: 1px solid #ededed;
+        padding: 8px;
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .stat__k {
+        font-size: .7rem;
+        color: #7a7a7a;
+    }
+
+    .stat__v {
+        font-size: .9rem;
+        font-weight: 800;
+        margin-top: 2px;
+    }
+
+    /* Barcode */
+    .itemCard__barcode {
+        border-top: 1px dashed #ededed;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding-top: 8px;
+        font-size: .8rem;
+    }
+
+        .itemCard__barcode .label {
+            color: #7a7a7a;
+        }
+
+        .itemCard__barcode .value {
+            font-weight: 700;
+        }
+
+    /* Footer buttons */
+    .itemCard__footer {
+        display: flex;
+        padding: 10px 12px 12px;
+        gap: 8px;
+        border-top: 1px solid #ededed;
+        background: #fff;
+    }
+
+    .itemBtn {
+        flex: 1;
+        border-radius: 12px !important;
+        padding: 8px 10px;
+        font-size: .85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .itemBtn--outline {
+        border: 1px solid #111 !important;
+        color: #111 !important;
+        background: #fff !important;
+    }
+
+        .itemBtn--outline:hover {
+            background: #111 !important;
+            color: #fff !important;
+        }
+
+    .itemBtn--warn {
+        border: 1px solid #e6e6e6 !important;
+        background: #fff7ed !important;
+        color: #9a3412 !important;
+    }
+
+        .itemBtn--warn:hover {
+            background: #ffedd5 !important;
+        }
+
+    /* Inactive state */
+    .itemCard.isInactive {
+        background: #fcfcfc;
+        border-style: dashed;
+    }
+
+        .itemCard.isInactive .itemCard__media {
+            background: #f7f7f7;
+        }
+
+
+
+    .btnDisabled {
+        pointer-events: none;
+        opacity: .55;
+    }
+
+    .itemBtn--success {
+        border: 1px solid #16a34a !important;
+        background: #ecfdf5 !important;
+        color: #166534 !important;
+    }
+
+        .itemBtn--success:hover {
+            background: #d1fae5 !important;
+        }
+    /* Media / image area (SQUARE, no crop) */
+    .itemCard__media {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 4 / 3; /* 🔥 was 1 / 1 */
+        padding: 8px; /* was 12px */
+        background: #fafafa;
+        border-bottom: 1px solid #ededed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Image (fit fully, never crop) */
+    .itemCard__img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* ✅ never crop */
+        object-position: center;
+        border-radius: 10px;
+        background: transparent;
+    }
+
+    .itemCard__img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .itemBtn--warn {
+        border: 1px solid #f59e0b !important;
+        background: #fff7ed !important;
+        color: #9a3412 !important;
+        transition: all .15s ease;
+    }
+
+        .itemBtn--warn:hover {
+            background: #f59e0b !important;
+            color: #fff !important;
+            border-color: #f59e0b !important;
+        }
+
+    .itemBtn--success {
+        border: 1px solid #16a34a !important;
+        background: #ecfdf5 !important;
+        color: #166534 !important;
+        transition: all .15s ease;
+    }
+
+        .itemBtn--success:hover {
+            background: #16a34a !important;
+            color: #fff !important;
+            border-color: #16a34a !important;
+        }
+
+    .itemBtn i {
+        transition: transform .15s ease;
+    }
+
+    .itemBtn:hover i {
+        transform: scale(1.05);
+    }
+
+    .itemCard.isInactive .itemCard__img {
+        filter: grayscale(1) opacity(.75);
+    }
+
+    .itemCard.isInactive .itemCard__statusPill {
+        border-style: dashed;
+    }
+
+    .itemCard.isInactive .itemCard__media::after {
+        content: none;
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(0,0,0,.65);
+        color: #fff;
+        font-size: .72rem;
+        font-weight: 800;
+    }
+
+    .itemCard__metaRow .label {
+        font-size: .78rem;
+    }
+
+    .itemCard__metaRow .value {
+        font-size: .88rem;
+    }
+
+    .itemCard__img {
+        border: 1px solid rgba(0,0,0,.04);
+    }
+
+    /* ===== Stock status cues ===== */
+
+    /* Low stock */
+    .stat--low {
+        border-color: #f59e0b;
+        background: rgba(245,158,11,.10);
+    }
+
+        .stat--low .stat__v {
+            color: #92400e;
+        }
+
+    /* Out of stock */
+    .stat--zero {
+        border-color: #dc2626;
+        background: rgba(220,38,38,.10);
+    }
+
+        .stat--zero .stat__v {
+            color: #991b1b;
+        }
+    /* ===== Inactive visual treatment ===== */
+
+    /* Dim + grayscale image */
+    .itemCard.isInactive .itemCard__img {
+        filter: grayscale(1) opacity(.7);
+    }
+
+    /* Make status pill clearer */
+    .itemCard.isInactive .itemCard__statusPill {
+        background: #f3f4f6;
+        border-style: dashed;
+    }
+
+    .itemCard__statusPill.isActive {
+        background: rgba(22,163,74,.14);
+        color: #166534;
+        border: 1.5px solid #16a34a;
+    }
+
+    .itemCard__statusPill.isInactive {
+        background: rgba(107,114,128,.12);
+        color: #374151;
+        border: 1.5px #6b7280;
+    }
+
+</style>

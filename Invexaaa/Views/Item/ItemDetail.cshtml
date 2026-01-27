@@ -7,252 +7,501 @@
     bool isInactive = Model.Status == "Inactive";
 }
 
-<style>
-    .item-detail-container {
-        display: grid;
-        grid-template-columns: 420px 1fr;
-        gap: 30px;
-        padding: 25px;
-    }
+<div class="detailPage">
+    <div class="detailGrid">
 
-    /* LEFT SIDE */
-    .image-panel {
-        background: #fff;
-        border-radius: 14px;
-        padding: 20px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-    }
-
-    .main-image {
-        width: 100%;
-        height: 300px;
-        border-radius: 12px;
-        border: 2px solid #0d6efd;
-        object-fit: contain;
-        background: #f5f5f5;
-    }
-
-    .thumb-row {
-        display: flex;
-        gap: 12px;
-        margin-top: 15px;
-    }
-
-    .thumb {
-        width: 90px;
-        height: 70px;
-        background: #e0e0e0;
-        border-radius: 8px;
-    }
-
-    .barcode {
-        margin-top: 15px;
-        text-align: center;
-        font-size: 0.8rem;
-        color: #666;
-    }
-
-    /* RIGHT SIDE */
-    .detail-panel {
-        background: #fff;
-        border-radius: 14px;
-        padding: 25px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-    }
-
-    .item-title {
-        font-size: 1.4rem;
-        font-weight: 600;
-    }
-
-    .meta {
-        font-size: 0.85rem;
-        color: #666;
-        margin-bottom: 10px;
-    }
-
-    .divider {
-        border-top: 1px solid #e0e0e0;
-        margin: 15px 0;
-    }
-
-    .desc {
-        font-size: 0.9rem;
-        color: #444;
-        line-height: 1.6;
-    }
-
-    /* TABLE */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-        font-size: 0.85rem;
-    }
-
-    th, td {
-        padding: 10px;
-        border: 1px solid #ddd;
-        text-align: center;
-    }
-
-    th {
-        background: #f1f1f1;
-        font-weight: 600;
-    }
-
-    .badge-ok {
-        background: #d1e7dd;
-        color: #0f5132;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-    }
-
-    .badge-warn {
-        background: #fff3cd;
-        color: #664d03;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-    }
-
-    .badge-danger {
-        background: #f8d7da;
-        color: #842029;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-    }
-
-    .locked {
-        opacity: 0.55;
-        pointer-events: none;
-        filter: grayscale(100%);
-    }
-
-    .status-badge-inactive {
-        background: #e5e7eb;
-        color: #374151;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    @@media (max-width: 900px) {
-        .item-detail-container {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
-<div class="item-detail-container">
-
-    <!-- LEFT : IMAGE -->
-    <div class="image-panel">
-        <img class="main-image"
-             src="@(string.IsNullOrWhiteSpace(Model.ImageUrl)
-                                 ? "/images/no-image.png"
-                                 : Model.ImageUrl)" />
-
-        <div class="thumb-row">
-            <div class="thumb"></div>
-            <div class="thumb"></div>
-        </div>
-
-        <div class="barcode">
-            @if (!string.IsNullOrWhiteSpace(Model.ItemBarcode))
-            {
-                <img src="@Url.Action("Generate", "Barcode", new { code = Model.ItemBarcode })"
-                     style="width:200px;" />
-                <div>@Model.ItemBarcode</div>
-            }
-            else
-            {
-                <span class="text-muted">No barcode available</span>
-            }
-        </div>
-    </div>
-
-    <!-- RIGHT : DETAILS -->
-    <div class="detail-panel">
-
-        <div class="item-title">@Model.ItemName</div>
-
-        <div class="meta">
-            Category: @Model.CategoryName &nbsp; | &nbsp;
-            Balance: @Model.CurrentBalance <br />
-            Reorder Level: @Model.ReorderLevel
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="desc">
-            <strong>Unit:</strong> @Model.UnitOfMeasure <br />
-            <strong>Buy Price:</strong> RM @Model.BuyPrice.ToString("0.00") <br />
-            <strong>Sell Price:</strong> RM @Model.SellPrice.ToString("0.00") <br />
-            <strong>Status:</strong>
-            @if (isInactive)
-            {
-                <span class="status-badge-inactive">INACTIVE · LOCKED</span>
-            }
-            else
-            {
-                <span class="badge-ok">ACTIVE</span>
-            }
-        </div>
-
-        @if (isInactive)
-        {
-            <div class="alert alert-secondary small mt-3">
-                This item is inactive.
-                Stock adjustment, restocking, and expiry edits are disabled.
+        <!-- LEFT -->
+        <div class="panel">
+            <div class="panel__header">
+                <div class="sectionTitle">Item Image</div>
             </div>
-        }
 
-        <div class="divider"></div>
+            <div class="panel__body">
 
-        <h6 class="fw-semibold">Batch Information</h6>
-
-        <!-- 🔒 LOCK batch table if inactive -->
-        <div class="@(isInactive ? "locked" : "")">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Batch No</th>
-                        <th>Expiry Date</th>
-                        <th>Quantity</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var b in Model.Batches)
+                <div class="image-square">
+                    @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
                     {
-                        <tr>
-                            <td>@b.BatchNo</td>
-                            <td>@b.ExpiryDate.ToString("dd/MM/yyyy")</td>
-                            <td>@b.Quantity</td>
-                            <td>
-                                @if (b.ExpiryStatus == "Near Expiry")
-                                {
-                                    <span class="badge-warn">Near Expiry</span>
-                                }
-                                else if (b.ExpiryStatus == "Reorder")
-                                {
-                                    <span class="badge-danger">Reorder</span>
-                                }
-                                else
-                                {
-                                    <span class="badge-ok">OK</span>
-                                }
-                            </td>
-                        </tr>
+                        <img class="main-image"
+                             src="@Model.ImageUrl"
+                             alt="@Model.ItemName"
+                             onerror="this.onerror=null;this.src='/images/no-image.png';" />
                     }
-                </tbody>
-            </table>
+                    else
+                    {
+                        <div class="img-empty">
+                            <i class="bi bi-image"></i>
+                            <div class="t">No image</div>
+                            <a href="/Item/EditItem/@Model.ItemID" class="img-edit-link">
+                                Upload in Edit
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <div class="barcode-box">
+                    @if (!string.IsNullOrWhiteSpace(Model.ItemBarcode))
+                    {
+                        <img src="@Url.Action("Generate", "Barcode", new { code = Model.ItemBarcode })" alt="Barcode" />
+                        <div class="barcode-text">@Model.ItemBarcode</div>
+                    }
+                    else
+                    {
+                        <div class="barcode-text">No barcode available</div>
+                    }
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- RIGHT -->
+        <div class="panel">
+            <div class="panel__header">
+                <div>
+                    <div class="pageTitle">@Model.ItemName</div>
+                    <div class="subText">@Model.CategoryName • @Model.SupplierName</div>
+                </div>
+
+                <span class="pill @(isInactive ? "pill--inactive" : "pill--active")">
+                    @(isInactive ? "INACTIVE · LOCKED" : "ACTIVE")
+                </span>
+            </div>
+
+            <div class="panel__body">
+
+                <div class="kv">
+                    <div class="box">
+                        <div class="k">Balance</div>
+                        <div class="v">@Model.CurrentBalance</div>
+                    </div>
+                    <div class="box">
+                        <div class="k">Reorder Level</div>
+                        <div class="v">@Model.ReorderLevel</div>
+                    </div>
+                </div>
+
+                <div class="hr"></div>
+
+                <div class="infoGrid">
+                    <div class="infoRow">
+                        <div class="infoLabel">Unit</div>
+                        <div class="infoValue">@Model.UnitOfMeasure</div>
+                    </div>
+
+                    <div class="infoRow">
+                        <div class="infoLabel">Buy Price</div>
+                        <div class="infoValue money">RM @Model.BuyPrice.ToString("0.00")</div>
+                    </div>
+
+                    <div class="infoRow">
+                        <div class="infoLabel">Sell Price</div>
+                        <div class="infoValue money">RM @Model.SellPrice.ToString("0.00")</div>
+                    </div>
+                </div>
+
+                @if (isInactive)
+                {
+                    <div class="sys-alert">
+                        This item is inactive. Stock adjustment, restocking, and expiry edits are disabled.
+                    </div>
+                }
+
+                <div class="hr"></div>
+
+                <div class="sectionHead">
+                    <div class="sectionTitle">Batch Information</div>
+                    <div class="subText">@(Model.Batches?.Count ?? 0) batch(es)</div>
+                </div>
+
+                <div class="@(isInactive ? "locked" : "")" style="margin-top:10px;">
+                    <table class="sys-table">
+                        <thead>
+                            <tr>
+                                <th>Batch No</th>
+                                <th>Expiry Date</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var b in Model.Batches)
+                            {
+                                <tr>
+                                    <td>@b.BatchNo</td>
+                                    <td>@b.ExpiryDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@b.Quantity</td>
+                                    <td>
+                                        @if (b.ExpiryStatus == "Near Expiry")
+                                        {
+                                            <span class="chip chip--warn">Near Expiry</span>
+                                        }
+                                        else if (b.ExpiryStatus == "Expired")
+                                        {
+                                            <span class="chip chip--danger">Expired</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="chip chip--ok">Safe</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
         </div>
 
     </div>
 
-</div>
+
+    <style>
+        :root {
+            --border: #e6e6e6;
+            --muted: #7a7a7a;
+            --text: #111;
+            --bg: #fff;
+            --soft: #fafafa;
+            --radius: 16px;
+        }
+
+        /* ✅ Force WHITE page everywhere */
+        html, body, main, .container, .container-fluid {
+            background: #fff !important;
+        }
+
+        .detailPage {
+            padding: 24px 18px;
+            background: #fff;
+        }
+
+        .detailGrid {
+            max-width: 1200px;
+            margin: 0 auto; /* ✅ centers BOTH panels together */
+            display: grid;
+            grid-template-columns: 360px minmax(0, 1fr);
+            gap: 22px;
+        }
+
+
+        @@media (max-width:980px) {
+            .detailGrid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* panels */
+        .panel {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 10px 28px rgba(0,0,0,.06);
+            width: 100%; /* 🔒 prevents floating behavior */
+        }
+
+        .panel__header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .panel__body {
+            padding: 14px 16px 12px;
+        }
+
+        /* ===== Typography (ONLY 3 levels) ===== */
+        .pageTitle {
+            font-size: 1.25rem;
+            font-weight: 800;
+            line-height: 1.2;
+            color: var(--text);
+        }
+
+        .sectionTitle {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .subText {
+            margin-top: 4px;
+            font-size: .9rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        /* header pill */
+        .pill {
+            font-size: .72rem;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            letter-spacing: .04em;
+            font-weight: 800;
+            background: #fff;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .pill--inactive {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .pill--active {
+            background: #fff;
+            color: #111;
+        }
+
+        /* LEFT image */
+        .main-image {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            display: block;
+        }
+
+
+
+        .img-empty {
+            width: 100%;
+            height: 100%;
+            border: 2px dashed var(--border);
+            background: var(--soft);
+            border-radius: 10px;
+            display: grid;
+            place-content: center;
+            gap: 8px;
+            text-align: center;
+            color: var(--muted);
+            padding: 0; /* ✅ important */
+        }
+
+
+            .img-empty i {
+                font-size: 1.4rem;
+                color: #9ca3af;
+            }
+
+            .img-empty .t {
+                font-weight: 800;
+                color: #374151;
+                font-size: .95rem;
+            }
+
+            .img-empty .s {
+                font-size: .85rem;
+            }
+
+        .barcode-box {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            text-align: center;
+        }
+
+            .barcode-box img {
+                max-width: 240px;
+                width: 100%;
+                height: auto;
+            }
+
+        .barcode-text {
+            margin-top: 6px;
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        /* KPI */
+        .kv {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+            .kv .box {
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 10px 12px;
+                background: #fff;
+            }
+
+            .kv .k {
+                font-size: .82rem;
+                font-weight: 700;
+                color: var(--muted);
+            }
+
+            .kv .v {
+                margin-top: 3px;
+                font-size: 1.05rem;
+                font-weight: 900;
+                color: var(--text);
+            }
+
+        /* divider */
+        .hr {
+            border-top: 1px solid var(--border);
+            margin: 14px 0;
+        }
+
+        /* info grid */
+        .infoGrid {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .infoRow {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 12px;
+            padding: 12px 14px;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+            .infoRow:last-child {
+                border-bottom: none;
+            }
+
+        .infoLabel {
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .infoValue {
+            font-size: .95rem;
+            font-weight: 900;
+            color: var(--text);
+            text-align: right;
+        }
+
+        .money {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* inactive alert */
+        .sys-alert {
+            border: 1px dashed var(--border);
+            background: var(--soft);
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: .9rem;
+            font-weight: 600;
+            color: #374151;
+            margin-top: 12px;
+        }
+
+        /* section head */
+        .sectionHead {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* table */
+        .sys-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: .9rem;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+            .sys-table thead th {
+                background: #f7f7f7;
+                color: #444;
+                font-weight: 800;
+                padding: 10px 12px;
+                border-bottom: 1px solid var(--border);
+                text-align: left;
+            }
+
+            .sys-table tbody td {
+                padding: 10px 12px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            .sys-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+        /* chips */
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 900;
+            border: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .chip--ok {
+            color: #111;
+        }
+
+        .chip--warn {
+            color: #9a3412;
+            background: #fff7ed;
+            border-color: #f59e0b;
+        }
+
+        .chip--danger {
+            color: #7f1d1d;
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        /* lock */
+        .locked {
+            opacity: .65;
+            pointer-events: none;
+        }
+
+        .img-edit-link {
+            font-size: .85rem;
+            font-weight: 700;
+            color: #4b5563; /* muted but clear */
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .img-edit-link:hover {
+                color: #111;
+                text-decoration: underline;
+            }
+
+        /* ===== Square Image Container (match Create/Edit) ===== */
+        .image-square {
+            width: 100%;
+            max-width: 320px; /* ✅ cap size like Create/Edit preview */
+            margin: 0 auto; /* ✅ center inside panel */
+            aspect-ratio: 1 / 1; /* ✅ perfect square */
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+    </style>

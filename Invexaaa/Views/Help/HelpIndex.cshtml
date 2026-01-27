@@ -1,0 +1,241 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Help & User Guide";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4 help-container">
+
+    <h2 class="help-title mb-2">Help & User Guide</h2>
+    <p class="help-muted">
+        This page explains how to use the Invexa Smart Inventory Intelligence System.
+        All information reflects the system’s actual functionality and user permissions.
+    </p>
+
+    <hr />
+
+    <!-- ===================== -->
+    <!-- QUICK HELP / FAQ -->
+    <!-- ===================== -->
+    <h5 class="mt-4">Quick Help (FAQ)</h5>
+
+    <div class="accordion mt-3" id="helpFaq">
+
+        <!-- FAQ 1 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq1">
+                    How do I create a new item (product)?
+                </button>
+            </h2>
+            <div id="faq1" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                    Go to <strong>Items</strong> → <strong>Create Item</strong>.
+                    Only <strong>Admin</strong> and <strong>Manager</strong> roles are allowed to create items.
+                    An inventory record is automatically created with zero quantity.
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ 2 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq2">
+                    How do I add stock to an item?
+                </button>
+            </h2>
+            <div id="faq2" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    Go to <strong>Stock</strong> → <strong>Add Stock Batch</strong>.
+                    Stock is added by batch, and each batch must have an expiry date.
+                    Inactive items cannot be restocked.
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ 3 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq3">
+                    What does “Low Stock” and “Reorder Required” mean?
+                </button>
+            </h2>
+            <div id="faq3" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <strong>Low Stock</strong> means the quantity is at or below the reorder level.<br />
+                    <strong>Reorder Required</strong> means the quantity has fallen below the reorder point.
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ 4 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq4">
+                    What is “Near Expiry”?
+                </button>
+            </h2>
+            <div id="faq4" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    Expiry status is calculated dynamically:
+                    <ul>
+                        <li><strong>Expired</strong> – Expiry date before today</li>
+                        <li><strong>Near Expiry</strong> – Expiry date within 7 or 30 days (based on filter)</li>
+                        <li><strong>Safe</strong> – Expiry date more than 30 days away</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ 5 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#faq5">
+                    Who can modify inventory and stock?
+                </button>
+            </h2>
+            <div id="faq5" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <strong>Admin</strong> and <strong>Manager</strong> users can manage items and stock.
+                    <strong>Staff</strong> users have limited access.
+                    Inactive items cannot be adjusted or restocked.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <hr class="help-section" />
+
+    <!-- ===================== -->
+    <!-- SYSTEM FEATURES -->
+    <!-- ===================== -->
+    <h5>System Features Overview</h5>
+
+    <ul class="mt-2">
+        <li>
+            <strong>Item Management</strong> – View, create, edit, deactivate, or permanently delete items.
+            Each item includes category, supplier, pricing, reorder settings, and barcode.
+        </li>
+        <li>
+            <strong>Inventory Overview</strong> – Displays total stock quantity and health status
+            (Critical, Low, Healthy).
+        </li>
+        <li>
+            <strong>Batch-Based Stock Management</strong> – Stock is added and adjusted by batch with
+            full audit tracking and quantity validation.
+        </li>
+        <li>
+            <strong>Expiry Tracking</strong> – Batch expiry status is calculated live and can be filtered
+            by category, expiry status, and date range.
+        </li>
+        <li>
+            <strong>Alerts Dashboard</strong> – Highlights expired batches, near-expiry items,
+            low stock items, and reorder requirements.
+        </li>
+        <li>
+            <strong>Role-Based Access Control</strong> – Different permissions for Admin, Manager, and Staff
+            to ensure system security.
+        </li>
+    </ul>
+
+    <hr class="help-section" />
+
+    <!-- ===================== -->
+    <!-- USER GUIDE DOWNLOAD -->
+    <!-- ===================== -->
+    <h5>User Guide (PDF)</h5>
+    <p class="help-muted">
+        Download the official user guide generated directly from the system logic.
+        This ensures the documentation always remains accurate and up to date.
+    </p>
+
+    <a asp-controller="Help"
+       asp-action="DownloadUserGuide"
+       class="btn btn-download btn-sm">
+        Download User Guide (PDF)
+    </a>
+    <div class="mt-4 qr-section">
+        <p class="help-muted mb-2">
+            Scan to download the User Guide
+        </p>
+
+        <img src="@Url.Action("UserGuideQr", "Help")"
+             alt="User Guide QR Code"
+             class="qr-image" />
+    </div>
+
+
+</div>
+
+<style>
+    .help-container {
+        max-width: 900px;
+        margin: auto;
+        color: #111;
+    }
+
+    .help-title {
+        font-weight: 600;
+        letter-spacing: 0.4px;
+    }
+
+    .help-muted {
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .accordion-button {
+        background-color: #fff;
+        color: #111;
+        font-weight: 500;
+        border-bottom: 1px solid #ddd;
+    }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #f8f8f8;
+            box-shadow: none;
+        }
+
+    .accordion-body {
+        background-color: #fff;
+        border-left: 3px solid #000;
+        padding-left: 1rem;
+        font-size: 0.95rem;
+    }
+
+    .help-section {
+        margin-top: 2.5rem;
+    }
+
+    .btn-download {
+        border: 1px solid #000;
+        color: #000;
+        background-color: transparent;
+    }
+
+        .btn-download:hover {
+            background-color: #000;
+            color: #fff;
+        }
+
+    .qr-section {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .qr-image {
+        width: 160px;
+        height: 160px;
+        border: 1px solid #000;
+        padding: 8px;
+        background-color: #fff;
+    }
+
+</style>

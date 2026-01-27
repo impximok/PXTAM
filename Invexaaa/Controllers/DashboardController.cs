@@ -20,8 +20,10 @@ namespace Invexaaa.Controllers
         {
             var model = new DashboardViewModel();
 
-            // TOTAL ITEMS
+            // TOTAL ITEMS (WITH BREAKDOWN)
             model.TotalItems = _context.Items.Count();
+            model.ActiveItemCount = _context.Items.Count(i => i.ItemStatus == "Active");
+            model.InactiveItemCount = _context.Items.Count(i => i.ItemStatus == "Inactive");
 
             // JOIN Items + Inventory
             var inventoryData =
@@ -31,29 +33,36 @@ namespace Invexaaa.Controllers
                 select new
                 {
                     i.ItemName,
+                    i.ItemStatus,
                     inv.InventoryTotalQuantity,
                     i.ItemReorderLevel,
                     i.ReorderPoint,
                     inv.InventoryLastUpdated
                 };
 
-            // OUT OF STOCK
+            // STOCK COUNTS (ACTIVE ONLY)
             model.OutOfStockCount =
-                inventoryData.Count(x => x.InventoryTotalQuantity == 0);
+                inventoryData.Count(x =>
+                    x.ItemStatus == "Active" &&
+                    x.InventoryTotalQuantity == 0);
 
-            // REORDER (CRITICAL)
             model.ReorderAlertCount =
                 inventoryData.Count(x =>
+                    x.ItemStatus == "Active" &&
                     x.InventoryTotalQuantity <= x.ReorderPoint);
 
-            // LOW STOCK (WARNING)
             model.LowStockCount =
                 inventoryData.Count(x =>
+                    x.ItemStatus == "Active" &&
                     x.InventoryTotalQuantity > x.ReorderPoint &&
                     x.InventoryTotalQuantity <= x.ItemReorderLevel);
 
+            model.OkStockCount =
+                inventoryData.Count(x =>
+                    x.ItemStatus == "Active" &&
+                    x.InventoryTotalQuantity > x.ItemReorderLevel);
 
-            // RECENT INVENTORY ACTIVITY (TOP 5)
+            // RECENT INVENTORY (SHOW INACTIVE CLEARLY)
             model.RecentInventories =
                 inventoryData
                 .OrderByDescending(x => x.InventoryLastUpdated)
@@ -62,13 +71,15 @@ namespace Invexaaa.Controllers
                 {
                     ItemName = x.ItemName,
                     Quantity = x.InventoryTotalQuantity,
+                    ItemStatus = x.ItemStatus,
                     Status =
-    x.InventoryTotalQuantity <= x.ReorderPoint ? "Reorder" :
-    x.InventoryTotalQuantity <= x.ItemReorderLevel ? "Low" :
-    "OK"
-
+                        x.ItemStatus == "Inactive" ? "Locked" :
+                        x.InventoryTotalQuantity <= x.ReorderPoint ? "Reorder" :
+                        x.InventoryTotalQuantity <= x.ItemReorderLevel ? "Low" :
+                        "OK"
                 })
                 .ToList();
+
 
             return View(model);
         }

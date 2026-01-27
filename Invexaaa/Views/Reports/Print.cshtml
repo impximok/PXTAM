@@ -1,205 +1,82 @@
 ﻿@model Invexaaa.Models.ViewModels.ReportPrintViewModel
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-
 @{
     Layout = null;
 }
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title>@Model.ReportType Report</title>
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 13px;
+        color: #111;
+    }
 
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-            background: #fff;
-            color: #000;
-            padding: 40px;
-            font-size: 14px;
-        }
+    h1 {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
 
-        h1 {
-            font-size: 28px;
-            margin-bottom: 6px;
-        }
+    h2 {
+        font-size: 16px;
+        margin-top: 24px;
+        margin-bottom: 8px;
+    }
 
-        .meta {
-            color: #666;
-            margin-bottom: 30px;
-        }
+    .meta {
+        font-size: 11px;
+        color: #555;
+        margin-bottom: 16px;
+    }
 
-        .actions {
-            margin-bottom: 30px;
-        }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+    }
 
-        .btn {
-            padding: 8px 16px;
-            border: 1px solid #000;
-            background: #000;
-            color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-        }
+    th {
+        background: #f3f4f6;
+        text-align: left;
+        font-weight: bold;
+        border-bottom: 2px solid #999;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
+    th, td {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+    }
 
-        th, td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e5e5e5;
-            text-align: left;
-        }
+    .inactive {
+        background: #f0f0f0;
+        color: #666;
+    }
+</style>
 
-        th {
-            background: #f5f5f5;
-            font-weight: 600;
-        }
 
-        @@media print {
-            .actions
+<h1>@Model.ReportType Report</h1>
 
+<div class="meta">
+    Generated on: @Model.GeneratedOn <br />
+    Scope: @Model.ScopeNote
+</div>
+
+
+@if (Model.ReportType == "Stock")
+{
+    <ul>
+        <li>Total Quantity: @Model.TotalQuantityAll</li>
+        <li>Active Quantity: @Model.TotalQuantityActive</li>
+        <li>Inventory Value: RM @Model.InventoryValueActive.ToString("N2")</li>
+    </ul>
+
+    <table>
+        <tr><th>Item</th><th>Status</th><th>Quantity</th></tr>
+        @foreach (var i in Model.StockSummary!)
         {
-            display: none;
+            <tr class="@(i.ItemStatus == "Inactive" ? "inactive" : "")">
+                <td>@i.ItemName</td>
+                <td>@i.ItemStatus</td>
+                <td>@i.Quantity</td>
+            </tr>
         }
-
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- ACTION BAR (HIDDEN IN PDF) -->
-    <form asp-action="ExportPdf" method="post" class="actions">
-        @Html.AntiForgeryToken()
-
-        <input type="hidden" name="reportType" value="@Model.ReportType" />
-        <input type="hidden" name="startDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
-        <input type="hidden" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
-
-        <button type="submit" class="btn">Export PDF</button>
-    </form>
-
-    <!-- HEADER -->
-    <h1>@Model.ReportType Report</h1>
-    <div class="meta">
-        Generated on @DateTime.Now.ToString("dd MMM yyyy")
-    </div>
-
-    <!-- ================= SALES REPORT ================= -->
-    @if (Model.ReportType == "Sales")
-    {
-        <table>
-            <thead>
-                <tr>
-                    <th>Sales ID</th>
-                    <th>Sales Date</th>
-                    <th>Total Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var s in Model.SalesHeaders!)
-                {
-                    <tr>
-                        <td>@s.SalesID</td>
-                        <td>@s.SalesDate.ToString("dd MMM yyyy")</td>
-                        <td>@s.TotalAmount.ToString("C")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    <!-- ================= DEMAND FORECAST ================= -->
-    @if (Model.ReportType == "DemandForecast")
-    {
-        <table>
-            <thead>
-                <tr>
-                    <th>Item ID</th>
-                    <th>Forecast Period</th>
-                    <th>Predicted Quantity</th>
-                    <th>Recommended Reorder</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var d in Model.DemandForecasts!)
-                {
-                    <tr>
-                        <td>@d.ItemID</td>
-                        <td>@d.DemandForecastPeriod</td>
-                        <td>@d.DemandPredictedQuantity</td>
-                        <td>@d.DemandRecommendedReorderQty</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    <!-- ================= STOCK SUMMARY ================= -->
-    @if (Model.ReportType == "Stock")
-    {
-        <table>
-            <thead>
-                <tr>
-                    <th>Item ID</th>
-                    <th>Total Quantity</th>
-                    <th>Last Updated</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var i in Model.Inventories!)
-                {
-                    <tr>
-                        <td>@i.ItemID</td>
-                        <td>@i.InventoryTotalQuantity</td>
-                        <td>@i.InventoryLastUpdated.ToString("dd MMM yyyy")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    <!-- ================= EXPIRY & WASTAGE ================= -->
-    @if (Model.ReportType == "Expiry")
-    {
-        <table>
-            <thead>
-                <tr>
-                    <th>Batch Number</th>
-                    <th>Item ID</th>
-                    <th>Quantity</th>
-                    <th>Expiry Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var b in Model.StockBatches!)
-                {
-                    <tr>
-                        <td>@b.BatchNumber</td>
-                        <td>@b.ItemID</td>
-                        <td>@b.BatchQuantity</td>
-                        <td>@b.BatchExpiryDate.ToString("dd MMM yyyy")</td>
-                        <td>
-                            @{
-                                var expiryStatus =
-                                b.BatchExpiryDate < DateTime.Today ? "Expired" :
-                                b.BatchExpiryDate <= DateTime.Today.AddDays(30) ? "Near Expiry" :
-                                "Safe";
-                            }
-                            @expiryStatus
-                        </td>
-
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-</body>
-</html>
+    </table>
+}

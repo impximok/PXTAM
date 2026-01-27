@@ -1,4 +1,5 @@
 ﻿using Invexaaa.Data;
+using Invexaaa.Models.Invexa.ViewModels;
 using Invexaaa.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Rotativa.AspNetCore;
@@ -33,9 +34,13 @@ namespace Invexaaa.Controllers
         public IActionResult Overview(string reportType, DateTime? startDate, DateTime? endDate)
         {
             var vm = BuildReportViewModel(reportType, startDate, endDate);
-            return View(vm); // 👈 stays on Overview
+            if (reportType == "StockCharts")
+            {
+                return View("StockCharts", vm);
+            }
 
-
+            return View(vm);
+            // 👈 stays on Overview
         }
 
         // =====================================================
@@ -58,15 +63,17 @@ namespace Invexaaa.Controllers
         // SHARED REPORT BUILDER
         // =====================================================
         private ReportPrintViewModel BuildReportViewModel(
-            string reportType,
-            DateTime? startDate,
-            DateTime? endDate)
+    string reportType,
+    DateTime? startDate,
+    DateTime? endDate)
         {
             var vm = new ReportPrintViewModel
             {
                 ReportType = reportType,
                 StartDate = startDate,
-                EndDate = endDate
+                EndDate = endDate,
+                GeneratedOn = DateTime.Now,
+                ScopeNote = "Reports include BOTH Active and Inactive items unless explicitly stated."
             };
 
             if (string.IsNullOrEmpty(reportType))
@@ -74,6 +81,7 @@ namespace Invexaaa.Controllers
 
             switch (reportType)
             {
+                // ================= SALES =================
                 case "Sales":
                     vm.SalesHeaders = _context.SalesHeaders
                         .Where(x =>
@@ -83,43 +91,101 @@ namespace Invexaaa.Controllers
                         .ToList();
                     break;
 
+                // ================= DEMAND FORECAST =================
                 case "DemandForecast":
-                    vm.DemandForecasts = _context.DemandForecasts
-                        .OrderByDescending(x => x.DemandGeneratedDate)
+                    vm.DemandForecastReport =
+                        _context.DemandForecasts
+                        .AsEnumerable() // 🔑 SWITCH TO IN-MEMORY LINQ
+                        .Join(
+                            _context.Items,
+                            d => d.ItemID,
+                            i => i.ItemID,
+                            (d, i) => new
+                            {
+                                Forecast = d,
+                                Item = i,
+                                ParsedPeriod = DateTime.TryParse(d.DemandForecastPeriod, out var dt)
+                                    ? (DateTime?)dt
+                                    : null
+                            })
+                        .Where(x =>
+                            (!startDate.HasValue || (x.ParsedPeriod.HasValue && x.ParsedPeriod >= startDate)) &&
+                            (!endDate.HasValue || (x.ParsedPeriod.HasValue && x.ParsedPeriod <= endDate)))
+                        .OrderByDescending(x => x.ParsedPeriod)
+                        .Select(x => new DemandForecastReportViewModel
+                        {
+                            ItemID = x.Item.ItemID,
+                            ItemName = x.Item.ItemName,
+                            ItemStatus = x.Item.ItemStatus,
+                            Period = x.Forecast.DemandForecastPeriod,
+                            ForecastQty = x.Forecast.DemandPredictedQuantity,
+                            RecommendedReorder = x.Forecast.DemandRecommendedReorderQty
+                        })
                         .ToList();
                     break;
 
-                case "Stock":
-                    vm.Inventories = _context.Inventories.ToList();
-                    break;
 
-                case "StockCharts":
-                    vm.StockChartData =
+
+
+                // ================= STOCK SUMMARY (KPIs COME FROM HERE) =================
+                case "Stock":
+                    vm.StockSummary =
                         (from inv in _context.Inventories
-                         join item in _context.Items on inv.ItemID equals item.ItemID
-                         select new StockChartViewModel
+                         join i in _context.Items on inv.ItemID equals i.ItemID
+                         select new StockSummaryViewModel
                          {
-                             ItemName = item.ItemName,
+                             ItemID = i.ItemID,
+                             ItemName = i.ItemName,
+                             ItemStatus = i.ItemStatus,
                              Quantity = inv.InventoryTotalQuantity,
-                             Status =
-                                inv.InventoryTotalQuantity <= item.ReorderPoint ? "Reorder" :
-                                inv.InventoryTotalQuantity <= item.ItemReorderLevel ? "Low" :
-                                "Healthy"
+                             BuyPrice = i.ItemBuyPrice,
+                             LastUpdated = inv.InventoryLastUpdated
                          }).ToList();
                     break;
 
+                // ================= STOCK CHARTS (ACTIVE ONLY) =================
+                case "StockCharts":
+                    vm.StockChartData =
+                        (from inv in _context.Inventories
+                         join i in _context.Items on inv.ItemID equals i.ItemID
+                         where i.ItemStatus == "Active" // 👈 EXPLICIT RULE
+                         select new StockChartViewModel
+                         {
+                             ItemName = i.ItemName,
+                             Quantity = inv.InventoryTotalQuantity,
+                             Status =
+                                inv.InventoryTotalQuantity <= i.ReorderPoint ? "Reorder" :
+                                inv.InventoryTotalQuantity <= i.ItemReorderLevel ? "Low" :
+                                "Healthy"
+                         }).ToList();
 
+                    vm.ChartNote =
+                        "Charts include ACTIVE items only. Inactive items are excluded to avoid analytical distortion.";
+                    break;
+
+                // ================= EXPIRY & WASTAGE =================
                 case "Expiry":
-                    vm.StockBatches = _context.StockBatches
-                        .Where(x => x.BatchExpiryDate <= DateTime.Now.AddDays(30))
-                        .OrderBy(x => x.BatchExpiryDate)
-                        .ToList();
+                    vm.ExpiryReport =
+                        (from b in _context.StockBatches
+                         join i in _context.Items on b.ItemID equals i.ItemID
+                         where b.BatchExpiryDate <= DateTime.Today.AddDays(30)
+                         orderby b.BatchExpiryDate
+                         select new ExpiryReportViewModel
+                         {
+                             BatchNumber = b.BatchNumber,
+                             ItemName = i.ItemName,
+                             ItemStatus = i.ItemStatus,
+                             Quantity = b.BatchQuantity,
+                             ExpiryDate = b.BatchExpiryDate
+                         }).ToList();
                     break;
             }
 
             return vm;
         }
-        
+
+
+
 
     }
 }

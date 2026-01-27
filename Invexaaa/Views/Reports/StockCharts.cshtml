@@ -1,57 +1,204 @@
-﻿@model List<Invexaaa.Models.ViewModels.StockChartViewModel>
+﻿@using System.Linq
+@model Invexaaa.Models.ViewModels.ReportPrintViewModel
 
 @{
     ViewData["Title"] = "Stock Charts";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
-    var labels = Model.Select(x => x.ItemName).ToList();
-    var quantities = Model.Select(x => x.Quantity).ToList();
-
-    var healthy = Model.Count(x => x.Status == "Healthy");
-    var low = Model.Count(x => x.Status == "Low");
-    var reorder = Model.Count(x => x.Status == "Reorder");
 }
 
-<h2 class="mb-4">Stock Overview</h2>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="row">
-    <div class="col-md-8">
-        <canvas id="barChart"></canvas>
+<style>
+    .filter-form {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+        .filter-form label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .filter-form input,
+        .filter-form select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+        }
+
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+    }
+
+    .no-print {
+        position: relative;
+        z-index: 10;
+    }
+
+    canvas {
+        position: relative;
+        z-index: 1;
+    }
+
+</style>
+
+<!-- ================= HEADER ================= -->
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <div>
+        <h2 class="mb-0">Stock Charts</h2>
+        <small class="text-muted">
+            Visual stock analysis (Active items only)
+        </small>
     </div>
-    <div class="col-md-4">
-        <canvas id="pieChart"></canvas>
+
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-outline-dark">
+            Print
+        </button>
+
+        <form asp-action="ExportPdf" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="reportType" value="StockCharts" />
+            <input type="hidden" name="startDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+            <button class="btn btn-dark">
+                Export PDF
+            </button>
+        </form>
     </div>
 </div>
 
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- ================= FILTER FORM ================= -->
+<form asp-action="Overview" method="post" class="filter-form no-print">
+    @Html.AntiForgeryToken()
+
+    <div class="row">
+        <div class="col-md-4">
+            <label>Start Date</label>
+            <input type="date"
+                   name="startDate"
+                   value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <div class="col-md-4">
+            <label>End Date</label>
+            <input type="date"
+                   name="endDate"
+                   value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+        </div>
+    </div>
+
+    <label class="mt-3">Report Type</label>
+    <select name="reportType" required>
+        <option value="">-- Select Report --</option>
+        <option value="DemandForecast" @(Model.ReportType == "DemandForecast" ? "selected" : "")>
+            Demand Forecast
+        </option>
+        <option value="Stock" @(Model.ReportType == "Stock" ? "selected" : "")>
+            Stock Summary
+        </option>
+        <option value="StockCharts" @(Model.ReportType == "StockCharts" ? "selected" : "")>
+            Stock Charts
+        </option>
+        <option value="Expiry" @(Model.ReportType == "Expiry" ? "selected" : "")>
+            Expiry & Wastage
+        </option>
+    </select>
+
+
+    <button class="btn btn-dark mt-3">
+        Generate Report
+    </button>
+</form>
+
+<!-- ================= SCOPE ================= -->
+<div class="alert alert-info">
+    <strong>Chart Scope:</strong><br />
+    Charts display <b>ACTIVE items only</b>.
+    Inactive items are excluded to prevent visual distortion.
+</div>
+
+<!-- ================= CHARTS ================= -->
+@if (Model.StockChartData == null || !Model.StockChartData.Any())
+{
+    <div class="alert alert-warning">
+        No active stock data available for the selected period.
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            <canvas id="barChart"></canvas>
+        </div>
+
+        <div class="col-md-4">
+            <canvas id="pieChart"></canvas>
+        </div>
+    </div>
+
+    <p class="text-muted mt-3">
+        <em>
+            Inactive items are included in stock tables and KPIs,
+            but excluded from charts to maintain analytical accuracy.
+        </em>
+    </p>
 
     <script>
-        // BAR CHART
-        new Chart(document.getElementById('barChart'), {
-            type: 'bar',
-            data: {
-                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(labels)),
-                datasets: [{
-                    label: 'Stock Quantity',
-                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(quantities)),
-                    backgroundColor: '#0d6efd'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } }
-            }
-        });
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    Model.StockChartData.Select(x => x.ItemName)
+            ));
 
-        // PIE CHART
+    const quantities = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.StockChartData.Select(x => x.Quantity)
+        ));
+
+    const statuses = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.StockChartData.Select(x => x.Status)
+        ));
+
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Stock Quantity (Active Items)',
+                data: quantities
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+        const statusCounts = {
+            Healthy: statuses.filter(s => s === "Healthy").length,
+            Low: statuses.filter(s => s === "Low").length,
+            Reorder: statuses.filter(s => s === "Reorder").length
+        };
+
         new Chart(document.getElementById('pieChart'), {
             type: 'pie',
             data: {
                 labels: ['Healthy', 'Low', 'Reorder'],
                 datasets: [{
-                    data: [@healthy, @low, @reorder],
-                    backgroundColor: ['#198754', '#ffc107', '#dc3545']
+                    data: [
+                        statusCounts.Healthy,
+                        statusCounts.Low,
+                        statusCounts.Reorder
+                    ]
                 }]
             }
         });

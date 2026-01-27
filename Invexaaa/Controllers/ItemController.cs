@@ -28,7 +28,7 @@ namespace Invexaaa.Controllers
         // =====================================================
         [Authorize(Roles = "Admin,Manager,Staff")]
         [HttpGet("ItemIndex")]
-        public IActionResult ItemIndex(string search, int? categoryId, string status)
+        public IActionResult ItemIndex(string search, int? categoryId, string status, int page = 1, int pageSize = 12)
         {
             var items =
                 from i in _context.Items
@@ -51,25 +51,46 @@ namespace Invexaaa.Controllers
                     ItemBarcode = i.ItemBarcode
                 };
 
-           
-
+            // ✅ Filters
             if (!string.IsNullOrWhiteSpace(search))
-                items = items.Where(x => x.ItemName.Contains(search));
+            {
+                var term = search.Trim();
+                items = items.Where(x =>
+                    x.ItemName.Contains(term) ||
+                    (x.ItemBarcode != null && x.ItemBarcode.Contains(term))
+                );
+            }
 
             if (categoryId.HasValue)
-                items = items.Where(x => x.CategoryID == categoryId);
+                items = items.Where(x => x.CategoryID == categoryId.Value);
 
             if (!string.IsNullOrWhiteSpace(status))
                 items = items.Where(x => x.ItemStatus == status);
 
+            // ✅ ViewBag for dropdowns
             ViewBag.Categories = _context.Categories
                 .Where(c => c.CategoryStatus == "Active")
                 .ToList();
 
             ViewBag.StatusList = new[] { "Active", "Inactive" };
 
-            return View("ItemIndex", items.ToList());
+            // ✅ Paging (AFTER filters)
+            var totalCount = items.Count();
+            if (page < 1) page = 1;
+
+            var pagedItems = items
+                .OrderBy(x => x.ItemID)              // stable ordering
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalCount = totalCount;
+
+            return View("ItemIndex", pagedItems);
         }
+
 
 
         // =====================================================
@@ -163,6 +184,27 @@ namespace Invexaaa.Controllers
                 vm.Suppliers = _context.Suppliers.ToList();
                 return View("CreateItem", vm);
             }
+            // ================= IMAGE UPLOAD =================
+            if (vm.ImageFile != null && vm.ImageFile.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot/uploads/items"
+                );
+
+                Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(vm.ImageFile.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    vm.ImageFile.CopyTo(stream);
+                }
+
+                // ✅ VERY IMPORTANT: save WEB path, not physical path
+                vm.Item.ItemImageUrl = $"/uploads/items/{fileName}";
+            }
 
             // =====================================================
             // ⭐ AUTO-GENERATE BARCODE (Option B)
@@ -186,6 +228,7 @@ namespace Invexaaa.Controllers
 
             // Generate new barcode
             vm.Item.ItemBarcode = $"INVX-{nextNumber:D6}";
+
 
             // =====================================================
             // SAVE ITEM
@@ -237,6 +280,27 @@ namespace Invexaaa.Controllers
                 return View("EditItem", vm);
             }
 
+            // ================= IMAGE UPLOAD =================
+            if (vm.ImageFile != null && vm.ImageFile.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot/uploads/items"
+                );
+
+                Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(vm.ImageFile.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    vm.ImageFile.CopyTo(stream);
+                }
+
+                vm.Item.ItemImageUrl = $"/uploads/items/{fileName}";
+            }
+
             _context.Items.Update(vm.Item);
             _context.SaveChanges();
 
@@ -248,11 +312,19 @@ namespace Invexaaa.Controllers
         [HttpGet("DeactivateItem/{id}")]
         public IActionResult DeactivateItem(int id)
         {
-            var item = _context.Items.Find(id);
+            var item = _context.Items.FirstOrDefault(i => i.ItemID == id);
             if (item == null) return NotFound();
+
+            var categoryName = _context.Categories
+                .Where(c => c.CategoryID == item.CategoryID)
+                .Select(c => c.CategoryName)
+                .FirstOrDefault();
+
+            ViewBag.CategoryName = categoryName;
 
             return View("DeactivateItem", item);
         }
+
 
 
         [Authorize(Roles = "Admin,Manager")]
@@ -268,6 +340,7 @@ namespace Invexaaa.Controllers
 
             return RedirectToAction("ItemIndex");
         }
+
 
 
         // =====================================================

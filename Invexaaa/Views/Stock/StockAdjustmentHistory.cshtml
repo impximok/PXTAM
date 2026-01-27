@@ -6,6 +6,23 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    .inactive-row {
+        opacity: 0.55;
+        background: #f1f5f9;
+    }
+
+    .inactive-badge {
+        background: #e5e7eb;
+        color: #374151;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+</style>
+
+
 <div class="container-fluid">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -32,33 +49,45 @@
                 <tbody>
                     @foreach (var h in Model)
                     {
+                        bool isInactive = h.ItemStatus == "Inactive";
+
                         var diffClass =
                         h.QuantityDifference > 0 ? "text-success" :
                         h.QuantityDifference < 0 ? "text-danger" :
                         "text-muted";
 
-                        <tr>
+                        <tr class="@(isInactive ? "inactive-row" : "")">
+
                             <td>@h.AdjustmentDate.ToString("dd/MM/yyyy")</td>
-                            <td class="fw-semibold">@h.ItemName</td>
 
-                            <td>
-                                <span class="badge bg-light text-dark">
-                                    @h.BatchNumber
-                                </span>
-                            </td>
+                            <td class="fw-semibold">
+                                @h.ItemName
+                                @if (isInactive)
+                                {
+                                    <div class="mt-1">
+                                        <span class="inactive-badge">INACTIVE</span>
+                                    </div>
+                                }
+                        </td>
 
-                            <td>@h.QuantityBefore</td>
-                            <td>@h.QuantityAfter</td>
+                        <td>
+                            <span class="badge bg-light text-dark">
+                                @h.BatchNumber
+                            </span>
+                        </td>
 
-                            <td class="@diffClass">
-                                @h.QuantityDifference
-                            </td>
+                        <td>@h.QuantityBefore</td>
+                        <td>@h.QuantityAfter</td>
 
-                            <td>
-                                <span class="badge
-                                        @(h.AdjustmentStatus == "Approved" ? "bg-success" :
-                                                                            h.AdjustmentStatus == "Pending" ? "bg-warning" :
-                                                                            "bg-secondary")">
+                        <td class="@diffClass">
+                            @h.QuantityDifference
+                        </td>
+
+                        <td>
+                            <span class="badge
+                @(h.AdjustmentStatus == "Approved" ? "bg-success" :
+                                                    h.AdjustmentStatus == "Pending" ? "bg-warning" :
+                                                    "bg-secondary")">
                                 @h.AdjustmentStatus
                             </span>
                         </td>
@@ -66,9 +95,11 @@
                             <td class="text-muted small">
                                 @h.AdjustmentReason
                             </td>
+
                         </tr>
                                         }
                 </tbody>
+
 
             </table>
         </div>
