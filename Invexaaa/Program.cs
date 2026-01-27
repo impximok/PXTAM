@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
 using Invexaaa.Data;
+using QuestPDF.Infrastructure;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
+QuestPDF.Settings.License = LicenseType.Community;
 // MVC
 builder.Services.AddControllersWithViews();
 

@@ -1,4 +1,5 @@
-﻿@model Invexaaa.Models.ViewModels.AlertsDashboardViewModel
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model Invexaaa.Models.ViewModels.AlertsDashboardViewModel
 
 @{
     ViewData["Title"] = "Alerts & Notifications";
@@ -25,7 +26,9 @@
             {
                 @foreach (var item in Model.ExpiredItems)
                 {
-                    <div class="card">
+                    bool isInactive = item.ItemStatus == "Inactive";
+
+                    <div class="card @(isInactive ? "inactive-card" : "")">
                         <div class="card-title">
                             Batch @item.BatchNumber
                         </div>
@@ -38,12 +41,19 @@
                             Expired @item.ExpiryDate.ToShortDateString()
                         </div>
 
-                        <a asp-controller="Stock"
-                           asp-action="StockBatchDetails"
-                           asp-route-id="@item.BatchID"
-                           class="action">
-                            View batch →
-                        </a>
+                        @if (isInactive)
+                        {
+                            <span class="inactive-badge mt-2">INACTIVE</span>
+                        }
+                        else
+                        {
+                            <a asp-controller="Stock"
+                               asp-action="StockBatchDetails"
+                               asp-route-id="@item.BatchID"
+                               class="action">
+                                View batch →
+                            </a>
+                        }
                     </div>
                 }
             }
@@ -66,7 +76,9 @@
             {
                 @foreach (var item in Model.NearExpiryItems)
                 {
-                    <div class="card">
+                    bool isInactive = item.ItemStatus == "Inactive";
+
+                    <div class="card @(isInactive ? "inactive-card" : "")">
                         <div class="card-title">
                             Batch @item.BatchNumber
                         </div>
@@ -79,12 +91,19 @@
                             Expires @item.ExpiryDate.ToShortDateString()
                         </div>
 
-                        <a asp-controller="Stock"
-                           asp-action="StockBatchDetails"
-                           asp-route-id="@item.BatchID"
-                           class="action">
-                            Manage →
-                        </a>
+                        @if (isInactive)
+                        {
+                            <span class="inactive-badge mt-2">INACTIVE</span>
+                        }
+                        else
+                        {
+                            <a asp-controller="Stock"
+                               asp-action="StockBatchDetails"
+                               asp-route-id="@item.BatchID"
+                               class="action">
+                                Manage →
+                            </a>
+                        }
                     </div>
                 }
             }
@@ -107,7 +126,9 @@
             {
                 @foreach (var item in Model.LowStockItems)
                 {
-                    <div class="card">
+                    bool isInactive = item.ItemStatus == "Inactive";
+
+                    <div class="card @(isInactive ? "inactive-card" : "")">
                         <div class="card-title">
                             @item.ItemName
                         </div>
@@ -120,12 +141,19 @@
                             Stock @item.TotalQuantity · Updated @item.LastUpdated.ToShortDateString()
                         </div>
 
-                        <a asp-controller="Inventory"
-                           asp-action="InventoryDetails"
-                           asp-route-id="@item.InventoryID"
-                           class="action">
-                            View inventory →
-                        </a>
+                        @if (isInactive)
+                        {
+                            <span class="inactive-badge mt-2">INACTIVE</span>
+                        }
+                        else
+                        {
+                            <a asp-controller="Inventory"
+                               asp-action="InventoryDetails"
+                               asp-route-id="@item.InventoryID"
+                               class="action">
+                                View inventory →
+                            </a>
+                        }
                     </div>
                 }
             }
@@ -148,7 +176,9 @@
             {
                 @foreach (var item in Model.ReorderItems)
                 {
-                    <div class="card">
+                    bool isInactive = item.ItemStatus == "Inactive";
+
+                    <div class="card @(isInactive ? "inactive-card" : "")">
                         <div class="card-title">
                             @item.ItemName
                         </div>
@@ -161,12 +191,19 @@
                             Safety stock @item.SafetyStock
                         </div>
 
-                        <a asp-controller="Stock"
-                           asp-action="AddStockBatch"
-                           asp-route-inventoryId="@item.InventoryID"
-                           class="action">
-                            Restock →
-                        </a>
+                        @if (isInactive)
+                        {
+                            <span class="inactive-badge mt-2">INACTIVE</span>
+                        }
+                        else
+                        {
+                            <a asp-controller="Stock"
+                               asp-action="AddStockBatch"
+                               asp-route-inventoryIds="@item.InventoryID"
+                               class="action">
+                                Restock →
+                            </a>
+                        }
                     </div>
                 }
             }
@@ -211,13 +248,7 @@
         justify-content: space-between;
         align-items: center;
         border-bottom: 1px solid #f1f5f9;
-        color: #111;
     }
-
-        .column-header i {
-            font-size: 14px;
-            color: #6b7280;
-        }
 
     .column-body {
         padding: 16px;
@@ -234,21 +265,21 @@
         margin-bottom: 14px;
     }
 
-    .card-title {
-        font-size: 14px;
+    .inactive-card {
+        opacity: 0.55;
+        filter: grayscale(100%);
+    }
+
+    .inactive-badge {
+        background: #e5e7eb;
+        color: #374151;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11px;
         font-weight: 600;
-        margin-bottom: 6px;
+        display: inline-block;
+        margin-top: 8px;
     }
-
-    .card-meta {
-        font-size: 12px;
-        color: #111;
-    }
-
-        .card-meta.subtle {
-            color: #6b7280;
-            margin-top: 2px;
-        }
 
     /* ========= ACTION ========= */
 
@@ -265,23 +296,10 @@
             text-decoration: underline;
         }
 
-    /* ========= EMPTY ========= */
-
     .empty {
         font-size: 13px;
         color: #9ca3af;
         text-align: center;
         margin-top: 32px;
-    }
-
-    /* ========= SCROLL ========= */
-
-    .column-body::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    .column-body::-webkit-scrollbar-thumb {
-        background: #d1d5db;
-        border-radius: 8px;
     }
 </style>

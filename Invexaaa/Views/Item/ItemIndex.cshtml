@@ -1,165 +1,582 @@
-﻿@model IEnumerable<Invexaaa.Models.ViewModels.ItemCardViewModel>
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<Invexaaa.Models.ViewModels.ItemCardViewModel>
 
 @{
     ViewData["Title"] = "Manage Items";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string qVal = Context.Request.Query["search"];
+    string catVal = Context.Request.Query["categoryId"];
+    string stVal = Context.Request.Query["status"];
 }
 
 <style>
-    /* 🔥 CRITICAL FIX: ensure header is clickable */
-    .page-header {
+    :root {
+        --bg: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 18px;
+    }
+
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
+
+    /* Full width page padding */
+    .page-wrap {
+        width: 100%;
+        padding: 10px 18px 24px;
+    }
+
+    /* Header */
+    .page-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 12px;
         position: relative;
         z-index: 1000;
         pointer-events: auto;
     }
 
-    /* Prevent cards/forms from overlapping header */
-    .card,
-    .row,
-    .container-fluid {
+    .title {
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* Add button (icon) */
+    .icon-btn {
+        width: 44px;
+        height: 44px;
+        border: 2px solid #000 !important;
+        background: #000 !important;
+        color: #fff !important;
+        border-radius: 999px !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        transition: background-color 220ms ease, color 220ms ease;
+        user-select: none;
+        white-space: nowrap;
+        pointer-events: auto;
+    }
+
+        .icon-btn:hover, .icon-btn:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    /* Filters grid (Supplier style) */
+    .filters {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr auto;
+        gap: 10px 12px;
+        align-items: end;
+        padding: 18px 0 18px;
+        border-bottom: 1.5px solid #e5e7eb;
+        margin-bottom: 18px;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #111;
+        margin-bottom: 6px;
+        font-size: 13px;
+    }
+
+    .control {
+        width: 100%;
+        border: 2px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 11px 14px !important;
+        height: 46px;
+        font-size: 15px !important;
+        background: #fff !important;
+        color: var(--text) !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+        .control:focus {
+            border-color: #000 !important;
+        }
+
+    .filter-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+        align-self: flex-end;
+        margin-bottom: 2px;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 8px 14px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border: 2px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        white-space: nowrap;
+        height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 220ms ease, color 220ms ease;
+    }
+
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .pill-solid:hover, .pill-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .pill-outline:hover, .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        outline: none;
+    }
+
+    /* ===== Custom Select (cs2) ===== */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
         position: relative;
     }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 11px 40px 11px 14px;
+        height: 46px;
+        background: #fff;
+        color: #111;
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cs2-value {
+        flex: 1;
+        text-align: left;
+    }
+
+    .cs2-btn:focus,
+    .cs2.open .cs2-btn {
+        border-color: #000 !important;
+        outline: none;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 9999;
+        display: none;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #111;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+        .cs2-item:hover {
+            background: #f2f2f2;
+        }
+
+    /* ===== Barcode card (system shell) ===== */
+    .scan-shell {
+        border: 2px solid #e5e7eb;
+        border-radius: var(--radius);
+        background: #fff;
+        padding: 16px;
+        margin: 8px 0 18px;
+        max-width: 520px;
+    }
+
+    .scan-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: end;
+        margin-top: 8px;
+    }
+
+    .mini-hint {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    /* ===== Grid shell ===== */
+    .grid-shell {
+        padding-top: 6px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    /* Pagination */
+    .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .pagination .page-link {
+        border-radius: 999px !important;
+        border: 1px solid #e5e7eb !important;
+        color: #111 !important;
+        padding: 6px 12px;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: #111 !important;
+        border-color: #111 !important;
+        color: #fff !important;
+    }
+
+    @@media (max-width: 980px) {
+        .filters {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+        }
+
+        .scan-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .filters {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-actions {
+            width: 100%;
+        }
+
+        .pill-btn {
+            width: 100%;
+        }
+    }
+
+    .pill-btn {
+        text-decoration: none !important;
+    }
+    /* ===== Pagination (Invexa style) ===== */
+    .pagination {
+        gap: 6px;
+    }
+
+        .pagination .page-item {
+            margin: 0;
+        }
+
+        .pagination .page-link {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 14px;
+            border-radius: 999px !important;
+            border: 1.5px solid #e5e7eb !important;
+            background: #fff !important;
+            color: #111 !important;
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+        }
+
+            /* Hover */
+            .pagination .page-link:hover {
+                background: #f4f4f5 !important;
+                border-color: #000 !important;
+            }
+
+        /* Active (current page) */
+        .pagination .page-item.active .page-link {
+            background: #000 !important;
+            border-color: #000 !important;
+            color: #fff !important;
+        }
+
+        /* Disabled */
+        .pagination .page-item.disabled .page-link {
+            background: #f3f4f6 !important;
+            color: #9ca3af !important;
+            border-color: #e5e7eb !important;
+            cursor: not-allowed;
+        }
+
 </style>
 
-<div class="container-fluid">
+<div class="page-wrap">
 
-    <!-- PAGE HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4 page-header">
-        <h2 class="fw-bold">Manage Items</h2>
+    <!-- Header -->
+    <div class="page-head">
+        <div>
+            <h1 class="title">Manage Items</h1>
+            <p class="subtitle">Search, filter and manage items.</p>
+        </div>
 
-        <!-- HARD GUARANTEED CLICKABLE BUTTON -->
         <a href="/Item/CreateItem"
-           class="btn btn-primary"
-           style="pointer-events:auto;">
-            <i class="bi bi-plus-circle"></i> Add New Item
+           class="icon-btn"
+           title="Add Item"
+           aria-label="Add Item">
+            <i class="bi bi-plus-lg"></i>
         </a>
     </div>
 
-    <!-- BARCODE SCAN BOX -->
-    <form method="get"
-          action="/Item/Scan"
-          class="card p-3 mb-4"
-          style="max-width:420px;">
-        <label class="form-label fw-semibold">
-            Scan Barcode
-        </label>
-
-        <input type="text"
-               name="code"
-               autofocus
-               placeholder="Scan barcode here..."
-               class="form-control"
-               style="font-size:1rem;" />
-
-        <small class="text-muted mt-1">
-            Use a barcode scanner or phone camera
-        </small>
-    </form>
 
 
-    <!-- FILTER BAR -->
-    <form method="get"
-          action="/Item/ItemIndex"
-          class="card p-3 mb-4">
+    <!-- Filter Bar (system style) -->
+    <form method="get" asp-controller="Item" asp-action="ItemIndex" class="filters" id="filterForm">
 
-        <div class="row g-3 align-items-end">
 
-            <!-- Search -->
-            <div class="col-md-4">
-                <label class="form-label">Item</label>
-                <input type="text"
-                       name="search"
-                       class="form-control"
-                       placeholder="Search by name or barcode"
-                       value="@Context.Request.Query["search"]" />
-            </div>
+        <!-- Search -->
+        <div>
+            <div class="label">Item</div>
+            <input id="q"
+                   type="text"
+                   name="search"
+                   class="control"
+                   placeholder="Search by name or barcode"
+                   value="@qVal" />
+        </div>
 
-            <!-- Category -->
-            <div class="col-md-3">
-                <label class="form-label">Category</label>
-                <select name="categoryId" class="form-select">
-                    <option value="">All Categories</option>
+        <!-- Category (cs2) -->
+        <div>
+            <div class="label">Category</div>
+
+            <select class="real-select" id="CategorySelect" name="categoryId">
+                <option value="">All Categories</option>
+                @foreach (var c in ViewBag.Categories)
+                {
+                    <option value="@c.CategoryID"
+                            selected="@(catVal == c.CategoryID.ToString())">
+                        @c.CategoryName
+                    </option>
+                }
+            </select>
+
+            <div class="cs2" data-select="CategorySelect">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">All Categories</span>
+                    <span class="cs2-caret"></span>
+                </button>
+
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="">All Categories</button>
                     @foreach (var c in ViewBag.Categories)
                     {
-                        <option value="@c.CategoryID"
-                                selected="@(Context.Request.Query["categoryId"] == c.CategoryID.ToString())">
-                            @c.CategoryName
-                        </option>
+                        <button type="button" class="cs2-item" data-value="@c.CategoryID">@c.CategoryName</button>
                     }
-                </select>
+                </div>
             </div>
+        </div>
 
-            <!-- Status -->
-            <div class="col-md-3">
-                <label class="form-label">Status</label>
-                <select name="status" class="form-select">
-                    <option value="">All</option>
+        <!-- Status (cs2) -->
+        <div>
+            <div class="label">Status</div>
+
+            <select class="real-select" id="StatusSelect" name="status">
+                <option value="">All</option>
+                @foreach (var s in ViewBag.StatusList)
+                {
+                    <option value="@s" selected="@(stVal == s)">@s</option>
+                }
+            </select>
+
+            <div class="cs2" data-select="StatusSelect">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">All</span>
+                    <span class="cs2-caret"></span>
+                </button>
+
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="">All</button>
                     @foreach (var s in ViewBag.StatusList)
                     {
-                        <option value="@s"
-                                selected="@(Context.Request.Query["status"] == s)">
-                            @s
-                        </option>
+                        <button type="button" class="cs2-item" data-value="@s">@s</button>
                     }
-                </select>
+                </div>
             </div>
+        </div>
 
-            <!-- Actions -->
-            <div class="col-md-2 d-grid">
-                <button type="submit" class="btn btn-dark">
-                    <i class="bi bi-funnel"></i> Filter
-                </button>
-            </div>
+        <!-- Actions -->
+        <div class="filter-actions">
+            <button class="pill-btn pill-solid" type="submit">
+                Filter
+            </button>
 
+            <a class="pill-btn pill-outline"
+               href="/Item/ItemIndex"
+               role="button">
+                Reset
+            </a>
         </div>
     </form>
 
-    <!-- ITEM GRID -->
-    <div class="row g-4">
-
-        @if (!Model.Any())
-        {
-            <div class="col-12 text-center text-muted py-5">
-                <h5>No items found</h5>
-                <p>Try adjusting your search or filters.</p>
-            </div>
-        }
-        else
-        {
-            foreach (var item in Model)
+    <!-- Item Grid -->
+    <div class="grid-shell">
+        <div class="row g-4">
+            @if (!Model.Any())
             {
-                <div class="col-xl-3 col-lg-4 col-md-6">
-                    @Html.Partial("_ItemCard", item)
+                <div class="col-12">
+                    <div class="empty-state">
+                        <h5 style="margin:0; font-weight:800; color:#111;">No items found</h5>
+                        <p style="margin:10px 0 0;">Try adjusting your search or filters.</p>
+                    </div>
                 </div>
             }
-        }
-
+            else
+            {
+                foreach (var item in Model)
+                {
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        @Html.Partial("_ItemCard", item)
+                    </div>
+                }
+            }
+        </div>
     </div>
 
-    <!-- PAGINATION -->
-    <div class="d-flex justify-content-between align-items-center mt-4">
+    <!-- Pagination (keep your server pagination later; this is UI shell) -->
+    <div class="pager">
+        @{
+            int page = ViewBag.Page ?? 1;
+            int pageSize = ViewBag.PageSize ?? 12;
+            int total = ViewBag.TotalCount ?? Model.Count();
+            int totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        }
 
         <small class="text-muted">
-            Showing @Model.Count() items
+            Showing @Model.Count() of @total items
         </small>
 
         <nav>
             <ul class="pagination pagination-sm mb-0">
-                <li class="page-item disabled">
-                    <a class="page-link">Previous</a>
+                <li class="page-item @(page <= 1 ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-controller="Item"
+                       asp-action="ItemIndex"
+                       asp-route-page="@(page - 1)"
+                       asp-route-search="@qVal"
+                       asp-route-categoryId="@catVal"
+                       asp-route-status="@stVal">
+                        Previous
+                    </a>
                 </li>
-                <li class="page-item active">
-                    <a class="page-link">1</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link">2</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link">Next</a>
+
+                @for (int p = 1; p <= totalPages; p++)
+                {
+                    <li class="page-item @(p == page ? "active" : "")">
+                        <a class="page-link"
+                           asp-controller="Item"
+                           asp-action="ItemIndex"
+                           asp-route-page="@p"
+                           asp-route-search="@qVal"
+                           asp-route-categoryId="@catVal"
+                           asp-route-status="@stVal">
+                            @p
+                        </a>
+                    </li>
+                }
+
+                <li class="page-item @(page >= totalPages ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-controller="Item"
+                       asp-action="ItemIndex"
+                       asp-route-page="@(page + 1)"
+                       asp-route-search="@qVal"
+                       asp-route-categoryId="@catVal"
+                       asp-route-status="@stVal">
+                        Next
+                    </a>
                 </li>
             </ul>
-        </nav>
 
+        </nav>
     </div>
 
 </div>
@@ -170,3 +587,78 @@
         alert("@TempData["Success"]");
     </script>
 }
+
+<script>
+    (() => {
+      /* ===============================
+         Custom Select (cs2 dropdown)
+      ================================ */
+      function setupCS2(cs) {
+        const selectId = cs.dataset.select;
+        const real = document.getElementById(selectId);
+        if (!real) return;
+
+        const btn = cs.querySelector('.cs2-btn');
+        const valueEl = cs.querySelector('.cs2-value');
+        const items = Array.from(cs.querySelectorAll('.cs2-item'));
+
+        const setActive = (val) => {
+          const found = items.find(i => String(i.dataset.value) === String(val));
+          valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "Select");
+        };
+
+        setActive(real.value);
+
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          cs.classList.toggle('open');
+          btn.setAttribute('aria-expanded', cs.classList.contains('open') ? 'true' : 'false');
+        });
+
+        items.forEach(i => {
+          i.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            real.value = i.dataset.value;
+            real.dispatchEvent(new Event("change", { bubbles: true }));
+            setActive(i.dataset.value);
+
+            cs.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          });
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!cs.contains(e.target)) {
+            cs.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      document.querySelectorAll('.cs2[data-select]').forEach(setupCS2);
+
+      // Enter in search => submit form nicely
+      const q = document.getElementById('q');
+      const filterForm = document.getElementById('filterForm');
+      q?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          filterForm?.requestSubmit?.();
+        }
+      });
+
+          // ensure cs2 labels match selected option text (server-selected options)
+    document.querySelectorAll('.cs2[data-select]').forEach(cs => {
+      const selectId = cs.dataset.select;
+      const real = document.getElementById(selectId);
+      const valueEl = cs.querySelector('.cs2-value');
+      if (!real || !valueEl) return;
+
+      const selectedText = real.options[real.selectedIndex]?.text || valueEl.textContent;
+      valueEl.textContent = selectedText;
+    });
+
+    })();
+</script>
