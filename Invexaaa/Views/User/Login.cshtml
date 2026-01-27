@@ -1,6 +1,6 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
-    ViewData["Title"] = "Sign In";
+    ViewData["Title"] = "Log In";
     ViewBag.HideHeader = true;
     Layout = "~/Views/Shared/_Layout.cshtml";
 
@@ -48,13 +48,11 @@
                            aria-required="true"
                            required />
 
-
-
                     <button type="button"
                             id="togglePassword"
                             class="toggle"
-                            aria-label="Show or hide password"
-                            tabindex="-1">
+                            aria-label="Show or hide password">
+
 
                         <!-- Eye open -->
                         <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg"
@@ -171,7 +169,6 @@
     html, body {
         background: var(--bg) !important;
         min-height: 100vh;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
     .auth-wrap {
@@ -356,8 +353,8 @@
             text-decoration: underline;
         }
     /* =====================================
-           LOGIN BUTTON – PRIMARY (REVERSE HOVER)
-           ===================================== */
+               LOGIN BUTTON – PRIMARY (REVERSE HOVER)
+               ===================================== */
 
     /* Default */
     .auth-card .btn.btn-primary {

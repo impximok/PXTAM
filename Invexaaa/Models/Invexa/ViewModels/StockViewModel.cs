@@ -7,6 +7,7 @@ namespace Invexaaa.Models.ViewModels
         public int InventoryID { get; set; }
 
         public int ItemID { get; set; }
+
         public string ItemName { get; set; } = string.Empty;
 
         public string CategoryName { get; set; } = string.Empty;
@@ -15,9 +16,12 @@ namespace Invexaaa.Models.ViewModels
 
         public string StockStatus { get; set; } = "In Stock";
 
+        // 🔑 REQUIRED for inactive locking
+        public string ItemStatus { get; set; } = "Active";
+
         public DateTime LastUpdated { get; set; }
 
-        // NEW (display only)
+        // Display only
         public string? ItemImageUrl { get; set; }
     }
 }

@@ -36,7 +36,6 @@
               novalidate>
 
             @Html.AntiForgeryToken()
-            <div asp-validation-summary="All" class="text-danger small mb-3"></div>
 
             <!-- PROFILE IMAGE -->
             <section class="avatar-block">
@@ -49,6 +48,10 @@
 
                 <div class="avatar-meta">
                     <label class="field-label">Profile Image</label>
+                    <input type="hidden"
+                           id="capturedData"
+                           name="CapturedImageDataUrl" />
+
 
                     <input type="file"
                            id="fileInput"
@@ -56,9 +59,11 @@
                            accept="image/*"
                            class="file-input-hidden" />
 
-                    <input type="hidden"
-                           id="capturedData"
-                           name="CapturedImageDataUrl" />
+                    <input type="file"
+                           id="cameraInput"
+                           accept="image/*"
+                           capture="environment"
+                           class="file-input-hidden" />
 
                     <div id="dropzone" class="dropzone" tabindex="0">
                         <div class="dz-main">
@@ -71,8 +76,8 @@
                     </div>
 
                     <div class="file-actions">
-                        <button type="button" class="btn-ghost" id="browseBtn">Browse</button>
-                        <button type="button" class="btn-ghost" id="cameraButton">📷 Camera</button>
+                        <button type="button" class="btn-ghost" id="browseBtn">Upload</button>
+                        <button type="button" class="btn-ghost" id="cameraButton">Camera</button>
                         <span id="fileName" class="file-name">No file selected</span>
                     </div>
                 </div>
@@ -81,15 +86,18 @@
             <!-- EMAIL -->
             <div class="field">
                 <label asp-for="Email" class="field-label">Email</label>
-                <input asp-for="Email" class="text-input" readonly />
+                <input asp-for="Email" class="text-input" />
+                <span asp-validation-for="Email" class="field-error"></span>
             </div>
+
 
             <!-- NAME -->
             <div class="field">
                 <label asp-for="Name" class="field-label">Display Name</label>
                 <input asp-for="Name" class="text-input" />
-                <span asp-validation-for="Name" class="text-danger small"></span>
+                <span asp-validation-for="Name" class="field-error"></span>
             </div>
+
 
             <!-- ACTIONS -->
             <div class="actions">
@@ -104,6 +112,40 @@
                 </button>
             </div>
         </form>
+
+        <!-- ================= IMAGE EDITOR MODAL ================= -->
+        <div id="editorModal" class="editor hidden" aria-hidden="true">
+            <div class="editor-box">
+                <button type="button" class="editor-close" id="editorClose" aria-label="Close">✕</button>
+
+                <!-- Circle preview -->
+                <div class="editor-stage">
+                    <div class="editor-circle">
+                        <canvas id="editorCanvas" width="420" height="420"></canvas>
+                        <div class="circle-guide"></div>
+                    </div>
+                </div>
+
+                <!-- Zoom row (label left, slider right) -->
+                <div class="zoom-row">
+                    <div class="zoom-label">Zoom</div>
+                    <input type="range" id="zoom" min="1" max="3" step="0.01" value="1">
+                </div>
+
+                <!-- Confirm row -->
+                <div class="confirm-row">
+                    <button type="button" class="btn-confirm" id="useImage">Confirm</button>
+                </div>
+
+                <!-- Rotate row -->
+                <div class="rotate-row">
+                    <button type="button" class="btn-round" id="rotateLeft">⟲</button>
+                    <button type="button" class="btn-round" id="rotateRight">⟳</button>
+                </div>
+            </div>
+        </div>
+
+
     </div>
 </div>
 
@@ -114,147 +156,1094 @@
         (() => {
             const $ = id => document.getElementById(id);
 
-            const input = $('fileInput');
-            const browseBtn = $('browseBtn');
-            const avatar = $('avatarPreview');
-            const fileName = $('fileName');
-            const captured = $('capturedData');
+            const fileInput   = $('fileInput');
+            const cameraInput = $('cameraInput');
+            const browseBtn   = $('browseBtn');
+            const cameraBtn   = $('cameraButton');
+            const dropzone    = $('dropzone');
 
-            browseBtn.onclick = () => input.click();
+            const avatar      = $('avatarPreview');
+            const fileName    = $('fileName');
+            const captured    = $('capturedData');
 
-            input.onchange = e => {
-                const file = e.target.files[0];
+            const modal   = $('editorModal');
+            const closeBtn= $('editorClose');
+            const canvas  = $('editorCanvas');
+            const zoomEl  = $('zoom');
+            const useBtn  = $('useImage');
+            const rotL    = $('rotateLeft');
+            const rotR    = $('rotateRight');
+        // ✅ circle radius ratio (smaller = tighter crop)
+        // 0.42 was too big. Try 0.38 to match your guide.
+        const CIRCLE_R = 0.38;
+
+            if (!fileInput || !browseBtn || !dropzone || !avatar || !fileName || !captured) return;
+
+            const ctx = canvas.getContext('2d');
+            let img = new Image();
+            let imgLoaded = false;
+
+            let scale = 1;
+            let rotation = 0;
+            let offsetX = 0;
+            let offsetY = 0;
+            let dragging = false;
+            let lastX = 0, lastY = 0;
+
+            const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+            const openEditor = () => {
+                modal.classList.remove('hidden');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                zoomEl.value = '1';
+                scale = 1; rotation = 0; offsetX = 0; offsetY = 0;
+                draw();
+                updateZoomFill();
+            };
+
+            const closeEditor = () => {
+                modal.classList.add('hidden');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            };
+
+            const draw = () => {
+                if (!imgLoaded) return;
+                const w = canvas.width, h = canvas.height;
+                ctx.clearRect(0,0,w,h);
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0,0,w,h);
+
+                ctx.save();
+                ctx.translate(w/2 + offsetX, h/2 + offsetY);
+                ctx.rotate(rotation);
+                ctx.scale(scale, scale);
+
+                const base = Math.max(w/img.width, h/img.height);
+                const s = base;
+                ctx.drawImage(img, -img.width*s/2, -img.height*s/2, img.width*s, img.height*s);
+                ctx.restore();
+
+                // dim outside circle + ring
+                ctx.save();
+                ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                ctx.beginPath();
+                ctx.rect(0,0,w,h);
+                ctx.arc(w / 2, h / 2, w * CIRCLE_R, 0, Math.PI * 2, true);
+                ctx.fill('evenodd');
+
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(w / 2, h / 2, w * CIRCLE_R, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            };
+
+            const exportCroppedCircle = () => {
+                const out = document.createElement('canvas');
+                out.width = 320; out.height = 320;
+                const octx = out.getContext('2d');
+
+                octx.fillStyle = '#fff';
+                octx.fillRect(0,0,out.width,out.height);
+
+                octx.save();
+                octx.translate(out.width/2 + (offsetX*(out.width/canvas.width)),
+                               out.height/2 + (offsetY*(out.height/canvas.height)));
+                octx.rotate(rotation);
+                octx.scale(scale, scale);
+
+                const base = Math.max(out.width/img.width, out.height/img.height);
+                const s = base;
+                octx.drawImage(img, -img.width*s/2, -img.height*s/2, img.width*s, img.height*s);
+                octx.restore();
+
+                const masked = document.createElement('canvas');
+                masked.width = out.width; masked.height = out.height;
+                const mctx = masked.getContext('2d');
+
+                mctx.save();
+                mctx.beginPath();
+                mctx.arc(out.width / 2, out.height / 2, out.width * CIRCLE_R, 0, Math.PI * 2);
+
+                mctx.clip();
+                mctx.drawImage(out,0,0);
+                mctx.restore();
+
+                return masked.toDataURL('image/png');
+            };
+
+            const loadToEditor = (file) => {
                 if (!file) return;
-
                 fileName.textContent = file.name;
+
                 const reader = new FileReader();
                 reader.onload = ev => {
-                    avatar.src = ev.target.result;
-                    captured.value = ev.target.result;
+                    img = new Image();
+                    img.onload = () => { imgLoaded = true; openEditor(); };
+                    img.src = ev.target.result;
                 };
                 reader.readAsDataURL(file);
             };
+
+            // ✅ Upload / camera / dropzone
+            browseBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', e => loadToEditor(e.target.files?.[0]));
+
+            if (cameraBtn && cameraInput) {
+                cameraBtn.addEventListener('click', () => cameraInput.click());
+                cameraInput.addEventListener('change', e => loadToEditor(e.target.files?.[0]));
+            }
+
+            dropzone.addEventListener('click', () => fileInput.click());
+            dropzone.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+            });
+
+            dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('is-dragging'); });
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragging'));
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('is-dragging');
+                loadToEditor(e.dataTransfer.files?.[0]);
+            });
+
+            // ✅ editor controls
+            zoomEl.addEventListener('input', () => { scale = parseFloat(zoomEl.value); draw(); updateZoomFill(); });
+            rotL.addEventListener('click', () => { rotation -= Math.PI/2; draw(); });
+            rotR.addEventListener('click', () => { rotation += Math.PI/2; draw(); });
+
+            // ✅ zoom fill %
+            const updateZoomFill = () => {
+                const min = parseFloat(zoomEl.min);
+                const max = parseFloat(zoomEl.max);
+                const val = parseFloat(zoomEl.value);
+                const percent = ((val - min) / (max - min)) * 100;
+                zoomEl.style.setProperty('--percent', `${percent}%`);
+            };
+
+            // drag reposition
+            canvas.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+            window.addEventListener('mouseup', () => dragging = false);
+            window.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                offsetX = clamp(offsetX + (e.clientX-lastX), -220, 220);
+                offsetY = clamp(offsetY + (e.clientY-lastY), -220, 220);
+                lastX = e.clientX; lastY = e.clientY;
+                draw();
+            });
+
+            useBtn.addEventListener('click', () => {
+                const dataUrl = exportCroppedCircle();
+                avatar.src = dataUrl;
+                captured.value = dataUrl;
+                closeEditor();
+                fileInput.value = '';
+                cameraInput.value = '';
+            });
+
+            closeBtn.addEventListener('click', closeEditor);
+            modal.addEventListener('click', (e) => { if (e.target === modal) closeEditor(); });
+            window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeEditor(); });
+
         })();
     </script>
+
+
+
 }
 
 <style>
-    /* PAGE FLOW — works with sidebar */
-    .profile-page {
-        max-width: 900px;
-        margin: 0;
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --muted: #6b7280;
+        --text: #111827;
+        --border: #e5e7eb;
+        --border-default: #d1d5db; /* grey */
+        --border-focus: #000; /* black */
+        --border-error: #dc2626; /* red */
+        --soft: #f9fafb;
+        --radius: 14px;
+        --radius-sm: 12px;
+        --shadow: 0 8px 24px rgba(16,24,40,.06);
     }
 
-    /* CARD */
-    .profile-card {
-        background: #fff;
-        border: 1px solid #e6e6e6;
-        border-radius: 16px;
-        padding: 32px;
+    .profile-page {
+        width: 100%;
+        background: #fff !important;
+        min-height: calc(100vh - 64px);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 2px 14px 44px;
     }
+
+
+    .profile-card {
+        width: 100%;
+        max-width: 980px; /* down from 980 */
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 28px 32px 24px;
+        box-shadow: var(--shadow);
+    }
+
+    @@media (max-width: 480px) {
+        .profile-page {
+            padding: 20px 14px 32px;
+        }
+
+        .profile-card {
+            padding: 22px 18px;
+        }
+    }
+
 
     /* HEADER */
     .profile-header {
-        margin-bottom: 24px;
+        margin-bottom: 20px; /* was ~28 */
     }
 
     .profile-title {
-        font-size: 1.8rem;
-        font-weight: 700;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        margin: 0 0 6px;
     }
 
     .profile-subtitle {
-        color: #6b7280;
-    }
-
-    /* AVATAR */
-    .avatar-block {
-        display: grid;
-        grid-template-columns: 140px 1fr;
-        gap: 24px;
-        padding: 20px;
-        background: #fafafa;
-        border-radius: 14px;
-        border: 1px solid #e6e6e6;
-        margin-bottom: 28px;
-    }
-
-    @@media (max-width: 640px) {
-        .avatar-block
-
-    {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-
-    }
-
-    .ap-avatar {
-        width: 128px;
-        height: 128px;
-        border-radius: 50%;
-        border: 1px solid #ddd;
-        object-fit: cover;
-    }
-
-    /* FORM */
-    .field {
-        margin-bottom: 20px;
-    }
-
-    .field-label {
-        font-weight: 600;
-        margin-bottom: 6px;
-        display: block;
-    }
-
-    .text-input {
-        width: 100%;
-        padding: 12px 14px;
-        border-radius: 12px;
-        border: 1px solid #ccc;
-    }
-
-    /* ACTIONS */
-    .actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        padding-top: 20px;
-        margin-top: 28px;
-        border-top: 1px solid #e6e6e6;
-    }
-
-    @@media (max-width: 640px) {
-        .actions
-
-    {
-        flex-direction: column-reverse;
-    }
-
-    }
-
-    /* BUTTONS */
-    .btn-primary {
-        background: #111;
-        color: #fff;
-        border-radius: 999px;
-        padding: 12px 22px;
-        border: none;
-    }
-
-    .btn-ghost {
-        background: transparent;
-        border: 1px solid #ccc;
-        border-radius: 999px;
-        padding: 12px 22px;
+        color: var(--muted);
+        margin: 0;
+        font-size: 15px;
     }
 
     /* ALERT */
     .monocrome-alert {
-        background: #f7f7f7;
-        border: 1px solid #e6e6e6;
-        padding: 10px;
-        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        color: #111827;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        margin: 14px 0 18px;
+        box-shadow: var(--shadow-soft);
     }
+
+    /* PROFILE IMAGE SECTION */
+    .avatar-block {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 18px;
+        padding: 20px 22px; /* was larger */
+        margin: 18px 0 22px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: #fff;
+        align-items: center;
+    }
+
+    .avatar-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ap-avatar {
+        width: 132px;
+        height: 132px;
+        border-radius: 50%;
+        border: 1px solid var(--border-default);
+        object-fit: cover;
+        background: #fff;
+        box-shadow: var(--shadow-soft);
+    }
+
+    /* DROPZONE */
+    .dropzone {
+        border: 1px dashed #cbd5e1;
+        border-radius: var(--radius);
+        padding: 14px;
+        background: var(--soft);
+        cursor: pointer;
+        transition: border .15s ease, box-shadow .15s ease, background .15s ease;
+        outline: none;
+    }
+
+        .dropzone:hover {
+            background: #f3f4f6;
+        }
+
+        .dropzone:focus {
+            border-color: var(--border-focus);
+            box-shadow: var(--shadow-focus);
+        }
+
+    .dz-main {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .dz-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border: 1px solid var(--border-default);
+        font-size: 18px;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .dz-title {
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.15;
+    }
+
+    .dz-sub {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 2px;
+    }
+
+    /* FORM */
+    .field {
+        margin-bottom: 18px;
+    }
+
+    .field-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        color: var(--text);
+        font-size: 14px;
+        gap: 8px;
+    }
+
+
+    /* INPUTS: Default grey -> Focus black -> Error red (even on focus) */
+    .text-input {
+        width: 100%;
+        height: 48px;
+        padding: 12px 16px;
+        border-radius: 14px;
+        border: 2px solid var(--border); /* DEFAULT grey */
+        background: #fff;
+        color: var(--text);
+        font-size: 15px;
+        box-shadow: var(--shadow-soft);
+        transition: border .15s ease, box-shadow .15s ease;
+    }
+
+        .text-input:focus {
+            border: 2px solid #000
+        }
+
+        /* readonly still looks premium but subtle */
+        .text-input[readonly] {
+            background: #f9fafb;
+            color: #374151;
+            cursor: not-allowed;
+        }
+
+        /* ERROR (apply this class when invalid) */
+        .text-input.input-error,
+        .text-input.input-error:focus {
+            border-color: var(--border-error); /* ERROR red always wins */
+            box-shadow: var(--shadow-error);
+        }
+
+    /* Field error text */
+    .field-error {
+        display: block;
+        margin-top: 6px;
+        color: #dc2626;
+        font-weight: 400;
+        font-size: 13px; /* optional, matches hint text */
+    }
+
+    /* Red border when validation fails (ASP.NET adds input-validation-error) */
+    .text-input.input-validation-error {
+        border-color: #dc2626 !important;
+    }
+
+        /* Even when focused, stay red */
+        .text-input.input-validation-error:focus {
+            border-color: #dc2626 !important;
+        }
+
+
+    /* FILE ACTIONS */
+    .file-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .file-name {
+        color: var(--muted);
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 260px;
+    }
+
+    /* BUTTONS — match Create Category behavior (invert hover) */
+    .btn-primary,
+    .btn-ghost {
+        height: 46px;
+        padding: 14px 18px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: auto;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 120ms ease;
+    }
+
+    /* Primary Save button (same as .btn-black) */
+    .btn-primary {
+        background: #000;
+        border: 2px solid #000;
+        color: #fff;
+    }
+
+        /* Hover: invert (black -> white) */
+        .btn-primary:hover {
+            background: #fff;
+            color: #000;
+            border-color: #000;
+        }
+
+    /* Secondary button (same as .btn-outline in your sample, but keep grey border default) */
+    .btn-ghost {
+        background: #fff;
+        border: 2px solid #000; /* grey default */
+        color: #000;
+    }
+
+        /* Hover: invert to black */
+        .btn-ghost:hover {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+
+    /* ACTION BAR */
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+    }
+
+    /* RESPONSIVE (Razor uses @@media) */
+    @@media (max-width: 720px) {
+        .avatar-block {
+            grid-template-columns: 1fr;
+            text-align: left;
+        }
+
+        .avatar-wrap {
+            justify-content: flex-start;
+        }
+
+        .file-name {
+            max-width: 100%;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .actions {
+            flex-direction: column-reverse;
+            align-items: stretch;
+        }
+
+        .btn-primary,
+        .btn-ghost {
+            width: 100%;
+        }
+    }
+
+
+    /* Common layout wrappers — make them white */
+    #main-wrapper,
+    .content-body,
+    .container-fluid,
+    .page-wrapper,
+    .app-content {
+        background: #ffffff !important;
+    }
+
+    /* === FORCE WHOLE APP CANVAS WHITE (Layout wrappers) === */
+    html, body {
+        background: #ffffff !important;
+    }
+
+        body::before,
+        body::after {
+            background: #ffffff !important;
+        }
+
+    /* Most common admin layout wrappers */
+    #wrapper,
+    #page-top,
+    #app,
+    #app-root,
+    #root,
+    .wrapper,
+    .main-wrapper,
+    .main-content,
+    .content-wrapper,
+    .content-body,
+    .page-wrapper,
+    .page-content,
+    .app-content,
+    .app-wrapper,
+    .main-panel,
+    .main-container,
+    .layout-wrapper,
+    .layout-container,
+    .site-wrapper,
+    .shell,
+    .shell-content,
+    .dashboard-container {
+        background: #ffffff !important;
+    }
+
+    /* If any container adds a grey "panel" background */
+    .container,
+    .container-fluid {
+        background: #ffffff !important;
+    }
+
+    /* ===== FINAL: kill any remaining grey background from layout/theme ===== */
+
+    /* Always white canvas */
+    html, body {
+        background: #fff !important;
+    }
+
+    /* Generic main containers used by many admin layouts */
+    main,
+    .main,
+    .content,
+    .content-wrapper,
+    .content-body,
+    .page-content,
+    .page-wrapper,
+    .main-content,
+    .main-panel,
+    .main-container,
+    .page-body-wrapper,
+    .page-body,
+    .container-scroller,
+    .app,
+    .app-content,
+    .app-wrapper,
+    .layout,
+    .layout-wrapper,
+    .layout-container,
+    .wrapper,
+    .shell,
+    .shell-content {
+        background-color: #fff !important;
+    }
+
+    /* Bootstrap / theme helper backgrounds */
+    .bg-light,
+    .bg-body,
+    .bg-body-secondary,
+    .bg-body-tertiary,
+    .bg-gray,
+    .bg-grey,
+    .bg-success,
+    .bg-primary {
+        background-color: #fff !important;
+    }
+
+    /* Sometimes the grey is applied to a direct child of body */
+    body > div,
+    body > main,
+    body > section {
+        background-color: #fff !important;
+    }
+
+    /* Improve native "Choose File" button */
+    input[type="file"] {
+        font-size: 14px;
+        color: var(--muted);
+    }
+
+        input[type="file"]::file-selector-button {
+            height: 40px;
+            padding: 0 18px;
+            margin-right: 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border-default);
+            background: #fff;
+            color: #111;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .15s ease, border .15s ease;
+        }
+
+            input[type="file"]::file-selector-button:hover {
+                background: #f3f4f6;
+                border-color: #9ca3af;
+            }
+
+    /* =========================
+           Compact utility buttons
+           (Browse / Camera only)
+           ========================= */
+    .file-actions .btn-ghost {
+        height: 34px; /* ⬅ smaller */
+        padding: 6px 14px; /* ⬅ tighter */
+        font-size: 13px; /* ⬅ lighter text */
+        font-weight: 700;
+        border-width: 2px;
+    }
+
+    .file-actions .btn-ghost {
+        border-radius: 14px; /* less pill-like */
+    }
+
+    .file-input-hidden {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+    /* ================= EDITOR MODAL ================= */
+    .editor.hidden {
+        display: none;
+    }
+
+    .editor {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        display: grid;
+        place-items: center;
+        z-index: 9999;
+        padding: 18px;
+    }
+
+    .editor-box {
+        width: min(520px, 100%);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 16px 16px 14px;
+        position: relative;
+        box-shadow: 0 18px 40px rgba(0,0,0,.22);
+    }
+
+    .editor-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #fff;
+        color: #000;
+        font-weight: 900;
+        cursor: pointer;
+        transition: background-color 220ms ease, color 220ms ease;
+    }
+
+        .editor-close:hover {
+            background: #000;
+            color: #fff;
+        }
+
+    .editor-stage {
+        display: flex;
+        justify-content: center;
+        padding: 8px 0 10px;
+    }
+
+    #editorCanvas {
+        width: 360px;
+        height: 360px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: #fff;
+        touch-action: none;
+    }
+
+    #zoom {
+        width: 100%;
+        margin: 6px 0 12px;
+    }
+
+    .editor-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .dropzone * {
+        pointer-events: none;
+    }
+
+
+    .dropzone.is-dragging {
+        border-color: #000;
+        background: #f3f4f6;
+    }
+
+    /* Modal backdrop */
+    .editor {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+        .editor.hidden {
+            display: none;
+        }
+
+    /* Modal box */
+    .editor-box {
+        position: relative;
+        width: min(520px, 90vw); /* was ~560–720 */
+        background: #fff;
+        padding: 14px 14px 16px; /* tighter padding */
+        border-radius: 20px;
+        box-shadow: 0 18px 50px rgba(0,0,0,.22);
+    }
+
+    /* Close button */
+    .editor-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        border: 2px solid #111;
+        background: #fff;
+        color: #111;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+        .editor-close:hover {
+            background: #111;
+            color: #fff;
+        }
+
+    /* Stage wrapper */
+    .editor-stage {
+        display: flex;
+        justify-content: center;
+        padding: 18px 10px 12px;
+    }
+
+    /* 🔥 The circle mask */
+    .editor-circle {
+        position: relative;
+        width: 500px; /* was ~540–560 */
+        max-width: 80vw;
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        overflow: hidden; /* THIS is what makes square -> circle */
+        background: #f3f4f6;
+        border: 10px solid #e5e7eb;
+        box-shadow: 0 12px 28px rgba(0,0,0,.12);
+        border-width: 8px; /* thinner ring */
+    }
+
+    /* Make canvas fill circle container */
+    #editorCanvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+
+    /* Controls area */
+    .editor-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 6px 6px;
+    }
+
+    /* Each row centered */
+    .ctrl-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* Zoom slider centered & nice width */
+    #zoom {
+        width: min(560px, 82vw);
+    }
+
+
+    /* ============ EDITOR (SAMPLE STYLE) ============ */
+    .editor.hidden {
+        display: none;
+    }
+
+    .editor {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 18px;
+    }
+
+    .editor-box {
+        position: relative;
+        background: #fff;
+        width: min(500px, 92vw); /* was 640px */
+        padding: 12px 14px 14px;
+        border-radius: 18px;
+        box-shadow: 0 18px 50px rgba(0,0,0,.25);
+    }
+
+    .editor-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        border: 2px solid #111;
+        background: #fff;
+        color: #111;
+        font-weight: 900;
+        cursor: pointer;
+        transition: background 220ms ease, color 220ms ease;
+    }
+
+        .editor-close:hover {
+            background: #111;
+            color: #fff;
+        }
+
+
+
+    .editor-circle {
+        width: 460px; /* ⬅ main control */
+        max-width: 75vw;
+        border-width: 7px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #d1d5db;
+    }
+
+
+    #editorCanvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        touch-action: none;
+    }
+
+
+
+    /* Zoom row (label left + slider) */
+    .zoom-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 8px 6px 6px;
+    }
+
+    .zoom-label {
+        width: 56px;
+        font-weight: 800;
+        color: #111;
+        font-size: 14px;
+    }
+
+    #zoom {
+        flex: 1;
+    }
+
+    /* Confirm button row */
+    .confirm-row {
+        display: flex;
+        justify-content: center;
+        padding: 10px 0 8px;
+    }
+
+    .btn-confirm {
+        background: #111;
+        color: #fff;
+        border: 2px solid #111;
+        border-radius: 999px;
+        min-width: 200px; /* was 220 */
+        padding: 10px 22px; /* smaller height */
+        font-size: 14px;
+        font-weight: 900;
+        transition: background 220ms ease, color 220ms ease;
+    }
+
+        .btn-confirm:hover {
+            background: #fff;
+            color: #111;
+        }
+
+    /* Rotate buttons row */
+    .rotate-row {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        padding-top: 6px;
+    }
+
+    .btn-round {
+        width: 56px;
+        height: 48px;
+        border-radius: 999px;
+        border: 2px solid #111;
+        background: #fff;
+        color: #111;
+        font-weight: 900;
+        cursor: pointer;
+        transition: background 220ms ease, color 220ms ease;
+    }
+
+        .btn-round:hover {
+            background: #111;
+            color: #fff;
+        }
+
+    /* Zoom slider — black */
+    #zoom {
+        flex: 1;
+        accent-color: #111; /* modern browsers */
+    }
+
+        /* Chrome/Edge/Safari */
+        #zoom::-webkit-slider-runnable-track {
+            height: 6px;
+            background: #111;
+            border-radius: 999px;
+        }
+
+        #zoom::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #111;
+            border: 2px solid #111;
+            margin-top: -6px; /* centers thumb on track */
+        }
+
+        /* Firefox */
+        #zoom::-moz-range-track {
+            height: 6px;
+            background: #111;
+            border-radius: 999px;
+        }
+
+        #zoom::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #111;
+            border: 2px solid #111;
+        }
+
+    .editor-controls {
+        gap: 8px;
+        padding: 6px 6px 4px;
+    }
+
+    /* ===== Zoom slider styling ===== */
+    #zoom {
+        -webkit-appearance: none;
+        appearance: none;
+        width: min(520px, 82vw);
+        height: 6px;
+        background: #e5e7eb; /* unfilled track = light grey */
+        border-radius: 999px;
+        outline: none;
+    }
+
+        /* Filled part (WebKit: Chrome, Edge, Safari) */
+        #zoom::-webkit-slider-runnable-track {
+            height: 6px;
+            background: linear-gradient( to right, #000 var(--percent, 50%), #e5e7eb var(--percent, 50%) );
+            border-radius: 999px;
+        }
+
+        #zoom::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #000;
+            border-radius: 50%;
+            margin-top: -5px;
+            cursor: pointer;
+        }
+
+        /* Firefox */
+        #zoom::-moz-range-track {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 999px;
+        }
+
+        #zoom::-moz-range-progress {
+            background: #000;
+            height: 6px;
+            border-radius: 999px;
+        }
+
+        #zoom::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #000;
+            border-radius: 50%;
+            border: none;
+        }
+
+    /* Rotate buttons tighter */
+    .editor-controls .btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
 </style>

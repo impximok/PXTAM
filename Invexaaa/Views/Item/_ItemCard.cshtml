@@ -1,16 +1,16 @@
 ﻿@model Invexaaa.Models.ViewModels.ItemCardViewModel
 
-<div class="card h-100 shadow-sm item-card">
+<div class="card h-100 shadow-sm item-card
+     @(Model.ItemStatus == "Inactive" ? "inactive-card" : "")">
 
     <!-- CLICKABLE CONTENT -->
-    <a href="/Item/ItemDetail/@Model.ItemID"
-       class="item-card-link"
-       style="text-decoration:none; color:inherit;">
+    <a href="@(Model.ItemStatus == "Active" ? $"/Item/ItemDetail/{Model.ItemID}" : "javascript:void(0)")"
+       class="item-card-link @(Model.ItemStatus == "Inactive" ? "disabled-link" : "")">
 
         <!-- ITEM IMAGE -->
         <img src="@(string.IsNullOrWhiteSpace(Model.ItemImageUrl)
-                                     ? "/images/no-image.png"
-                                     : Model.ItemImageUrl)"
+                                  ? "/images/no-image.png"
+                                  : Model.ItemImageUrl)"
              class="card-img-top"
              style="height:180px; object-fit:contain;" />
 
@@ -51,19 +51,59 @@
         </div>
     </a>
 
-    <!-- ACTION BUTTONS (NOT CLICKABLE CARD) -->
+    <!-- ACTION BUTTONS -->
     <div class="card-footer bg-white border-top d-flex justify-content-between gap-2">
 
         <a href="/Item/EditItem/@Model.ItemID"
-           class="btn btn-sm btn-outline-primary w-50">
+           class="btn btn-sm btn-outline-primary w-50
+                  @(Model.ItemStatus == "Inactive" ? "disabled-btn" : "")">
             <i class="bi bi-pencil-square"></i> Edit
         </a>
 
         <a href="/Item/DeactivateItem/@Model.ItemID"
-           class="btn btn-sm btn-outline-warning w-50">
+           class="btn btn-sm btn-outline-warning w-50
+                  @(Model.ItemStatus == "Inactive" ? "disabled-btn" : "")">
             <i class="bi bi-slash-circle"></i> Deactivate
         </a>
 
-
     </div>
 </div>
+
+        <style>
+    /* ============================= */
+    /* INACTIVE ITEM CARD STYLING */
+    /* ============================= */
+
+    .inactive-card {
+        opacity: 0.55;
+        filter: grayscale(100%);
+        background-color: #f8f9fa;
+    }
+
+    /* Disable clicking on card */
+    .disabled-link {
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    /* Disable buttons */
+    .disabled-btn {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+    /* Optional visual cue */
+    .inactive-card::after {
+        content: "INACTIVE";
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: #6c757d;
+        color: white;
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        z-index: 5;
+    }
+
+        </style>

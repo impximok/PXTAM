@@ -15,7 +15,7 @@ namespace Invexaaa.Controllers
         {
             _context = context;
         }
-
+        
         public IActionResult Index()
         {
             var model = new DashboardViewModel();

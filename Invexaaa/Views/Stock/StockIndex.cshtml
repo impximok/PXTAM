@@ -39,6 +39,20 @@
     .stock-row:hover {
         background: #fafafa;
     }
+
+    .inactive-row {
+        opacity: 0.5;
+        background: #f1f5f9;
+    }
+
+    .inactive-badge {
+        background: #e5e7eb;
+        color: #374151;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
 </style>
 
 <div class="container-fluid stock-page">
@@ -80,19 +94,33 @@
                 <tbody>
                     @foreach (var s in Model)
                     {
-                        <tr class="stock-row" data-status="@s.StockStatus">
+                        bool isInactive = s.ItemStatus == "Inactive";
+
+                        <tr class="stock-row @(isInactive ? "inactive-row" : "")"
+                            data-status="@s.StockStatus">
+
 
                             <!-- CHECKBOX -->
                             <td>
                                 <input type="checkbox"
                                        class="row-check stock-checkbox"
-                                       value="@s.InventoryID" />
+                                       value="@s.InventoryID"
+                                       @(isInactive ? "disabled" : "") />
+
                             </td>
 
                             <!-- ITEM -->
                             <td>
                                 <strong>@s.ItemName</strong>
-                            </td>
+
+                                @if (isInactive)
+                                {
+                                    <div class="mt-1">
+                                        <span class="inactive-badge">INACTIVE</span>
+                                    </div>
+                                }
+                        </td>
+
 
                             <!-- CATEGORY -->
                             <td>@s.CategoryName</td>
@@ -115,12 +143,20 @@
 
                             <!-- ACTION -->
                             <td>
-                                <a asp-action="AdjustStockByBatch"
-                                   asp-route-inventoryId="@s.InventoryID"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Adjust
-                                </a>
+                            @if (isInactive)
+                                {
+                                    <span class="inactive-badge">Locked</span>
+                                }
+                                else
+                                {
+                                    <a asp-action="AdjustStockByBatch"
+                                       asp-route-inventoryId="@s.InventoryID"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Adjust
+                                    </a>
+                                }
                             </td>
+
 
                         </tr>
                                         }
@@ -142,16 +178,25 @@
         const checks = document.querySelectorAll(".row-check");
         const bulkBtn = document.getElementById("bulkAddBtn");
 
-        function updateBulkButton() {
-            bulkBtn.disabled =
-                document.querySelectorAll(".row-check:checked").length === 0;
+                function updateBulkButton() {
+            const validChecks =
+                Array.from(document.querySelectorAll(".row-check:checked"))
+                     .filter(c => !c.disabled);
+
+            bulkBtn.disabled = validChecks.length === 0;
         }
 
+
         /* Select all */
-        selectAll.addEventListener("change", function () {
-            checks.forEach(c => c.checked = this.checked);
+                selectAll.addEventListener("change", function () {
+            checks.forEach(c => {
+                if (!c.disabled) {
+                    c.checked = this.checked;
+                }
+            });
             updateBulkButton();
         });
+
 
         /* Individual checkbox */
         checks.forEach(c =>
@@ -160,9 +205,13 @@
 
         /* Bulk add click */
         bulkBtn.addEventListener("click", function () {
-            const ids = Array.from(
-                document.querySelectorAll(".row-check:checked")
-            ).map(c => c.value).join(",");
+                    const ids = Array.from(
+            document.querySelectorAll(".row-check:checked")
+        )
+        .filter(c => !c.disabled)   // 🔒 FINAL GUARD
+        .map(c => c.value)
+        .join(",");
+
 
             window.location.href =
                 `/Stock/AddStockBatch?inventoryIds=${ids}`;

@@ -28,6 +28,21 @@
         background: #fee2e2;
         color: #b91c1c;
     }
+
+    /* 🔒 Inactive row styling */
+    .inactive-row {
+        opacity: 0.55;
+        background: #f1f5f9;
+    }
+
+    .inactive-badge {
+        background: #e5e7eb;
+        color: #374151;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
 </style>
 
 <div class="container-fluid">
@@ -55,30 +70,59 @@
                 <tbody>
                     @foreach (var inv in Model)
                     {
+                        bool isInactive = inv.ItemStatus == "Inactive";
+
                         var healthClass =
                         inv.HealthStatus == "Healthy" ? "health-healthy" :
                         inv.HealthStatus == "Low" ? "health-low" :
-                        "health-critical";
+                        inv.HealthStatus == "Critical" ? "health-critical" :
+                        "";
 
-                        <tr>
-                            <td class="fw-semibold">@inv.ItemName</td>
+                        <tr class="@(isInactive ? "inactive-row" : "")">
+                            <td class="fw-semibold">
+                                @inv.ItemName
+                                @if (isInactive)
+                                {
+                                    <div class="mt-1">
+                                        <span class="inactive-badge">INACTIVE</span>
+                                    </div>
+                                }
+                            </td>
 
                             <td>@inv.TotalQuantity</td>
 
                             <td>
-                                <span class="inventory-health @healthClass">
-                                    @inv.HealthStatus
-                                </span>
+                                @if (isInactive)
+                                {
+                                    <span class="inventory-health inactive-badge">
+                                        Locked
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inventory-health @healthClass">
+                                        @inv.HealthStatus
+                                    </span>
+                                }
                             </td>
 
                             <td>@inv.LastUpdated.ToString("dd/MM/yyyy")</td>
 
                             <td>
-                                <a asp-controller="Stock"
-                                   asp-action="StockIndex"
-                                   class="btn btn-sm btn-outline-primary">
-                                    View Stock
-                                </a>
+                                @if (isInactive)
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        Locked
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Stock"
+                                       asp-action="StockIndex"
+                                       class="btn btn-sm btn-outline-primary">
+                                        View Stock
+                                    </a>
+                                }
                             </td>
                         </tr>
                     }
@@ -89,14 +133,3 @@
     </div>
 
 </div>
-
-<script>
-    document.querySelectorAll("tr").forEach(row => {
-        if (row.innerText.includes("Critical")) {
-            row.style.backgroundColor = "#fff5f5";
-        }
-        if (row.innerText.includes("Low")) {
-            row.style.backgroundColor = "#fffaf0";
-        }
-    });
-</script>

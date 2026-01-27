@@ -35,7 +35,7 @@ namespace Invexaaa.Controllers
             var list =
                 from inv in _context.Inventories
                 join item in _context.Items on inv.ItemID equals item.ItemID
-                where item.ItemStatus == "Active"
+                
 
                 join cat in _context.Categories on item.CategoryID equals cat.CategoryID
                 select new StockViewModel
@@ -50,7 +50,8 @@ namespace Invexaaa.Controllers
     inv.InventoryTotalQuantity <= item.ItemReorderLevel ? "Low Stock" :
     "In Stock",
 
-                    LastUpdated = inv.InventoryLastUpdated
+                    LastUpdated = inv.InventoryLastUpdated,
+                    ItemStatus = item.ItemStatus
                 };
 
             return View(list.ToList());

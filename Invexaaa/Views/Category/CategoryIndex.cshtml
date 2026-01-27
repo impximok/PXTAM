@@ -6,150 +6,1248 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    :root {
+        --bg: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 18px;
+    }
 
-<div class="container-fluid">
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
 
-    <!-- PAGE HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-semibold">Maintain Category</h3>
+    /* Full width page padding (use the whole page) */
+    .page-wrap {
+        width: 100%;
+        padding: 10px 18px 24px; /* ⬅ moves everything up */
+    }
 
-        <!-- Add Category -->
-        <a asp-action="Create" class="btn btn-outline-secondary">
+    /* Header */
+    .page-head {
+        display: flex;
+        align-items: center; /* ✅ centers + with title block */
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f0f0f0; /* was too strong */
+        margin-bottom: 12px;
+    }
+
+    .title {
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* Add button - system style */
+    .icon-btn {
+        border: 2px solid #000 !important;
+        background: #000 !important;
+        color: #fff !important;
+        border-radius: 999px !important;
+        padding: 10px 14px !important;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none !important;
+        transition: background-color 220ms ease, color 220ms ease;
+        user-select: none;
+        white-space: nowrap;
+        margin-top: 4px; /* tiny nudge down */
+    }
+
+        .icon-btn:hover, .icon-btn:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    /* Filter strip - no cards */
+    .filters {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr auto; /* search wider, buttons hug content */
+        gap: 10px 12px; /* tighter gaps */
+        align-items: end;
+        padding: 18px 0 18px; /* more balanced */
+        border-bottom: 1.5px solid #e5e7eb; /* slightly stronger than header */
+        margin-bottom: 18px; /* ⬅ key fix */
+    }
+
+    .label {
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 2px;
+        font-size: 13px;
+    }
+
+    .control {
+        width: 100%;
+        border: 2px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 9px 14px !important;
+        font-size: 15px !important;
+        background: #fff !important;
+        color: var(--text) !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+        .control:focus {
+            border-color: #000 !important;
+        }
+
+    .filter-actions {
+        justify-content: flex-end;
+        display: inline-flex;
+        gap: 8px; /* tighter */
+        align-items: end;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        /* ↓ smaller text */
+        font-size: 14px !important; /* was 16px */
+        font-weight: 700 !important;
+        /* ↑ compensate with padding */
+        padding: 10px 16px !important; /* was 8px 14px */
+
+        border: 2px solid #000 !important;
+        text-align: center;
+        user-select: none;
+        white-space: nowrap;
+        background: transparent !important;
+        color: #000 !important;
+        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
+    }
+
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .pill-solid:hover, .pill-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .pill-outline:hover, .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        outline: none;
+    }
+
+    /* Table shell (not a "card", just a clean frame) */
+    .table-shell {
+        margin-top: 4px; /* just enough separation */
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: #fff;
+    }
+
+    table.sys-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .sys-table thead th {
+        color: #000; /* neutral black */
+        letter-spacing: 0.01em; /* subtle label feel */
+        padding: 14px 14px;
+        background: #f6f7f9; /* softer */
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 700;
+        font-size: 13.5px;
+        white-space: nowrap;
+    }
+
+    .sys-table tbody td {
+        font-size: 13.5px; /* ⬇ slightly smaller than header */
+        font-weight: 400; /* regular everywhere */
+        color: var(--text);
+        padding: 14px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+
+    .sys-table tbody tr:hover {
+        background: #fafafa;
+    }
+
+    .sys-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    /* Status pill */
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 5px 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #111;
+        white-space: nowrap;
+    }
+
+        .pill.active {
+            border-color: #111;
+        }
+
+        .pill.inactive {
+            color: var(--muted);
+        }
+
+    /* Action buttons */
+    .row-actions {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .mini-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+        cursor: pointer;
+    }
+
+        .mini-btn:hover, .mini-btn:focus-visible {
+            border-color: #000;
+            background: #fafafa;
+            outline: none;
+        }
+
+    .mini-danger:hover {
+        border-color: #dc2626;
+    }
+
+    .mini-warn:hover {
+        border-color: #f59e0b;
+    }
+
+    .mini-ok:hover {
+        border-color: #16a34a;
+    }
+
+    .chk {
+        width: 16px;
+        height: 16px;
+        accent-color: #111;
+    }
+
+    @@media (max-width: 980px) {
+        .filters {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .filters {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ===== Custom Select (same as Create Supplier) ===== */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 11px 40px 11px 14px;
+        background: #fff;
+        color: #111;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cs2-value {
+        flex: 1;
+        text-align: left;
+    }
+
+    .cs2-btn:focus,
+    .cs2.open .cs2-btn {
+        border-color: #000 !important;
+        outline: none;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 9999;
+        display: none;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #111;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+    }
+
+        .cs2-item:hover {
+            background: #f2f2f2;
+        }
+
+    .sys-table thead .chk {
+        transform: scale(1.05); /* very subtle emphasis */
+    }
+
+    .sys-table thead th:first-child {
+        padding-left: 16px;
+    }
+
+    .label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111;
+        margin-bottom: 2px;
+    }
+
+    .control,
+    .cs2-btn {
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    .mini-btn:hover,
+    .mini-btn:focus-visible {
+        outline: none;
+    }
+
+    /* Edit */
+    a.mini-btn:hover {
+        border-color: #2563eb; /* blue */
+        background: rgba(37, 99, 235, 0.08); /* light blue tint */
+        color: #2563eb;
+    }
+
+    .mini-warn:hover,
+    .mini-warn:focus-visible {
+        border-color: #f59e0b; /* amber */
+        background: rgba(245, 158, 11, 0.10); /* light amber */
+        color: #92400e;
+    }
+
+    .mini-ok:hover,
+    .mini-ok:focus-visible {
+        border-color: #16a34a; /* green */
+        background: rgba(22, 163, 74, 0.10); /* light green */
+        color: #166534;
+    }
+
+    .mini-danger:hover,
+    .mini-danger:focus-visible {
+        border-color: #dc2626; /* red */
+        background: rgba(220, 38, 38, 0.10); /* light red */
+        color: #991b1b;
+    }
+
+    a.mini-btn {
+        border: 1px solid #2563eb; /* blue */
+        color: #2563eb;
+    }
+
+    .mini-warn {
+        border: 1px solid #f59e0b; /* amber */
+        color: #92400e;
+    }
+
+    .mini-ok {
+        border: 1px solid #16a34a; /* green */
+        color: #166534;
+    }
+
+    .mini-danger {
+        border: 1px solid #dc2626; /* red */
+        color: #991b1b;
+    }
+
+    /* ===== INVEXA Modal (Delete confirm) ===== */
+    .ix-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        z-index: 99999;
+    }
+
+        .ix-modal.open {
+            display: block;
+        }
+
+    .ix-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,.45);
+    }
+
+    .ix-dialog {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(520px, calc(100% - 32px));
+        background: #fff;
+        border: 2px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 18px 55px rgba(0,0,0,.18);
+        padding: 18px 18px 16px;
+    }
+
+    .ix-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .ix-title {
+        margin: 0;
+        font-size: 20px; /* ⬆ bigger */
+        font-weight: 900; /* stronger */
+        color: #111;
+        letter-spacing: -0.02em;
+    }
+
+    .ix-desc {
+        margin: 0;
+        color: #111;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    .ix-strong {
+        font-weight: 800;
+    }
+
+    /* actions = pill buttons like your system */
+    .ix-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .ix-btn {
+        border-radius: 999px;
+        padding: 9px 16px;
+        font-size: 14px;
+        font-weight: 800;
+        border: 2px solid #000;
+        cursor: pointer;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    }
+
+    .ix-outline {
+        background: #fff;
+        color: #000;
+    }
+
+        .ix-outline:hover {
+            background: #000;
+            color: #fff;
+        }
+
+    .ix-danger {
+        border-color: #dc2626;
+        background: #dc2626;
+        color: #fff;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    }
+
+        .ix-danger:hover,
+        .ix-danger:focus-visible {
+            background: #fff; /* invert like cancel */
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+    .ix-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        backdrop-filter: blur(2px);
+    }
+
+    .ix-head {
+        display: flex;
+        align-items: flex-start; /* was center */
+        justify-content: flex-start; /* was space-between */
+        margin-bottom: 10px;
+    }
+
+    .ix-btn {
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    }
+
+    .empty-row td {
+        border-bottom: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    /* ===== Bulk action bar (polished) ===== */
+    .bulk-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 10px; /* was 10px 12px */
+        margin: 10px 0 12px; /* slightly tighter */
+        border-radius: 14px; /* a bit tighter */
+        border-width: 1px; /* ⬇ thinner border */
+
+        background: #ffffff; /* lighter than before */
+        border: 1px solid #e5e7eb;
+    }
+
+    /* Left text */
+    .bulk-text {
+        font-size: 13px; /* ⬇ from 14px */
+        font-weight: 600; /* keep readable */
+        color: #111;
+    }
+
+    /* Right actions wrapper */
+    .bulk-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    /* Softer destructive button */
+    .bulk-delete {
+        border-radius: 999px;
+        padding: 6px 14px; /* ⬇ slimmer pill */
+        font-size: 13px;
+        border-width: 1.5px; /* thinner outline */
+        font-weight: 700; /* less aggressive */
+        border: 2px solid #dc2626;
+        color: #dc2626;
+        background: #fff;
+        transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    }
+
+        .bulk-delete:hover,
+        .bulk-delete:focus-visible {
+            background: #dc2626;
+            color: #fff;
+            outline: none;
+        }
+
+
+    /* ✅ Make Search input same height as cs2-btn (Status/Sort) */
+    .control {
+        padding: 11px 14px !important; /* was 9px 14px */
+        height: 46px; /* lock height for perfect match */
+        line-height: 22px;
+    }
+
+    /* ✅ Ensure custom select buttons are same height too */
+    .cs2-btn {
+        height: 46px;
+    }
+
+    /* ✅ Align label-to-field spacing consistently */
+    .filters > div .label {
+        margin-bottom: 6px; /* a bit more consistent */
+    }
+
+    /* Optional: perfect alignment on the grid baseline */
+    .filters {
+        align-items: end; /* keep this (already good) */
+    }
+
+    .sys-table td:nth-child(4) {
+        white-space: normal;
+        line-height: 1.5;
+    }
+
+    .bulk-bar::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #f0f0f0;
+    }
+
+    .sys-table tbody tr:nth-child(even) {
+        background: #fcfcfd;
+    }
+
+    .sys-table tbody tr:hover {
+        background: #f7f7f9;
+    }
+
+    /* tighter bulk bar */
+    .bulkbar {
+        padding: 6px 10px; /* was 10px 12px */
+        margin: 10px 0 12px; /* slightly tighter */
+        border-radius: 14px; /* a bit tighter */
+    }
+
+    .bulkbar-left {
+        font-size: 13px; /* smaller text */
+    }
+
+    .bulkbar-delete {
+        height: 36px; /* was 42px */
+        padding: 6px 14px; /* tighter */
+        font-size: 13px;
+    }
+
+</style>
+
+<div class="page-wrap">
+
+    <div class="page-head">
+        <div>
+            <h1 class="title">Maintain Category</h1>
+            <p class="subtitle">Search, filter and manage categories.</p>
+        </div>
+
+        <a asp-action="Create"
+           class="icon-btn"
+           title="Add Category"
+           aria-label="Add Category">
             <i class="bi bi-plus-lg"></i>
         </a>
     </div>
 
-    <!-- FILTER BAR -->
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row g-2 align-items-end">
+    <div class="filters">
 
-                <!-- Search -->
-                <div class="col-md-3">
-                    <label class="form-label small">Search</label>
-                    <input type="text" class="form-control" placeholder="Category name" />
+        <!-- Search -->
+        <div>
+            <div class="label">Search</div>
+            <input id="q" type="text" class="control" placeholder="Category Name" />
+        </div>
+
+        <!-- Status (custom dropdown) -->
+        <div>
+            <div class="label">Status</div>
+
+            <select class="real-select" id="CategoryStatus" name="status">
+                <option value="">All</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+
+            <div class="cs2" data-select="CategoryStatus">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">All</span>
+                    <span class="cs2-caret"></span>
+                </button>
+
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="">All</button>
+                    <button type="button" class="cs2-item" data-value="Active">Active</button>
+                    <button type="button" class="cs2-item" data-value="Inactive">Inactive</button>
                 </div>
-
-                <!-- Status -->
-                <div class="col-md-3">
-                    <label class="form-label small">Status</label>
-                    <select class="form-select">
-                        <option value="">All</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                </div>
-
-                <!-- Sort -->
-                <div class="col-md-3">
-                    <label class="form-label small">Sort</label>
-                    <select class="form-select">
-                        <option>Name (A–Z)</option>
-                        <option>Name (Z–A)</option>
-                    </select>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="col-md-3 d-flex gap-2">
-                    <button class="btn btn-secondary w-100">Filter</button>
-                    <button class="btn btn-outline-secondary w-100">Reset</button>
-                </div>
-
             </div>
+        </div>
+
+        <!-- Sort -->
+        <div>
+            <div class="label">Sort</div>
+
+            <select class="real-select" id="CategorySort" name="sort">
+                <option value="az">Name (A–Z)</option>
+                <option value="za">Name (Z–A)</option>
+            </select>
+
+            <div class="cs2" data-select="CategorySort">
+                <button type="button"
+                        class="cs2-btn"
+                        aria-haspopup="listbox"
+                        aria-expanded="false">
+                    <span class="cs2-value">Name (A–Z)</span>
+                    <span class="cs2-caret"></span>
+                </button>
+
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="az">Name (A–Z)</button>
+                    <button type="button" class="cs2-item" data-value="za">Name (Z–A)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button id="btnFilter" class="pill-btn pill-solid" type="button">Filter</button>
+            <button id="btnReset" class="pill-btn pill-outline" type="button">Reset</button>
+        </div>
+
+    </div>
+    <div class="bulk-bar" id="bulkBar" hidden>
+        <span class="bulk-text" id="bulkText">2 selected</span>
+
+        <div class="bulk-actions">
+            <button type="button" class="bulk-delete" id="bulkDeleteBtn">
+                Delete
+            </button>
         </div>
     </div>
 
-    <!-- CATEGORY TABLE -->
-    <div class="card">
+
+    <div class="table-shell">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-secondary small">
+            <table class="sys-table">
+                <thead>
                     <tr>
-                        <th style="width:40px">
-                            <input type="checkbox" />
+                        <th style="width:44px">
+                            <input id="chk-all" class="chk" type="checkbox" />
                         </th>
-                        <th>ID</th>
-                        <th>Category Name</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th style="width:140px">Actions</th>
+                        <th style="width:100px">ID</th>
+
+                        <!-- ⬇ slightly narrower -->
+                        <th style="min-width:180px; width:22%;">Category Name</th>
+
+                        <!-- ⬆ wider + earlier -->
+                        <th style="width:42%;">Description</th>
+
+                        <th style="width:140px">Status</th>
+                        <th style="width:170px">Actions</th>
                     </tr>
                 </thead>
+
+
                 <tbody>
-                    @foreach (var item in Model)
+                    <tr class="empty-row js-empty" style="display:none;">
+                        <td colspan="6">
+                            <div class="empty-state">No categories found.</div>
+                        </td>
+                    </tr>
+
+                    @if (!Model.Any())
                     {
-                        <tr>
-                            <td><input type="checkbox" /></td>
-                            <td>@item.CategoryID</td>
-                            <td>@item.CategoryName</td>
-                            <td>@item.CategoryDescription</td>
-                            <td>
-                                @if (item.CategoryStatus == "Active")
-                                {
-                                    <span class="badge bg-success">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Inactive</span>
-                                }
-                            </td>
-                            <td class="d-flex gap-1">
-
-                                <!-- EDIT -->
-                                <a asp-action="Edit"
-                                   asp-route-id="@item.CategoryID"
-                                   class="btn btn-sm btn-outline-primary"
-                                   title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-
-                                <!-- TOGGLE ACTIVE / INACTIVE -->
-                                <form asp-action="ToggleStatus"
-                                      asp-route-id="@item.CategoryID"
-                                      method="post"
-                                      class="d-inline">
-                                    @Html.AntiForgeryToken()
-
-                                    @if (item.CategoryStatus == "Active")
-                                    {
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-warning"
-                                                title="Deactivate">
-                                            <i class="bi bi-slash-circle"></i>
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-success"
-                                                title="Activate">
-                                            <i class="bi bi-check-circle"></i>
-                                        </button>
-                                    }
-                                </form>
-
-                                <!-- DELETE -->
-                                <form asp-action="Delete"
-                                      asp-route-id="@item.CategoryID"
-                                      method="post"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Are you sure you want to permanently delete this category?');">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                            class="btn btn-sm btn-outline-danger"
-                                            title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-
+                        <tr class="empty-row">
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    No categories found.
+                                </div>
                             </td>
                         </tr>
                     }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr data-name="@item.CategoryName"
+                                data-status="@item.CategoryStatus"
+                                data-id="@item.CategoryID"
+                                data-desc="@item.CategoryDescription">
+
+                                <td>
+                                    <input class="chk chk-row" type="checkbox" />
+                                </td>
+                                <td>@item.CategoryID</td>
+                                <td>@item.CategoryName</td>
+                                <td>@item.CategoryDescription</td>
+                                <td>
+                                    @if (item.CategoryStatus == "Active")
+                                    {
+                                        <span class="pill active">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="pill inactive">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a asp-action="Edit"
+                                           asp-route-id="@item.CategoryID"
+                                           class="mini-btn mini-edit"
+                                           title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+
+                                        <form asp-action="ToggleStatus"
+                                              asp-route-id="@item.CategoryID"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+
+                                            @if (item.CategoryStatus == "Active")
+                                            {
+                                                <button type="submit" class="mini-btn mini-warn" title="Deactivate">
+                                                    <i class="bi bi-slash-circle"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="mini-btn mini-ok" title="Activate">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                            }
+                                        </form>
+
+                                        <form asp-action="Delete"
+                                              asp-route-id="@item.CategoryID"
+                                              method="post"
+                                              class="d-inline delete-form"
+                                              data-name="@item.CategoryName">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="mini-btn mini-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        }
+                    }
                 </tbody>
-
-
             </table>
         </div>
     </div>
 
+    <!-- Bulk Delete Confirm Modal -->
+    <div class="ix-modal" id="bulkDeleteModal" aria-hidden="true">
+        <div class="ix-backdrop" data-close="true"></div>
+
+        <div class="ix-dialog" role="dialog" aria-modal="true" aria-labelledby="bulkTitle">
+            <div class="ix-head">
+                <h3 id="bulkTitle" class="ix-title">Delete selected categories?</h3>
+            </div>
+
+            <p class="ix-desc">
+                You are about to permanently delete
+                <span class="ix-strong" id="bulkCount">0</span> categories.
+                This action cannot be undone.
+            </p>
+
+            <p class="ix-desc" style="margin-top:10px; color: var(--muted); font-weight:500; font-size:13px;">
+                Selected IDs: <span id="bulkIds" class="ix-strong" style="font-weight:700; color:#111;">-</span>
+            </p>
+
+            <div class="ix-actions">
+                <button type="button" class="ix-btn ix-outline" data-close="true">Cancel</button>
+                <button type="button" class="ix-btn ix-danger" id="confirmBulkDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="ix-modal" id="deleteModal" aria-hidden="true">
+        <div class="ix-backdrop" data-close="true"></div>
+
+        <div class="ix-dialog" role="dialog" aria-modal="true" aria-labelledby="ixTitle">
+            <div class="ix-head">
+                <h3 id="ixTitle" class="ix-title">Delete category?</h3>
+            </div>
+
+            <p class="ix-desc">
+                This will permanently delete <span class="ix-strong" id="deleteName">this category</span>.
+                This action cannot be undone.
+            </p>
+
+            <div class="ix-actions">
+                <button type="button" class="ix-btn ix-outline" data-close="true">Cancel</button>
+                <button type="button" class="ix-btn ix-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+    <form id="bulkDeleteForm" asp-action="BulkDelete" asp-controller="Category" method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="ids" id="bulkDeleteIdsInput" />
+    </form>
 </div>
+
+<script>
+    (() => {
+
+      /* ===============================
+         1) Custom Select (cs2 dropdown)
+      ================================ */
+      function setupCS2(cs) {
+        const selectId = cs.dataset.select;
+        const real = document.getElementById(selectId);
+        if (!real) return;
+
+        const btn = cs.querySelector('.cs2-btn');
+        const valueEl = cs.querySelector('.cs2-value');
+        const items = Array.from(cs.querySelectorAll('.cs2-item'));
+
+        const setActive = (val) => {
+          const found = items.find(i => i.dataset.value === val);
+          valueEl.textContent = found ? found.textContent : items[0].textContent;
+        };
+
+        setActive(real.value);
+
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          cs.classList.toggle('open');
+          btn.setAttribute('aria-expanded', cs.classList.contains('open') ? 'true' : 'false');
+        });
+
+        items.forEach(i => {
+          i.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            real.value = i.dataset.value;
+            real.dispatchEvent(new Event("change", { bubbles: true }));
+            setActive(i.dataset.value);
+
+            cs.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          });
+        });
+
+        document.addEventListener('click', e => {
+          if (!cs.contains(e.target)) {
+            cs.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      document.querySelectorAll('.cs2[data-select]').forEach(setupCS2);
+
+      /* ===============================
+         2) References
+      ================================ */
+      const q = document.getElementById('q');
+      const statusSelect = document.getElementById('CategoryStatus');
+      const sortSelect = document.getElementById('CategorySort');
+      const btnFilter = document.getElementById('btnFilter');
+      const btnReset = document.getElementById('btnReset');
+
+      const tbody = document.querySelector('.sys-table tbody');
+      if (!tbody) return;
+
+      const emptyRow = tbody.querySelector('.js-empty');
+      const allRows = Array.from(tbody.querySelectorAll('tr[data-name]'));
+
+      const bulkBar = document.getElementById('bulkBar');
+      const bulkText = document.getElementById('bulkText');
+      const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+      const master = document.getElementById('chk-all');
+
+      const bulkModal = document.getElementById('bulkDeleteModal');
+      const bulkCountEl = document.getElementById('bulkCount');
+      const bulkIdsEl = document.getElementById('bulkIds');
+      const confirmBulkBtn = document.getElementById('confirmBulkDeleteBtn');
+
+      /* ===============================
+         3) Bulk selection helpers
+      ================================ */
+      const getVisibleRowCheckboxes = () =>
+        Array.from(document.querySelectorAll('.chk-row'))
+          .filter(cb => cb.closest('tr') && cb.closest('tr').offsetParent !== null);
+
+      const getSelectedRows = () =>
+        getVisibleRowCheckboxes()
+          .filter(cb => cb.checked)
+          .map(cb => cb.closest('tr'))
+          .filter(Boolean);
+
+      function updateBulkUI() {
+        const cbs = getVisibleRowCheckboxes();
+        const checked = cbs.filter(cb => cb.checked).length;
+
+        if (bulkBar) bulkBar.hidden = checked === 0;
+        if (bulkText) bulkText.textContent = `${checked} selected`;
+
+        if (master) {
+          master.checked = cbs.length > 0 && checked === cbs.length;
+          master.indeterminate = checked > 0 && checked < cbs.length;
+        }
+      }
+
+      // expose for filter render to use
+      window.__updateBulkUI = updateBulkUI;
+
+      // checkbox changes
+      document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('chk-row')) updateBulkUI();
+      });
+
+      // master changes
+      master?.addEventListener('change', (e) => {
+        const cbs = getVisibleRowCheckboxes();
+        cbs.forEach(cb => cb.checked = master.checked);
+        updateBulkUI();
+      });
+
+      /* ===============================
+         4) Render rows + Empty state
+      ================================ */
+      function renderRows(rows) {
+        tbody.innerHTML = "";
+
+        if (emptyRow) {
+          emptyRow.style.display = "none";
+          tbody.appendChild(emptyRow);
+        }
+
+        if (rows.length === 0) {
+          if (emptyRow) emptyRow.style.display = "";
+          if (master) { master.checked = false; master.indeterminate = false; }
+          updateBulkUI();
+          return;
+        }
+
+        rows.forEach(tr => {
+          const cb = tr.querySelector('.chk-row');
+          if (cb) cb.checked = false;
+          tbody.appendChild(tr);
+        });
+
+        if (master) { master.checked = false; master.indeterminate = false; }
+        updateBulkUI();
+      }
+
+      /* ===============================
+         5) Filter + Sort
+      ================================ */
+      function applyFilterSort() {
+        const keyword = (q?.value || "").trim().toLowerCase();
+        const status = statusSelect?.value || "";
+        const sort = sortSelect?.value || "az";
+
+        let filtered = allRows.filter(tr => {
+          const name = (tr.dataset.name || "").toLowerCase();
+          const st = (tr.dataset.status || "");
+          const matchName = !keyword || name.includes(keyword);
+          const matchStatus = !status || st === status;
+          return matchName && matchStatus;
+        });
+
+        filtered.sort((a, b) => {
+          const an = (a.dataset.name || "").toLowerCase();
+          const bn = (b.dataset.name || "").toLowerCase();
+          if (an < bn) return sort === "az" ? -1 : 1;
+          if (an > bn) return sort === "az" ? 1 : -1;
+          return 0;
+        });
+
+        renderRows(filtered);
+      }
+
+      btnFilter?.addEventListener('click', applyFilterSort);
+
+      btnReset?.addEventListener('click', () => {
+        if (q) q.value = "";
+        if (statusSelect) statusSelect.value = "";
+        if (sortSelect) sortSelect.value = "az";
+
+        // sync custom dropdown labels
+        document.querySelectorAll('.cs2[data-select]').forEach(cs => {
+          const id = cs.dataset.select;
+          const real = document.getElementById(id);
+          const valueEl = cs.querySelector('.cs2-value');
+          const items = Array.from(cs.querySelectorAll('.cs2-item'));
+          const found = items.find(i => i.dataset.value === (real?.value ?? ""));
+          valueEl.textContent = found ? found.textContent : items[0].textContent;
+        });
+
+        renderRows(allRows);
+      });
+
+      q?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          applyFilterSort();
+        }
+      });
+
+      /* ===============================
+         6) Single Delete Modal (INVEXA)
+      ================================ */
+      const modal = document.getElementById('deleteModal');
+      const nameEl = document.getElementById('deleteName');
+      const confirmBtn = document.getElementById('confirmDeleteBtn');
+      let pendingForm = null;
+
+      function openModal(form) {
+        pendingForm = form;
+        const name = form.dataset.name || "this category";
+        if (nameEl) nameEl.textContent = `"${name}"`;
+
+        modal?.classList.add('open');
+        modal?.setAttribute('aria-hidden', 'false');
+        modal?.querySelector('.ix-outline')?.focus();
+      }
+
+      function closeModal() {
+        modal?.classList.remove('open');
+        modal?.setAttribute('aria-hidden', 'true');
+        pendingForm = null;
+      }
+
+      document.addEventListener('submit', (e) => {
+        const form = e.target.closest('.delete-form');
+        if (!form) return;
+        e.preventDefault();
+        openModal(form);
+      });
+
+    confirmBulkBtn?.addEventListener('click', () => {
+      const rows = getSelectedRows();
+      const ids = rows.map(r => r.dataset.id).filter(Boolean);
+
+      if (!ids.length) return;
+
+      // put ids into hidden input as comma-separated
+      document.getElementById('bulkDeleteIdsInput').value = ids.join(',');
+
+      // submit to backend
+      document.getElementById('bulkDeleteForm').submit();
+    });
+
+
+      modal?.addEventListener('click', (e) => {
+        if (e.target?.dataset?.close === "true") closeModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal?.classList.contains('open')) closeModal();
+      });
+
+      /* ===============================
+         7) Bulk Delete Modal
+      ================================ */
+      function openBulkModal() {
+        const rows = getSelectedRows();
+        const ids = rows.map(r => r.dataset.id).filter(Boolean);
+
+        if (bulkCountEl) bulkCountEl.textContent = String(ids.length);
+        if (bulkIdsEl) bulkIdsEl.textContent = ids.length ? ids.join(', ') : '-';
+
+        bulkModal?.classList.add('open');
+        bulkModal?.setAttribute('aria-hidden', 'false');
+        bulkModal?.querySelector('.ix-outline')?.focus();
+      }
+
+      function closeBulkModal() {
+        bulkModal?.classList.remove('open');
+        bulkModal?.setAttribute('aria-hidden', 'true');
+      }
+
+      // ✅ FIXED: Force custom modal to win (no default, no bubbling, no old handler)
+      bulkDeleteBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const rows = getSelectedRows();
+        if (rows.length === 0) return;
+
+        openBulkModal();
+      });
+
+      bulkModal?.addEventListener('click', (e) => {
+        if (e.target?.dataset?.close === "true") closeBulkModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && bulkModal?.classList.contains('open')) closeBulkModal();
+      });
+
+      // confirm bulk delete (HOOK THIS TO YOUR BACKEND)
+      confirmBulkBtn?.addEventListener('click', () => {
+        const rows = getSelectedRows();
+        const ids = rows.map(r => r.dataset.id).filter(Boolean);
+
+        // ✅ Replace with real POST call / form submit
+        console.log("Bulk delete IDs:", ids);
+
+        closeBulkModal();
+      });
+
+      /* ===============================
+         8) Init
+      ================================ */
+      window.addEventListener('DOMContentLoaded', () => {
+        if (emptyRow && allRows.length > 0) emptyRow.style.display = "none";
+        updateBulkUI();
+      });
+
+    })();
+</script>
