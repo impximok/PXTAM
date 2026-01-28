@@ -1,0 +1,194 @@
+﻿@model List<Invexaaa.Models.ViewModels.StockTransactionHistoryViewModel>
+
+@{
+    ViewData["Title"] = "Stock Transactions";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .page-wrap {
+        padding: 16px 20px 28px;
+    }
+
+    .page-head {
+        margin-bottom: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 12px;
+    }
+
+    .title {
+        font-size: 32px;
+        font-weight: 800;
+        margin: 0;
+        color: #111827;
+    }
+
+    .subtitle {
+        margin-top: 6px;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    /* Table shell */
+    .table-shell {
+        border: 2px solid #e5e7eb;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    table.sys-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .sys-table thead th {
+        background: #f6f7f9;
+        padding: 16px 18px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #111;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+    .sys-table tbody td {
+        padding: 16px 18px;
+        font-size: 13.5px;
+        color: #111;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+    }
+
+    .sys-table tbody tr:nth-child(even) td {
+        background: #fcfcfd;
+    }
+
+    .sys-table tbody tr:hover td {
+        background: #f2f4f7;
+    }
+
+    /* Type pill */
+    .type-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 64px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 12px;
+        border: 2px solid #111;
+    }
+
+    .type-in {
+        color: #065f46;
+        border-color: #10b981;
+        background: #ecfdf5;
+    }
+
+    .type-out {
+        color: #991b1b;
+        border-color: #ef4444;
+        background: #fef2f2;
+    }
+
+    /* Quantity emphasis */
+    .qty {
+        font-weight: 800;
+    }
+
+    /* Muted text */
+    .muted {
+        color: #6b7280;
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 40px;
+        text-align: center;
+        color: #6b7280;
+        font-size: 14px;
+    }
+</style>
+
+<div class="page-wrap">
+
+    <!-- HEADER -->
+    <div class="page-head">
+        <h1 class="title">Stock In / Out History</h1>
+        <p class="subtitle">
+            Complete audit trail of inventory movements.
+        </p>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-shell">
+        <div class="table-responsive">
+            <table class="sys-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Batch</th>
+                        <th>Type</th>
+                        <th>Quantity</th>
+                        <th>Remark</th>
+                        <th>User</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    No stock transactions recorded.
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var h in Model)
+                        {
+                            <tr>
+                                <td class="muted">
+                                    @h.TransactionDate.ToString("dd MMM yyyy, HH:mm")
+                                </td>
+
+                                <td>
+                                    <strong>@h.ItemName</strong>
+                                </td>
+
+                                <td class="muted">
+                                    @h.BatchNumber
+                                </td>
+
+                                <td>
+                                    <span class="type-pill @(h.TransactionType == "IN" ? "type-in" : "type-out")">
+                                        @h.TransactionType
+                                    </span>
+                                </td>
+
+                                <td class="qty">
+                                    @h.TransactionQuantity
+                                </td>
+
+                                <td class="muted">
+                                    @h.TransactionRemark
+                                </td>
+
+                                <td class="muted">
+                                    @h.UserName
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

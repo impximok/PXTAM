@@ -299,8 +299,36 @@ namespace Invexaaa.Controllers
                 return View("EditItem", vm);
             }
 
-            // ================= IMAGE UPLOAD =================
-            if (vm.ImageFile != null && vm.ImageFile.Length > 0)
+            var item = _context.Items.FirstOrDefault(i => i.ItemID == vm.Item.ItemID);
+            if (item == null)
+                return NotFound();
+
+            // =====================================================
+            // IMAGE: edited (Base64 from canvas)
+            // =====================================================
+            if (!string.IsNullOrEmpty(vm.EditedImageData))
+            {
+                var base64 = vm.EditedImageData.Split(',')[1];
+                var bytes = Convert.FromBase64String(base64);
+
+                var uploadsFolder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot/uploads/items"
+                );
+
+                Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}.png";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                System.IO.File.WriteAllBytes(filePath, bytes);
+
+                item.ItemImageUrl = $"/uploads/items/{fileName}";
+            }
+            // =====================================================
+            // IMAGE: normal file upload
+            // =====================================================
+            else if (vm.ImageFile != null && vm.ImageFile.Length > 0)
             {
                 var uploadsFolder = Path.Combine(
                     Directory.GetCurrentDirectory(),
@@ -312,19 +340,33 @@ namespace Invexaaa.Controllers
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(vm.ImageFile.FileName)}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    vm.ImageFile.CopyTo(stream);
-                }
+                using var stream = new FileStream(filePath, FileMode.Create);
+                vm.ImageFile.CopyTo(stream);
 
-                vm.Item.ItemImageUrl = $"/uploads/items/{fileName}";
+                item.ItemImageUrl = $"/uploads/items/{fileName}";
             }
 
-            _context.Items.Update(vm.Item);
+            // =====================================================
+            // UPDATE FIELDS (explicit = safe)
+            // =====================================================
+            item.ItemName = vm.Item.ItemName;
+            item.ItemDescription = vm.Item.ItemDescription;
+            item.ItemBuyPrice = vm.Item.ItemBuyPrice;
+            item.ItemSellPrice = vm.Item.ItemSellPrice;
+            item.ItemReorderLevel = vm.Item.ItemReorderLevel;
+            item.SafetyStock = vm.Item.SafetyStock;
+            item.ReorderPoint = vm.Item.ReorderPoint;
+            item.AverageDailyDemand = vm.Item.AverageDailyDemand;
+
+            // 🔥 REQUIRED: must come from hidden inputs
+            item.CategoryID = vm.Item.CategoryID;
+            item.SupplierID = vm.Item.SupplierID;
+
             _context.SaveChanges();
 
-            return RedirectToAction("ItemDetail", "Item", new { id = vm.Item.ItemID });
+            return RedirectToAction("ItemDetail", new { id = item.ItemID });
         }
+
 
         // SOFT DELETE = DEACTIVATE
         [Authorize(Roles = "Admin,Manager")]
