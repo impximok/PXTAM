@@ -8,175 +8,949 @@
 
 <style>
     /* ===============================
-           MINIMAL BLACK & WHITE STYLE
-        =============================== */
-
-    .add-stock-page {
-        max-width: 900px;
+               INVEXA · BLACK & WHITE SYSTEM
+            =============================== */
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e6e7eb;
+        --soft: #f9fafb;
+        --shadow: 0 10px 24px rgba(0,0,0,.06);
+        --radius: 18px;
+        --fs-title: 34px;
+        --fs-label: 13px;
+        --fs-body: 14px;
+        --focus: 0 0 0 4px rgba(17,17,17,.08);
     }
 
-    h3 {
-        font-weight: 600;
-        color: #111;
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: var(--bg) !important;
     }
 
-    label {
+    /* Page wrapper */
+    .addstock-wrap {
+        width: 100%;
+        padding: 10px 18px 26px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .page-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 6px 2px 14px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 18px;
+    }
+
+    .page-title {
+        font-weight: 800;
+        letter-spacing: .2px;
+        color: var(--text);
+        font-size: var(--fs-title);
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .page-subtitle {
+        margin: 6px 0 0;
+        color: var(--muted);
         font-size: 13px;
-        font-weight: 600;
-        color: #444;
     }
 
-    .form-control {
-        border-radius: 6px;
+    /* Card */
+    .inv-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        overflow: hidden;
     }
 
-    .preview-card {
-        border: 1px solid #e5e5e5;
-        border-radius: 8px;
-        background: #fff;
+    .inv-card__head {
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(#fff, #fff);
     }
 
-    .preview-header {
-        padding: 12px 16px;
-        font-weight: 600;
-        border-bottom: 1px solid #e5e5e5;
-        color: #111;
-    }
-
-    .preview-table th {
-        font-size: 13px;
-        font-weight: 600;
-        color: #555;
-        border-bottom: 1px solid #eee;
-    }
-
-    .preview-table td {
+    .inv-card__title {
+        font-weight: 800;
+        color: var(--text);
+        margin: 0;
         font-size: 14px;
-        color: #111;
-        border-top: 1px solid #f2f2f2;
+        letter-spacing: .2px;
     }
 
-    .preview-qty,
-    .preview-expiry {
-        color: #000;
+    .inv-card__body {
+        padding: 18px;
     }
-</style>
 
-<div class="container-fluid add-stock-page">
+    /* Form labels */
+    .inv-label {
+        font-size: var(--fs-label);
+        font-weight: 800;
+        color: #374151;
+        letter-spacing: .35px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-    <h3 class="mb-4">Add Stock (With Expiry)</h3>
+    .hint {
+        font-weight: 700;
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: none;
+        letter-spacing: 0;
+    }
 
-    <!-- VALIDATION -->
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    /* Inputs (default) */
+    .inv-input {
+        border-radius: 14px !important;
+        border: 2px solid var(--border) !important; /* ✅ default 2px */
+        background: #fff !important;
+        padding: 12px 12px !important;
+        font-size: 14px !important;
+        color: var(--text) !important;
+        box-shadow: none !important;
+        transition: border-color 160ms ease;
+    }
 
-    <!-- ===============================
-         FORM
-    =============================== -->
-    <form asp-controller="Stock" asp-action="AddStockBatch" method="post">
-        @Html.AntiForgeryToken()
-
-        <!-- INVENTORY IDS -->
-        @foreach (var id in Model.InventoryIds)
-        {
-            <input type="hidden" name="InventoryIds" value="@id" />
+        /* Focus: 2px solid black, no lift, no glow */
+        .inv-input:focus {
+            border: 2px solid #111 !important; /* ✅ focus 2px black */
+            outline: none !important;
+            box-shadow: none !important;
         }
 
-        <div class="row g-3">
+        /* Invalid input border red (client-side unobtrusive validation) */
+        .input-validation-error,
+        .inv-input.input-validation-error {
+            border: 2px solid #dc2626 !important; /* ✅ red border */
+        }
 
-            <!-- QUANTITY -->
-            <div class="col-md-6">
-                <label>Quantity to Add</label>
-                <input asp-for="Quantity"
-                       type="number"
-                       min="1"
-                       class="form-control"
-                       placeholder="Enter quantity" />
-                <span asp-validation-for="Quantity" class="text-danger"></span>
-            </div>
+            /* Optional: keep red border even when focused */
+            .input-validation-error:focus,
+            .inv-input.input-validation-error:focus {
+                border: 2px solid #dc2626 !important;
+            }
 
-            <!-- EXPIRY -->
-            <div class="col-md-6">
-                <label>Expiry Date</label>
-                <input asp-for="ExpiryDate"
-                       type="date"
-                       class="form-control"
-                       min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
-                <span asp-validation-for="ExpiryDate" class="text-danger"></span>
-            </div>
 
+        .inv-input::placeholder {
+            color: #9ca3af;
+        }
+
+    /* Validation style (boost visibility) */
+    .field-validation-error,
+    .text-danger {
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    /* Actions */
+    .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 10px 18px !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        border: 2px solid #111 !important;
+        background: #111 !important;
+        color: #fff !important;
+        text-decoration: none !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+        min-width: 150px;
+        transition: transform 160ms ease, background-color 180ms ease, color 180ms ease;
+        white-space: nowrap;
+    }
+
+
+    .pill-btn--ghost {
+        background: #fff !important;
+        color: #111 !important;
+    }
+
+    /* Table */
+    .inv-table {
+        width: 100%;
+        margin: 0;
+    }
+
+        .inv-table thead th {
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: .35px;
+            text-transform: uppercase;
+            color: #374151;
+            background: var(--soft);
+            border-bottom: 1px solid var(--border) !important;
+            padding: 12px 14px !important;
+            white-space: nowrap;
+        }
+
+        .inv-table tbody td {
+            font-size: var(--fs-body);
+            color: var(--text);
+            border-top: 1px solid #f1f2f4 !important;
+            padding: 12px 14px !important;
+            vertical-align: middle;
+        }
+
+        .inv-table tbody tr:hover {
+            background: #fcfcfd;
+        }
+
+    .mono-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1.5px solid var(--border);
+        background: #fff;
+        font-size: 12px;
+        font-weight: 800;
+        color: #111;
+        white-space: nowrap;
+    }
+
+    .mono-pill--muted {
+        color: #6b7280;
+        border-style: dashed;
+    }
+
+    /* Layout helpers */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    @@media (max-width: 768px) {
+        .grid-2 {
+            grid-template-columns: 1fr;
+        }
+
+        .pill-btn {
+            width: 100%;
+        }
+    }
+
+    /* Summary banner feel */
+    .success-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 900;
+        color: #111;
+    }
+
+    /* Card title inside header */
+    .inv-card__head--stacked {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .card-title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: .2px;
+    }
+
+    .card-subtitle {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.4;
+    }
+
+    .text-danger {
+        display: block;
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    /* Tighten card spacing */
+    .inv-card__head {
+        padding: 14px 18px !important;
+    }
+
+    .inv-card__body {
+        padding: 16px 18px 18px !important;
+    }
+
+    /* Better form layout rhythm */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 18px;
+        align-items: end;
+    }
+
+    /* Wrap each field block */
+    .field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Less air between label and input */
+    .inv-label {
+        margin-bottom: 6px !important;
+    }
+
+    /* Actions: anchor + divider so it feels “intentional” */
+    .actions {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end; /* 🔥 move buttons right */
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+
+
+    /* Optional: make save more “primary” */
+    .pill-btn {
+        min-width: 170px;
+    }
+
+    /* Mobile */
+    @@media (max-width:768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .pill-btn {
+            width: 100%;
+        }
+    }
+
+    /* Preview card: flush table look */
+    .inv-card__body--flush {
+        padding: 0 !important;
+    }
+
+    /* Table spacing + subtle grid */
+    .inv-table thead th {
+        padding: 12px 14px !important;
+    }
+
+    .inv-table tbody td {
+        padding: 14px 14px !important;
+    }
+
+    /* Hover feel */
+    .inv-table tbody tr:hover {
+        background: #fafafa;
+    }
+
+    /* Make the pills align nicer */
+    .mono-pill {
+        height: 30px;
+        min-width: 44px;
+        justify-content: center;
+    }
+
+    .mono-pill--muted {
+        border-style: dashed;
+    }
+
+    .page-head {
+        margin-bottom: 14px !important;
+        padding-bottom: 12px !important;
+    }
+
+    .page-title {
+        margin-bottom: 6px !important;
+    }
+
+    /* Base pill button (shared behavior) */
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 10px 20px !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        border: 2px solid #111 !important;
+        min-width: 160px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+
+    /* === SAVE (primary) === */
+    .pill-btn {
+        background: #111 !important;
+        color: #fff !important;
+    }
+
+        /* Hover → invert (NO lift) */
+        .pill-btn:hover {
+            background: #fff !important;
+            color: #111 !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,.10);
+        }
+
+    /* === CANCEL (ghost) === */
+    .pill-btn--ghost {
+        background: #fff !important;
+        color: #111 !important;
+    }
+
+        /* Hover → invert (same behavior) */
+        .pill-btn--ghost:hover {
+            background: #111 !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,.10);
+        }
+
+        /* Active press (subtle, no movement) */
+        .pill-btn:active,
+        .pill-btn--ghost:active {
+            box-shadow: 0 2px 8px rgba(0,0,0,.16);
+        }
+
+    /* Preview card header: stronger */
+    .inv-card__head {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+    }
+
+    /* Table header row: higher contrast */
+    .inv-table thead th {
+        background: #f3f4f6 !important; /* slightly darker than --soft */
+        color: #111827 !important;
+        font-weight: 900 !important;
+        letter-spacing: .35px;
+        border-bottom: 1px solid var(--border) !important;
+    }
+
+    /* Body text: a bit stronger */
+    .inv-table tbody td {
+        color: #111827 !important;
+        font-weight: 600;
+    }
+    /* Add gentle row separators */
+    .inv-table tbody tr {
+        border-top: 1px solid #eef0f3;
+    }
+
+        .inv-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .mono-pill {
+        border: 1.5px solid #d1d5db; /* darker border */
+        color: #111827;
+        background: #fff;
+        font-weight: 800;
+    }
+
+    /* Muted pill should still be readable */
+    .mono-pill--muted {
+        border-style: solid; /* ❌ remove dashed */
+        border-color: #cbd5e1;
+        background: #f9fafb;
+        color: #374151;
+    }
+
+    /* Summary box inside card */
+    .val-summary {
+        margin: 0 0 14px;
+        padding: 10px 12px;
+        border: 1px solid #fecaca;
+        background: #fff;
+        border-radius: 12px;
+    }
+
+        /* Remove default ul spacing */
+        .val-summary ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    /* Error text: NOT bold */
+    .field-validation-error,
+    .text-danger {
+        font-weight: 500 !important;
+        font-size: 12px;
+        margin-top: 6px;
+    }
+
+    /* Required field indicator */
+    .req {
+        color: #dc2626; /* system red */
+        font-weight: 800;
+        margin-left: 1px;
+        line-height: 1;
+    }
+
+
+    /* === Typography System (simplified) === */
+    :root {
+        --w-strong: 800;
+        --w-mid: 600;
+        --w-base: 500;
+        --fs-page: 34px;
+        --fs-section: 16px;
+        --fs-body: 14px;
+        --fs-meta: 13px;
+        --fs-help: 12px;
+    }
+
+    /* Page */
+    .page-title {
+        font-size: var(--fs-page);
+        font-weight: var(--w-strong);
+        color: var(--text);
+        margin: 0;
+    }
+
+    .page-subtitle {
+        font-size: var(--fs-meta);
+        font-weight: var(--w-base);
+        color: var(--muted);
+        margin: 6px 0 0;
+    }
+
+    /* Card header */
+    .inv-card__title {
+        font-size: var(--fs-section);
+        font-weight: var(--w-mid);
+        color: var(--text);
+        margin: 0;
+    }
+
+    .card-subtitle {
+        font-size: var(--fs-meta);
+        font-weight: var(--w-base);
+        color: var(--muted);
+        margin: 0;
+    }
+
+    /* Field label */
+    .inv-label {
+        font-size: var(--fs-body);
+        font-weight: var(--w-mid);
+        color: var(--text);
+        letter-spacing: 0; /* remove noisy tracking */
+        margin-bottom: 8px !important;
+    }
+
+    /* Table headers */
+    .inv-table thead th {
+        font-size: var(--fs-help);
+        font-weight: var(--w-mid);
+        color: var(--text);
+        text-transform: uppercase;
+        letter-spacing: .25px;
+    }
+
+    /* Table body */
+    .inv-table tbody td {
+        font-size: var(--fs-body);
+        font-weight: var(--w-base);
+        color: var(--text);
+    }
+
+    /* Pills */
+    .mono-pill {
+        font-size: var(--fs-help);
+        font-weight: var(--w-mid);
+        color: var(--text);
+    }
+
+    /* Validation text */
+    .text-danger,
+    .field-validation-error {
+        font-size: var(--fs-help);
+        font-weight: var(--w-base) !important;
+    }
+
+    /* Section title (Stock Entry) */
+    .inv-card__title {
+        font-size: 20px; /* ⬆ slightly bigger */
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    /* Field labels */
+    .inv-label {
+        font-size: 13px; /* ⬇ slightly smaller */
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 6px !important;
+    }
+
+        /* Required asterisk stays subtle */
+        .inv-label .req {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+    .success-line {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+    }
+
+        .success-line strong {
+            font-weight: 700;
+        }
+    /* ===== Preview polish ===== */
+    .preview-card {
+        overflow: hidden;
+    }
+
+    .preview-head {
+        background: #fff !important;
+        padding: 16px 18px !important;
+    }
+
+    .preview-title .t {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+        margin: 0;
+        line-height: 1.15;
+    }
+
+    .preview-title .s {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+
+    /* tighter table */
+    .preview-table thead th {
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+    }
+
+    .preview-table tbody td {
+        padding: 16px 14px !important;
+    }
+
+    /* alignment */
+    .preview-table .col-mid {
+        text-align: center;
+        width: 220px;
+    }
+
+    /* item cell looks more “system” */
+    .item-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .item-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    /* subtle zebra + hover */
+    .preview-table tbody tr:nth-child(even) {
+        background: #fcfcfd;
+    }
+
+    .preview-table tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    /* pills more consistent */
+    .preview-table .mono-pill {
+        height: 32px;
+        min-width: 64px;
+        border-radius: 999px;
+    }
+    /* ===== Success banner polish ===== */
+    .success-card {
+        overflow: hidden;
+    }
+
+    .success-head {
+        padding: 16px 18px !important;
+        background: #fff !important;
+        align-items: center;
+    }
+
+    .success-left {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .success-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 14px;
+        background: #16a34a;
+        color: #fff;
+        line-height: 1;
+        margin-top: 8px;
+    }
+
+    .success-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.15;
+    }
+
+    .success-sub {
+        margin-top: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+    }
+
+    .success-btn {
+        min-width: 160px;
+    }
+
+    /* reduce empty feeling */
+    .success-text b {
+        color: var(--text);
+        font-weight: 800;
+    }
+
+    .preview-item::before {
+        content: "•";
+        margin-right: 8px;
+        color: #9ca3af;
+    }
+
+    .preview-item {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .mono-pill--muted {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+        color: #6b7280;
+        font-weight: 700;
+    }
+
+    .preview-row {
+        background: #fafafa;
+    }
+
+</style>
+
+<div class="addstock-wrap">
+
+    <!-- Header -->
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">Add Stock</h1>
+            <p class="page-subtitle">Add batch quantity with expiry date. Preview updates live.</p>
         </div>
-
-        <!-- ACTIONS -->
-        <div class="d-flex gap-2 mt-4">
-            <button type="submit" class="btn btn-dark">
-                Save Stock
-            </button>
-            <a asp-action="StockIndex" class="btn btn-outline-dark">
-                Cancel
-            </a>
-        </div>
-    </form>
-
-    <!-- ===============================
-         LIVE PREVIEW (ALWAYS VISIBLE)
-    =============================== -->
-    <div class="preview-card mt-5">
-        <div class="preview-header">
-            Stock Preview
-        </div>
-
-        <table class="table preview-table mb-0">
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Quantity</th>
-                    <th>Expiry</th>
-                </tr>
-            </thead>
-            <tbody id="previewBody">
-                @foreach (var item in Model.PreviewItems)
-                {
-                    <tr>
-                        <td>@item.ItemName</td>
-                        <td class="preview-qty">–</td>
-                        <td class="preview-expiry">Not selected</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
     </div>
 
-    <!-- ===============================
-         AFTER SAVE SUMMARY
-    =============================== -->
-    @if (Model.ShowSummary && Model.SummaryRows.Any())
+
+
+
+    <!-- FORM CARD -->
+    <div class="inv-card">
+
+        <div class="inv-card__head inv-card__head--stacked">
+            <h2 class="inv-card__title">Stock Entry</h2>
+            <p class="card-subtitle">Enter quantity and expiry date for the selected items.</p>
+        </div>
+
+
+        <div class="inv-card__body">
+            <form asp-controller="Stock" asp-action="AddStockBatch" method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <!-- INVENTORY IDS -->
+                @foreach (var id in Model.InventoryIds)
+                {
+                    <input type="hidden" name="InventoryIds" value="@id" />
+                }
+
+                <div class="form-grid">
+                    <div class="field">
+                        <div class="inv-label">
+                            Quantity to Add <span class="req">*</span>
+                        </div>
+
+                        <input asp-for="Quantity"
+                               type="number"
+                               min="1"
+                               class="form-control inv-input"
+                               placeholder="e.g. 10" />
+                        <span asp-validation-for="Quantity" class="text-danger"></span>
+                    </div>
+
+                    <div class="field">
+                        <div class="inv-label">
+                            Expiry Date <span class="req">*</span>
+                        </div>
+
+                        <input asp-for="ExpiryDate"
+                               type="date"
+                               class="form-control inv-input"
+                               min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="pill-btn">Save Stock</button>
+                    <a asp-action="StockIndex" class="pill-btn pill-btn--ghost">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.ShowSummary)
     {
-        <div class="preview-card mt-4">
-            <div class="preview-header">
-                Stock Added Successfully
+        <div class="inv-card mt-4 preview-card">
+            <div class="inv-card__head preview-head">
+                <div class="preview-title">
+                    <div class="t">Stock Preview</div>
+                    <div class="s">Check quantity & expiry before saving.</div>
+                </div>
             </div>
 
-            <table class="table preview-table mb-0">
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Quantity Added</th>
-                        <th>Expiry</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var row in Model.SummaryRows)
-                    {
+            <div class="inv-card__body inv-card__body--flush">
+                <table class="table inv-table preview-table mb-0">
+                    <thead>
                         <tr>
-                            <td>@row.ItemName</td>
-                            <td>@row.QuantityAdded</td>
-                            <td>@row.ExpiryDate.ToString("dd MMM yyyy")</td>
+                            <th>Item</th>
+                            <th class="col-mid">Quantity</th>
+                            <th class="col-mid">Expiry</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody id="previewBody">
+                        @foreach (var item in Model.PreviewItems)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="item-cell">
+                                        <div class="item-name">@item.ItemName</div>
+                                    </div>
+                                </td>
+                                <td class="col-mid">
+                                    <span class="mono-pill preview-qty">–</span>
+                                </td>
+                                <td class="col-mid">
+                                    <span class="mono-pill mono-pill--muted preview-expiry">Not selected</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     }
+
+
+
+    @if (Model.ShowSummary && Model.SummaryRows.Any())
+    {
+        var first = Model.SummaryRows.First();
+        var isBulk = Model.SummaryRows.Count > 1;
+
+        <div class="inv-card mt-4 success-card">
+            <div class="inv-card__head success-head">
+                <div class="success-left">
+                    <span class="success-icon">✓</span>
+                    <div class="success-text">
+                        <div class="success-title">Stock Added Successfully</div>
+
+                        @if (!isBulk)
+                        {
+                            <div class="success-sub">
+                                Added <b>@first.QuantityAdded</b> unit(s) to <b>@first.ItemName</b> with expiry <b>@first.ExpiryDate.ToString("dd MMM yyyy")</b>.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="success-sub">
+                                Added stock to <b>@Model.SummaryRows.Count</b> item(s). Review details below.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <a asp-action="StockIndex" class="pill-btn pill-btn--ghost success-btn">
+                    Back to Stock
+                </a>
+            </div>
+
+            @* Show table ONLY when bulk *@
+            @if (isBulk)
+            {
+                <div class="inv-card__body p-0">
+                    <table class="table inv-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:55%">Item</th>
+                                <th style="width:20%">Qty Added</th>
+                                <th style="width:25%">Expiry</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.SummaryRows)
+                            {
+                                <tr>
+                                    <td>@row.ItemName</td>
+                                    <td><span class="mono-pill">@row.QuantityAdded</span></td>
+                                    <td><span class="mono-pill">@row.ExpiryDate.ToString("dd MMM yyyy")</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+
 
 </div>
 
@@ -187,29 +961,38 @@
         const qtyInput = document.querySelector('[name="Quantity"]');
         const expiryInput = document.querySelector('[name="ExpiryDate"]');
 
+        function formatExpiry(dateStr) {
+            if (!dateStr) return null;
+            const d = new Date(dateStr);
+            if (isNaN(d)) return null;
+            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
         function updatePreview() {
-            const qty = qtyInput.value;
-            const expiry = expiryInput.value;
+            const qty = qtyInput?.value?.trim();
+            const expiryRaw = expiryInput?.value?.trim();
+            const expiryNice = formatExpiry(expiryRaw);
 
             document.querySelectorAll('#previewBody tr').forEach(row => {
-                row.querySelector('.preview-qty').innerText =
-                    qty ? qty : '–';
+                const qtyEl = row.querySelector('.preview-qty');
+                const expEl = row.querySelector('.preview-expiry');
 
-                row.querySelector('.preview-expiry').innerText =
-                    expiry
-                        ? new Date(expiry).toLocaleDateString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                        })
-                        : 'Not selected';
+                if (qtyEl) qtyEl.innerText = qty ? qty : '–';
+
+                if (expEl) {
+                    if (expiryNice) {
+                        expEl.innerText = expiryNice;
+                        expEl.classList.remove('mono-pill--muted');
+                    } else {
+                        expEl.innerText = 'Not selected';
+                        expEl.classList.add('mono-pill--muted');
+                    }
+                }
             });
         }
 
-        // Run once on load
         updatePreview();
-
-        qtyInput.addEventListener('input', updatePreview);
-        expiryInput.addEventListener('change', updatePreview);
+        qtyInput?.addEventListener('input', updatePreview);
+        expiryInput?.addEventListener('change', updatePreview);
     </script>
 }

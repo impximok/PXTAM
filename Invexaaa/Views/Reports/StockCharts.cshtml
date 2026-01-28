@@ -9,47 +9,109 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-    .filter-form {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 16px;
-        margin-bottom: 20px;
+    :root {
+        --black: #111;
+        --gray-900: #1f2937;
+        --gray-700: #374151;
+        --gray-500: #6b7280;
+        --gray-300: #d1d5db;
+        --gray-200: #e5e7eb;
+        --gray-100: #f9fafb;
+        --white: #ffffff;
+    }
+
+    body {
+        background-color: var(--gray-100);
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+    }
+
+    .filter-form,
+    .report-section {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 28px;
     }
 
         .filter-form label {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-500);
+            margin-bottom: 6px;
             display: block;
         }
 
         .filter-form input,
         .filter-form select {
             width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #d1d5db;
-            background-color: #fff;
+            padding: 11px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--gray-300);
+            background: var(--white);
+            font-size: 14px;
         }
+
+    .btn-minimal {
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.15s ease;
+    }
+
+    .btn-black {
+        background: var(--black);
+        color: var(--white);
+        border: 1px solid var(--black);
+    }
+
+    .btn-outline-black {
+        background: transparent;
+        color: var(--black);
+        border: 1px solid var(--black);
+    }
+
+        .btn-outline-black:hover {
+            background: var(--black);
+            color: var(--white);
+        }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin-bottom: 28px;
+    }
+
+    .kpi-card {
+        border: 1px solid var(--gray-200);
+        border-radius: 16px;
+        padding: 18px;
+        background: var(--white);
+    }
+
+    .inactive-row {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
 
     @@media print {
-        .no-print {
-            display: none !important;
-        }
+        .no-print
+
+    {
+        display: none !important;
     }
 
-    .no-print {
-        position: relative;
-        z-index: 10;
     }
-
-    canvas {
-        position: relative;
-        z-index: 1;
-    }
-
 </style>
+
 
 <!-- ================= HEADER ================= -->
 <div class="d-flex justify-content-between align-items-center mb-3 no-print">

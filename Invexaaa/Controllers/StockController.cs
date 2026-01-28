@@ -26,6 +26,19 @@ namespace Invexaaa.Controllers
                 i.ItemStatus != "Active");
         }
 
+        private List<AddStockPreviewItem> BuildAddStockPreview(List<int> ids)
+        {
+            if (ids == null || ids.Count == 0) return new List<AddStockPreviewItem>();
+
+            return (from inv in _context.Inventories
+                    join item in _context.Items on inv.ItemID equals item.ItemID
+                    where ids.Contains(inv.InventoryID)
+                    select new AddStockPreviewItem
+                    {
+                        InventoryID = inv.InventoryID,
+                        ItemName = item.ItemName
+                    }).ToList();
+        }
 
         // ============================
         // STOCK OVERVIEW
@@ -35,7 +48,7 @@ namespace Invexaaa.Controllers
             var list =
                 from inv in _context.Inventories
                 join item in _context.Items on inv.ItemID equals item.ItemID
-                
+
 
                 join cat in _context.Categories on item.CategoryID equals cat.CategoryID
                 select new StockViewModel
@@ -248,6 +261,8 @@ namespace Invexaaa.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddStockBatch(AddStockBatchViewModel vm)
         {
+            vm.PreviewItems = BuildAddStockPreview(vm.InventoryIds);
+
             if (!ModelState.IsValid)
                 return View(vm);
 
@@ -257,6 +272,9 @@ namespace Invexaaa.Controllers
 
             try
             {
+                int successCount = 0;
+                int inactiveCount = 0;
+
                 foreach (var inventoryId in vm.InventoryIds)
                 {
                     var invData =
@@ -278,7 +296,7 @@ namespace Invexaaa.Controllers
                     // 🔒 BLOCK inactive items
                     if (IsItemInactive(inv.ItemID))
                     {
-                        TempData["Error"] = $"Item '{itemName}' is inactive and cannot be restocked.";
+                        inactiveCount++;
                         continue;
                     }
 
@@ -312,7 +330,24 @@ namespace Invexaaa.Controllers
                         QuantityAdded = vm.Quantity,
                         ExpiryDate = vm.ExpiryDate.Value
                     });
+                    successCount++;
                 }
+
+                if (successCount == 0)
+                {
+                    ModelState.AddModelError("", inactiveCount > 0
+                        ? "All selected items are inactive. No stock was added."
+                        : "No stock was added. Please retry.");
+
+                    await transaction.RollbackAsync();
+                    return View(vm);
+                }
+
+                if (inactiveCount > 0)
+                {
+                    TempData["Error"] = $"{inactiveCount} inactive item(s) were skipped.";
+                }
+
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();

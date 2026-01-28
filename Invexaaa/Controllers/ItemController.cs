@@ -274,42 +274,67 @@ namespace Invexaaa.Controllers
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("EditItem/{id}")]
         public IActionResult EditItem(int id)
+
         {
             var item = _context.Items.Find(id);
-            if (item == null)
-                return NotFound();
+            if (item == null) return NotFound();
 
-            return View("EditItem", new ItemFormViewModel
+            var vm = new ItemFormViewModel
             {
                 Item = item,
                 Categories = _context.Categories.ToList(),
                 Suppliers = _context.Suppliers.ToList()
-            });
+            };
+
+            return View(vm);
         }
 
+
         [Authorize(Roles = "Admin,Manager")]
-        [HttpPost("EditItem")]
+        [HttpPost("EditItem/{id}")]
         [ValidateAntiForgeryToken]
-        public IActionResult EditItem(ItemFormViewModel vm)
+        public IActionResult EditItem(ItemFormViewModel model)
+
         {
             if (!ModelState.IsValid)
             {
-                vm.Categories = _context.Categories.ToList();
-                vm.Suppliers = _context.Suppliers.ToList();
-                return View("EditItem", vm);
+                // 🔴 IMPORTANT: reload dropdown data
+                model.Categories = _context.Categories.ToList();
+                model.Suppliers = _context.Suppliers.ToList();
+                return View(model);
             }
 
-            var item = _context.Items.FirstOrDefault(i => i.ItemID == vm.Item.ItemID);
-            if (item == null)
-                return NotFound();
+            var item = _context.Items.Find(model.Item.ItemID);
+            if (item == null) return NotFound();
 
-            // =====================================================
-            // IMAGE: edited (Base64 from canvas)
-            // =====================================================
-            if (!string.IsNullOrEmpty(vm.EditedImageData))
+            // ✅ Update fields
+            item.ItemName = model.Item.ItemName;
+            item.ItemDescription = model.Item.ItemDescription;
+            item.ItemUnitOfMeasure = model.Item.ItemUnitOfMeasure;
+            item.CategoryID = model.Item.CategoryID;
+            item.SupplierID = model.Item.SupplierID;
+            item.ItemBuyPrice = model.Item.ItemBuyPrice;
+            item.ItemSellPrice = model.Item.ItemSellPrice;
+            item.ItemReorderLevel = model.Item.ItemReorderLevel;
+            item.SafetyStock = model.Item.SafetyStock;
+            item.ReorderPoint = model.Item.ReorderPoint;
+            item.AverageDailyDemand = model.Item.AverageDailyDemand;
+
+            // ❗ DO NOT TOUCH barcode
+            // ❗ DO NOT TOUCH ItemID
+
+            // ================= IMAGE UPDATE =================
+            if (!string.IsNullOrEmpty(model.EditedImageData))
             {
-                var base64 = vm.EditedImageData.Split(',')[1];
-                var bytes = Convert.FromBase64String(base64);
+                // Edited image from canvas (base64)
+                var base64 = model.EditedImageData;
+
+                // Remove prefix: data:image/png;base64,...
+                var commaIndex = base64.IndexOf(',');
+                if (commaIndex >= 0)
+                    base64 = base64[(commaIndex + 1)..];
+
+                byte[] imageBytes = Convert.FromBase64String(base64);
 
                 var uploadsFolder = Path.Combine(
                     Directory.GetCurrentDirectory(),
@@ -321,52 +346,30 @@ namespace Invexaaa.Controllers
                 var fileName = $"{Guid.NewGuid()}.png";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
-                System.IO.File.WriteAllBytes(filePath, bytes);
+                System.IO.File.WriteAllBytes(filePath, imageBytes);
 
-                item.ItemImageUrl = $"/uploads/items/{fileName}";
-            }
-            // =====================================================
-            // IMAGE: normal file upload
-            // =====================================================
-            else if (vm.ImageFile != null && vm.ImageFile.Length > 0)
-            {
-                var uploadsFolder = Path.Combine(
-                    Directory.GetCurrentDirectory(),
-                    "wwwroot/uploads/items"
-                );
+                // OPTIONAL: delete old image file
+                if (!string.IsNullOrEmpty(item.ItemImageUrl))
+                {
+                    var oldPath = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        item.ItemImageUrl.TrimStart('/')
+                    );
 
-                Directory.CreateDirectory(uploadsFolder);
+                    if (System.IO.File.Exists(oldPath))
+                        System.IO.File.Delete(oldPath);
+                }
 
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(vm.ImageFile.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                vm.ImageFile.CopyTo(stream);
-
+                // SAVE WEB PATH
                 item.ItemImageUrl = $"/uploads/items/{fileName}";
             }
 
-            // =====================================================
-            // UPDATE FIELDS (explicit = safe)
-            // =====================================================
-            item.ItemName = vm.Item.ItemName;
-            item.ItemDescription = vm.Item.ItemDescription;
-            item.ItemBuyPrice = vm.Item.ItemBuyPrice;
-            item.ItemSellPrice = vm.Item.ItemSellPrice;
-            item.ItemReorderLevel = vm.Item.ItemReorderLevel;
-            item.SafetyStock = vm.Item.SafetyStock;
-            item.ReorderPoint = vm.Item.ReorderPoint;
-            item.AverageDailyDemand = vm.Item.AverageDailyDemand;
-
-            // 🔥 REQUIRED: must come from hidden inputs
-            item.CategoryID = vm.Item.CategoryID;
-            item.SupplierID = vm.Item.SupplierID;
 
             _context.SaveChanges();
 
-            return RedirectToAction("ItemDetail", new { id = item.ItemID });
+            return RedirectToAction("ItemIndex");
         }
-
 
         // SOFT DELETE = DEACTIVATE
         [Authorize(Roles = "Admin,Manager")]

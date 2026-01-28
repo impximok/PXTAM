@@ -2,6 +2,7 @@
 @{
     Layout = null;
 }
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
     body {
@@ -49,9 +50,13 @@
         background: #f0f0f0;
         color: #666;
     }
+
+    .section {
+        margin-top: 24px;
+    }
 </style>
 
-
+<!-- ================= HEADER ================= -->
 <h1>@Model.ReportType Report</h1>
 
 <div class="meta">
@@ -59,24 +64,158 @@
     Scope: @Model.ScopeNote
 </div>
 
+<!-- ========================================================= -->
+<!-- ================= DEMAND FORECAST ====================== -->
+<!-- ========================================================= -->
+@if (Model.ReportType == "DemandForecast" && Model.DemandForecastReport != null)
+{
+    <h2>Demand Forecast Charts</h2>
 
+    <canvas id="dfDailyChart" height="120"></canvas>
+    <canvas id="dfForecastChart" height="120" style="margin-top:20px;"></canvas>
+
+    <script>
+        const dfLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    Model.DemandForecastReport.Select(x => x.ItemName)
+            ));
+
+    const dfDaily = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.DemandForecastReport.Select(x => x.AverageDailyDemand)
+        ));
+
+    const dfForecast = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.DemandForecastReport.Select(x => x.ForecastQty)
+        ));
+
+    new Chart(document.getElementById('dfDailyChart'), {
+        type: 'bar',
+        data: { labels: dfLabels, datasets: [{ label: 'Avg Daily Demand', data: dfDaily }] }
+    });
+
+        new Chart(document.getElementById('dfForecastChart'), {
+            type: 'bar',
+            data: { labels: dfLabels, datasets: [{ label: 'Forecast Quantity', data: dfForecast }] }
+        });
+    </script>
+}
+
+
+<!-- ========================================================= -->
+<!-- ================= STOCK SUMMARY ========================= -->
+<!-- ========================================================= -->
 @if (Model.ReportType == "Stock")
 {
-    <ul>
-        <li>Total Quantity: @Model.TotalQuantityAll</li>
-        <li>Active Quantity: @Model.TotalQuantityActive</li>
-        <li>Inventory Value: RM @Model.InventoryValueActive.ToString("N2")</li>
-    </ul>
+    <div class="section">
+        <h2>Stock Summary</h2>
 
-    <table>
-        <tr><th>Item</th><th>Status</th><th>Quantity</th></tr>
-        @foreach (var i in Model.StockSummary!)
-        {
-            <tr class="@(i.ItemStatus == "Inactive" ? "inactive" : "")">
-                <td>@i.ItemName</td>
-                <td>@i.ItemStatus</td>
-                <td>@i.Quantity</td>
-            </tr>
-        }
-    </table>
+        <ul>
+            <li>Total Quantity (All): @Model.TotalQuantityAll</li>
+            <li>Active Quantity: @Model.TotalQuantityActive</li>
+            <li>Inactive Items: @Model.InactiveItemCount</li>
+            <li>Inventory Value (Active): RM @Model.InventoryValueActive.ToString("N2")</li>
+        </ul>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Status</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var i in Model.StockSummary ?? Enumerable.Empty<dynamic>())
+                {
+                    <tr class="@(i.ItemStatus == "Inactive" ? "inactive" : "")">
+                        <td>@i.ItemName</td>
+                        <td>@i.ItemStatus</td>
+                        <td>@i.Quantity</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- ========================================================= -->
+<!-- ================= STOCK CHARTS (TABULAR) ================= -->
+<!-- ========================================================= -->
+@if (Model.ReportType == "StockCharts" && Model.StockChartData != null)
+{
+    <h2>Stock Charts</h2>
+
+    <canvas id="stockBarChart" height="120"></canvas>
+    <canvas id="stockPieChart" height="120" style="margin-top:20px;"></canvas>
+
+    <script>
+        const scLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    Model.StockChartData.Select(x => x.ItemName)
+            ));
+
+    const scQty = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.StockChartData.Select(x => x.Quantity)
+        ));
+
+    const scStatus = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.StockChartData.Select(x => x.Status)
+        ));
+
+    new Chart(document.getElementById('stockBarChart'), {
+        type: 'bar',
+        data: { labels: scLabels, datasets: [{ label: 'Stock Quantity', data: scQty }] }
+    });
+
+        const counts = {
+            Healthy: scStatus.filter(s => s === "Healthy").length,
+            Low: scStatus.filter(s => s === "Low").length,
+            Reorder: scStatus.filter(s => s === "Reorder").length
+        };
+
+        new Chart(document.getElementById('stockPieChart'), {
+            type: 'pie',
+            data: {
+                labels: ['Healthy', 'Low', 'Reorder'],
+                datasets: [{ data: Object.values(counts) }]
+            }
+        });
+    </script>
+}
+
+
+<!-- ========================================================= -->
+<!-- ================= EXPIRY & WASTAGE ====================== -->
+<!-- ========================================================= -->
+@if (Model.ReportType == "Expiry")
+{
+    <div class="section">
+        <h2>Expiry & Wastage Report</h2>
+        <p>
+            This report highlights stock batches that are near expiry to support
+            wastage prevention and timely stock rotation.
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Batch</th>
+                    <th>Item</th>
+                    <th>Status</th>
+                    <th>Quantity</th>
+                    <th>Expiry Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.ExpiryReport ?? Enumerable.Empty<dynamic>())
+                {
+                    <tr class="@(e.ItemStatus == "Inactive" ? "inactive" : "")">
+                        <td>@e.BatchNumber</td>
+                        <td>@e.ItemName</td>
+                        <td>@e.ItemStatus</td>
+                        <td>@e.Quantity</td>
+                        <td>@e.ExpiryDate.ToString("yyyy-MM-dd")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }

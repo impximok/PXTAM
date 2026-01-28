@@ -1412,11 +1412,14 @@
 
 <div class="page-wrap">
     <form asp-action="EditItem"
+          asp-controller="Item"
+          asp-route-id="@Model.Item.ItemID"
           method="post"
           enctype="multipart/form-data"
           class="two-card"
           id="itemForm"
           novalidate>
+
 
 
         @Html.AntiForgeryToken()

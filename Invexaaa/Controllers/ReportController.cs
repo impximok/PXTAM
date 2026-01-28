@@ -91,39 +91,53 @@ namespace Invexaaa.Controllers
                         .ToList();
                     break;
 
-                // ================= DEMAND FORECAST =================
+                // ================= DEMAND FORECAST (OPERATIONAL) =================
                 case "DemandForecast":
-                    vm.DemandForecastReport =
-                        _context.DemandForecasts
-                        .AsEnumerable() // 🔑 SWITCH TO IN-MEMORY LINQ
-                        .Join(
-                            _context.Items,
-                            d => d.ItemID,
-                            i => i.ItemID,
-                            (d, i) => new
-                            {
-                                Forecast = d,
-                                Item = i,
-                                ParsedPeriod = DateTime.TryParse(d.DemandForecastPeriod, out var dt)
-                                    ? (DateTime?)dt
-                                    : null
-                            })
-                        .Where(x =>
-                            (!startDate.HasValue || (x.ParsedPeriod.HasValue && x.ParsedPeriod >= startDate)) &&
-                            (!endDate.HasValue || (x.ParsedPeriod.HasValue && x.ParsedPeriod <= endDate)))
-                        .OrderByDescending(x => x.ParsedPeriod)
-                        .Select(x => new DemandForecastReportViewModel
-                        {
-                            ItemID = x.Item.ItemID,
-                            ItemName = x.Item.ItemName,
-                            ItemStatus = x.Item.ItemStatus,
-                            Period = x.Forecast.DemandForecastPeriod,
-                            ForecastQty = x.Forecast.DemandPredictedQuantity,
-                            RecommendedReorder = x.Forecast.DemandRecommendedReorderQty
-                        })
-                        .ToList();
-                    break;
 
+                    var forecastStart = startDate ?? DateTime.MinValue;
+                    var forecastEnd = endDate ?? DateTime.Today;
+
+                    var totalDays = (forecastEnd - forecastStart).Days;
+                    if (totalDays <= 0) totalDays = 1;
+
+                    var usageData =
+                        from t in _context.StockTransactions
+                        where t.TransactionType == "OUT"
+                              && (!startDate.HasValue || t.TransactionDate >= forecastStart)
+                              && (!endDate.HasValue || t.TransactionDate <= forecastEnd)
+                        group t by t.ItemID into g
+                        select new
+                        {
+                            ItemID = g.Key,
+                            TotalUsed = g.Sum(x => x.TransactionQuantity)
+                        };
+
+                    vm.DemandForecastReport =
+                        (from u in usageData
+                         join i in _context.Items on u.ItemID equals i.ItemID
+                         let avgDaily = (decimal)u.TotalUsed / totalDays
+                         select new DemandForecastReportViewModel
+                         {
+                             ItemID = i.ItemID,
+                             ItemName = i.ItemName,
+                             ItemStatus = i.ItemStatus,
+
+                             Period = startDate.HasValue || endDate.HasValue
+                                 ? $"{forecastStart:yyyy-MM-dd} → {forecastEnd:yyyy-MM-dd}"
+                                 : "All historical data",
+
+                             // ✅ NEW
+                             AverageDailyDemand = Math.Round(avgDaily, 2),
+
+                             ForecastQty = (int)Math.Ceiling(avgDaily * totalDays),
+
+                             RecommendedReorder =
+                                 (int)Math.Ceiling((avgDaily * totalDays) + i.SafetyStock)
+                         })
+                        .OrderByDescending(x => x.AverageDailyDemand)
+                        .ToList();
+
+                    break;
 
 
 

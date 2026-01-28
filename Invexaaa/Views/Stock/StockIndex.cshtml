@@ -591,6 +591,16 @@
         opacity: .85;
     }
 
+    .add-btn {
+        min-width: 140px; /* 👈 adjust 140–160px to taste */
+    }
+
+        .add-btn i {
+            width: 16px; /* same icon box */
+            text-align: center;
+            font-size: 16px;
+        }
+
 </style>
 
 <div class="page-wrap">
@@ -606,17 +616,19 @@
             <button id="bulkAddBtn"
                     class="add-btn"
                     type="button"
+                    title="Increase stock quantity"
                     disabled>
                 <i class="bi bi-plus-lg"></i>
-                <span>Add Stock</span>
+                <span>Stock In</span>
             </button>
+
 
             <!-- Stock Out (bulk + single) -->
             <button id="bulkOutBtn"
                     class="add-btn"
                     type="button"
-                    disabled
-                    style="background:#fff!important;color:#dc2626!important;border-color:#dc2626!important;">
+                    title="Reduce stock quantity"
+                    disabled>
                 <i class="bi bi-dash-lg"></i>
                 <span>Stock Out</span>
             </button>
