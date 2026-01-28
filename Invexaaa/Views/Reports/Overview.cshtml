@@ -8,98 +8,166 @@
 }
 
 <style>
-    /* ===== Layout ===== */
+    :root {
+        --black: #111;
+        --gray-900: #1f2937;
+        --gray-700: #374151;
+        --gray-500: #6b7280;
+        --gray-300: #d1d5db;
+        --gray-200: #e5e7eb;
+        --gray-100: #f9fafb;
+        --white: #ffffff;
+    }
+
+    body {
+        background-color: var(--gray-100);
+    }
+
+    /* ===== Header ===== */
     .page-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 28px;
     }
 
-    .action-buttons {
-        display: flex;
-        gap: 10px;
+        .page-header h2 {
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+    /* ===== Cards ===== */
+    .filter-form,
+    .report-section {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 28px;
     }
 
-    /* ===== Form ===== */
-    .filter-form {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 16px;
-        margin-bottom: 20px;
-    }
-
+        /* ===== Inputs ===== */
         .filter-form label {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-500);
+            margin-bottom: 6px;
             display: block;
         }
 
-        .filter-form select,
-        .filter-form input {
+        .filter-form input,
+        .filter-form select {
             width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #d1d5db;
-            background-color: #fff;
+            padding: 11px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--gray-300);
+            background: var(--white);
+            font-size: 14px;
+        }
+
+            .filter-form input:focus,
+            .filter-form select:focus {
+                outline: none;
+                border-color: var(--black);
+            }
+
+    /* ===== Buttons ===== */
+    .btn-minimal {
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.15s ease;
+    }
+
+    .btn-black {
+        background: var(--black);
+        color: var(--white);
+        border: 1px solid var(--black);
+    }
+
+        .btn-black:hover {
+            background: #000;
+            color: var(--white);
+        }
+
+    .btn-outline-black {
+        background: transparent;
+        color: var(--black);
+        border: 1px solid var(--black);
+    }
+
+        .btn-outline-black:hover {
+            background: var(--black);
+            color: var(--white);
         }
 
     /* ===== KPI ===== */
     .kpi-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-        margin-top: 20px;
+        gap: 18px;
+        margin-bottom: 28px;
     }
 
     .kpi-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 16px;
+        border: 1px solid var(--gray-200);
+        border-radius: 16px;
+        padding: 18px;
+        background: var(--white);
     }
 
-    .kpi-title {
-        font-size: 13px;
-        color: #6b7280;
+        .kpi-card div {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        .kpi-card strong {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+    /* ===== Tables ===== */
+    table {
+        font-size: 14px;
     }
 
-    .kpi-value {
-        font-size: 24px;
+    thead th {
+        background: var(--gray-100);
         font-weight: 600;
-        margin-top: 6px;
-    }
-
-    /* ===== Table ===== */
-    .report-section {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 20px;
-        margin-top: 24px;
+        border-bottom: 2px solid var(--gray-200);
     }
 
     .inactive-row {
-        background: #f2f2f2;
-        color: #666;
+        background: #f3f4f6;
+        color: #6b7280;
     }
 
-    .badge-inactive {
-        font-size: 11px;
-        padding: 2px 6px;
-        border: 1px solid #999;
-        border-radius: 4px;
-        margin-left: 6px;
+    /* ===== Alerts ===== */
+    .alert {
+        border-radius: 14px;
+        font-size: 13px;
     }
 
+    /* ===== Print ===== */
     @@media print {
+        body {
+            background: white;
+        }
+
         .no-print {
             display: none !important;
         }
+
+        .filter-form,
+        .report-section {
+            border: none;
+            padding: 0;
+        }
     }
 </style>
+
 
 <div class="container-fluid">
 
@@ -107,13 +175,14 @@
     <div class="page-header">
         <div>
             <h2 class="fw-semibold">Reports & Analytics</h2>
-            <p class="text-muted mb-0">Visual insights & printable reports</p>
+            <p class="text-muted mb-0">Operational insights & decision support</p>
         </div>
 
-        <div class="action-buttons no-print">
-            <button onclick="window.print()" class="btn btn-outline-dark">
+        <div class="no-print d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-minimal btn-outline-black">
                 Print
             </button>
+
 
             @if (!string.IsNullOrEmpty(Model.ReportType))
             {
@@ -122,40 +191,27 @@
                     <input type="hidden" name="reportType" value="@Model.ReportType" />
                     <input type="hidden" name="startDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
                     <input type="hidden" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
-                    <button class="btn btn-dark">Export PDF</button>
+                    <button class="btn btn-minimal btn-black">
+                        Export PDF
+                    </button>
+
                 </form>
             }
         </div>
     </div>
 
-    <!-- ================= SCOPE ================= -->
-    @if (!string.IsNullOrEmpty(Model.ReportType))
-    {
-        <div class="alert alert-info">
-            <strong>Report Scope:</strong><br />
-            @Model.ScopeNote
-            @if (!string.IsNullOrEmpty(Model.ChartNote))
-            {
-                <div><em>@Model.ChartNote</em></div>
-            }
-        </div>
-    }
-
-    <!-- ================= FILTER FORM ================= -->
+    <!-- ================= FILTER ================= -->
     <form asp-action="Overview" method="post" class="filter-form no-print">
         @Html.AntiForgeryToken()
 
         <div class="row">
             <div class="col-md-4">
                 <label>Start Date</label>
-                <input type="date" name="startDate"
-                       value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+                <input type="date" name="startDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
             </div>
-
             <div class="col-md-4">
                 <label>End Date</label>
-                <input type="date" name="endDate"
-                       value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+                <input type="date" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
             </div>
         </div>
 
@@ -168,51 +224,51 @@
             <option value="Expiry" selected="@(Model.ReportType == "Expiry")">Expiry & Wastage</option>
         </select>
 
-        <button class="btn btn-dark mt-3">Generate Report</button>
+        <button class="btn btn-minimal btn-black mt-3">
+            Generate Report
+        </button>
+
     </form>
 
-    <!-- ================= KPIs (STOCK ONLY) ================= -->
-    @if (Model.ReportType == "Stock" && Model.StockSummary != null)
+    <!-- ================= DEMAND FORECAST ================= -->
+    @if (Model.ReportType == "DemandForecast")
     {
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-title">Total Quantity (All)</div>
-                <div class="kpi-value">@Model.TotalQuantityAll</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Active Quantity</div>
-                <div class="kpi-value">@Model.TotalQuantityActive</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Inactive Items</div>
-                <div class="kpi-value">@Model.InactiveItemCount</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Inventory Value (Active)</div>
-                <div class="kpi-value">RM @Model.InventoryValueActive.ToString("N2")</div>
-            </div>
+        <div class="alert alert-secondary">
+            <small>
+                Forecasts are based on <b>historical stock-out transactions</b> and represent
+                <b>operational inventory demand</b> (non-sales).
+            </small>
         </div>
-    }
 
-    <!-- ================= DETAILED DATA ================= -->
-    <div class="report-section">
-        <h4>Detailed Data</h4>
-
-        <!-- DEMAND FORECAST -->
-        @if (Model.ReportType == "DemandForecast")
+        @if (Model.DemandForecastReport == null || !Model.DemandForecastReport.Any())
         {
-            if (Model.DemandForecastReport == null || !Model.DemandForecastReport.Any())
-            {
-                <div class="alert alert-warning">No demand forecast data.</div>
-            }
-            else
-            {
-                <table class="table table-bordered">
+            <div class="alert alert-warning">No stock-out activity found.</div>
+        }
+        else
+        {
+            <div class="report-section">
+                <h4>Demand Forecast Insights</h4>
+                <canvas id="dailyDemandChart" class="mb-4"></canvas>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <canvas id="forecastQtyChart"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <canvas id="reorderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h4>Detailed Forecast Breakdown</h4>
+                <table class="table table-bordered mt-3">
                     <thead>
                         <tr>
                             <th>Item</th>
                             <th>Status</th>
                             <th>Period</th>
+                            <th>Avg Daily Demand</th>
                             <th>Forecast Qty</th>
                             <th>Recommended Reorder</th>
                         </tr>
@@ -224,22 +280,29 @@
                                 <td>@d.ItemName</td>
                                 <td>@d.ItemStatus</td>
                                 <td>@d.Period</td>
+                                <td>@d.AverageDailyDemand</td>
                                 <td>@d.ForecastQty</td>
                                 <td>@d.RecommendedReorder</td>
                             </tr>
                         }
                     </tbody>
                 </table>
-            }
-        }
-
-        <!-- STOCK -->
-        @if (Model.ReportType == "Stock" && Model.StockSummary != null)
-        {
-            <div class="text-muted mb-2">
-                <small><span class="badge-inactive">INACTIVE</span> included for audit accuracy.</small>
             </div>
+        }
+    }
 
+    <!-- ================= STOCK SUMMARY ================= -->
+    @if (Model.ReportType == "Stock" && Model.StockSummary != null)
+    {
+        <div class="kpi-grid">
+            <div class="kpi-card"><div>Total Quantity</div><strong>@Model.TotalQuantityAll</strong></div>
+            <div class="kpi-card"><div>Active Quantity</div><strong>@Model.TotalQuantityActive</strong></div>
+            <div class="kpi-card"><div>Inactive Items</div><strong>@Model.InactiveItemCount</strong></div>
+            <div class="kpi-card"><div>Inventory Value</div><strong>RM @Model.InventoryValueActive.ToString("N2")</strong></div>
+        </div>
+
+        <div class="report-section">
+            <h4>Stock Summary</h4>
             <table class="table table-bordered">
                 <thead>
                     <tr><th>Item</th><th>Status</th><th>Quantity</th></tr>
@@ -255,41 +318,84 @@
                     }
                 </tbody>
             </table>
-        }
+        </div>
+    }
 
-        <!-- EXPIRY -->
-        @if (Model.ReportType == "Expiry")
-        {
-            if (Model.ExpiryReport == null || !Model.ExpiryReport.Any())
-            {
-                <div class="alert alert-warning">No items nearing expiry.</div>
-            }
-            else
-            {
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Batch</th>
-                            <th>Item</th>
-                            <th>Status</th>
-                            <th>Quantity</th>
-                            <th>Expiry Date</th>
+    <!-- ================= STOCK CHARTS ================= -->
+    @if (Model.ReportType == "StockCharts")
+    {
+        <div class="report-section">
+            <h4>Stock Charts</h4>
+            <p class="text-muted">@Model.ChartNote</p>
+            <canvas id="stockChart"></canvas>
+        </div>
+    }
+
+    <!-- ================= EXPIRY & WASTAGE ================= -->
+    @if (Model.ReportType == "Expiry" && Model.ExpiryReport != null)
+    {
+        <div class="report-section">
+            <h4>Expiry & Wastage</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Batch</th>
+                        <th>Item</th>
+                        <th>Status</th>
+                        <th>Quantity</th>
+                        <th>Expiry Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model.ExpiryReport)
+                    {
+                        <tr class="@(e.ItemStatus == "Inactive" ? "inactive-row" : "")">
+                            <td>@e.BatchNumber</td>
+                            <td>@e.ItemName</td>
+                            <td>@e.ItemStatus</td>
+                            <td>@e.Quantity</td>
+                            <td>@e.ExpiryDate.ToString("yyyy-MM-dd")</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var e in Model.ExpiryReport)
-                        {
-                            <tr class="@(e.ItemStatus == "Inactive" ? "inactive-row" : "")">
-                                <td>@e.BatchNumber</td>
-                                <td>@e.ItemName</td>
-                                <td>@e.ItemStatus</td>
-                                <td>@e.Quantity</td>
-                                <td>@e.ExpiryDate.ToString("yyyy-MM-dd")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-        }
-    </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+@if (Model.ReportType == "DemandForecast" && Model.DemandForecastReport != null)
+{
+    <script>
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.ItemName)));
+        const daily = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.AverageDailyDemand)));
+        const forecast = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.ForecastQty)));
+        const reorder = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.RecommendedReorder)));
+
+        new Chart(document.getElementById('dailyDemandChart'), {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Avg Daily Demand', data: daily }] },
+            options: { responsive: true }
+        });
+
+        new Chart(document.getElementById('forecastQtyChart'), {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Forecast Qty', data: forecast }] },
+            options: { responsive: true }
+        });
+
+        new Chart(document.getElementById('reorderChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'Forecast', data: forecast },
+                    { label: 'Recommended Reorder', data: reorder }
+                ]
+            },
+            options: { responsive: true }
+        });
+    </script>
+}

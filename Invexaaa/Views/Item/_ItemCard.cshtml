@@ -3,8 +3,10 @@
 
 <div class="itemCard @(Model.ItemStatus == "Inactive" ? "isInactive" : "")">
 
-    <a href="/Item/ItemDetail/@Model.ItemID"
-       class="itemCard__link">
+    <a class="itemCard__link"
+       href="@Url.Action("ItemDetail", "Item", new { id = Model.ItemID })">
+
+
 
 
         <div class="itemCard__media">
@@ -66,15 +68,19 @@
         </div>
     </a>
 
-    <div class="itemCard__footer">
+    <div class="itemCard__footer" onclick="event.stopPropagation();">
+
 
         <!-- Edit (disabled if inactive) -->
         <a href="/Item/EditItem/@Model.ItemID"
            class="btn btn-sm itemBtn itemBtn--outline
-              @(Model.ItemStatus == "Inactive" ? "btnDisabled" : "")">
+          @(Model.ItemStatus == "Inactive" ? "btnDisabled" : "")">
             <i class="bi bi-pencil-square"></i>
             <span>Edit</span>
         </a>
+
+
+
 
         @if (Model.ItemStatus == "Active")
         {
@@ -116,6 +122,16 @@
     /* Remove default <a> styling */
     .itemCard__link {
         display: block;
+        color: inherit;
+        text-decoration: none !important;
+        /* 🔴 FIX: prevent overlay from blocking footer */
+        position: relative;
+        z-index: 1;
+    }
+
+    .itemCard__link {
+        display: block;
+        width: 100%;
         color: inherit;
         text-decoration: none !important;
     }
@@ -281,12 +297,17 @@
 
     /* Footer buttons */
     .itemCard__footer {
-        display: flex;
-        padding: 10px 12px 12px;
-        gap: 8px;
-        border-top: 1px solid #ededed;
-        background: #fff;
-    }
+    display: flex;
+    padding: 10px 12px 12px;
+    gap: 8px;
+    border-top: 1px solid #ededed;
+    background: #fff;
+
+    /* 🔴 FIX: force footer ABOVE clickable card area */
+    position: relative;
+    z-index: 10;
+}
+
 
     .itemBtn {
         flex: 1;
@@ -487,5 +508,14 @@
         color: #374151;
         border: 1.5px #6b7280;
     }
+    /* Card click area should NOT steal clicks from footer */
+    .itemCard__link {
+        pointer-events: none;
+    }
+
+        /* Re-enable clicks for the actual card content */
+        .itemCard__link > * {
+            pointer-events: auto;
+        }
 
 </style>
