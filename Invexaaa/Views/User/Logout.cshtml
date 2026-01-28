@@ -1,16 +1,100 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Logout";
+    ViewBag.HideHeader = true;
     Layout = "~/Views/Shared/_Layout.cshtml";
+    
 }
 
-<div class="container py-5">
-    <h2>Confirm Logout</h2>
-    <p>You will be signed out from Invexa.</p>
+<div class="logout-wrapper">
+    <div class="logout-card">
+        <h2 class="logout-title">Sign out</h2>
+        <p class="logout-text">
+            You’re about to sign out from <strong>Invexa</strong>.
+        </p>
 
-    <form asp-action="Logout" method="post">
-        @Html.AntiForgeryToken()
-        <button type="submit" class="btn btn-danger">Logout</button>
-        <a href="~/" class="btn btn-secondary">Cancel</a>
-    </form>
+        <form asp-action="Logout" method="post" class="logout-actions">
+            @Html.AntiForgeryToken()
+
+            <button type="submit" class="btn btn-logout">
+                Logout
+            </button>
+
+            <a asp-controller="Dashboard"
+               asp-action="Index"
+               class="btn btn-cancel">
+                Cancel
+            </a>
+
+        </form>
+    </div>
 </div>
+
+<style>
+
+    /* Logout Page – Minimal Black & White */
+
+    .logout-wrapper {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .logout-card {
+        max-width: 420px;
+        width: 100%;
+        padding: 40px;
+        border: 1px solid #e5e5e5;
+        background: #fff;
+        text-align: center;
+    }
+
+    .logout-title {
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #000;
+    }
+
+    .logout-text {
+        font-size: 0.95rem;
+        color: #555;
+        margin-bottom: 30px;
+    }
+
+    .logout-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    /* Buttons */
+    .btn-logout {
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 10px 22px;
+        font-size: 0.9rem;
+    }
+
+        .btn-logout:hover {
+            background: #222;
+            color: #fff;
+        }
+
+    .btn-cancel {
+        background: transparent;
+        color: #000;
+        border: 1px solid #000;
+        padding: 10px 22px;
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+
+        .btn-cancel:hover {
+            background: #f5f5f5;
+            color: #000;
+        }
+
+</style>

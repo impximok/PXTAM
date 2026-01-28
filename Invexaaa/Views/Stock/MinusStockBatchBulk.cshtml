@@ -1,0 +1,163 @@
+﻿@model Invexaaa.Models.ViewModels.BulkMinusStockViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Stock Out";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .preview-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .preview-header {
+        padding: 12px 16px;
+        font-weight: 700;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .preview-table th {
+        font-size: 13px;
+        font-weight: 700;
+        color: #444;
+    }
+
+    .preview-table td {
+        font-size: 14px;
+        color: #111;
+    }
+
+    .danger {
+        color: #dc2626;
+        font-weight: 700;
+    }
+
+    .muted {
+        color: #9ca3af;
+    }
+</style>
+
+<div class="page-wrap">
+
+    <!-- Header -->
+    <div class="page-head">
+        <div>
+            <h1 class="title">Stock Out</h1>
+            <p class="subtitle">Deduct stock from selected items (FIFO by batch).</p>
+        </div>
+    </div>
+
+    <!-- FORM -->
+    <form asp-action="MinusStockBatchBulk" method="post">
+        @Html.AntiForgeryToken()
+
+        @foreach (var id in Model.InventoryIds)
+        {
+            <input type="hidden" name="InventoryIds" value="@id" />
+        }
+
+        <!-- INPUT PANEL -->
+        <div class="preview-card mb-4">
+            <div style="padding:22px; max-width:520px;">
+                <div class="mb-3">
+                    <label class="label">Quantity to Deduct (per item)</label>
+                    <input asp-for="QuantityToDeduct"
+                           type="number"
+                           min="1"
+                           class="control"
+                           id="qtyInput"
+                           placeholder="Enter quantity" />
+                    <span asp-validation-for="QuantityToDeduct" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="label">Reason</label>
+                    <input asp-for="Reason"
+                           class="control"
+                           placeholder="e.g. Sales, Usage, Spoilage" />
+                    <span asp-validation-for="Reason" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIVE PREVIEW -->
+        <div class="preview-card">
+            <div class="preview-header">
+                Live Stock Out Preview
+            </div>
+
+            <table class="table preview-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Current Stock</th>
+                        <th>After Deduction</th>
+                    </tr>
+                </thead>
+                <tbody id="previewBody">
+                    @foreach (var p in Model.PreviewItems)
+                    {
+                        <tr data-available="@p.AvailableQuantity">
+                            <td>@p.ItemName</td>
+                            <td>@p.AvailableQuantity</td>
+                            <td class="afterQty muted">–</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ACTIONS -->
+        <div style="display:flex; gap:12px; margin-top:22px;">
+            <button type="submit"
+                    class="add-btn"
+                    style="background:#fff!important;color:#dc2626!important;border-color:#dc2626!important;">
+                <i class="bi bi-dash-lg"></i>
+                Confirm Stock Out
+            </button>
+
+            <a asp-action="StockIndex" class="pill-btn pill-outline">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const qtyInput = document.getElementById("qtyInput");
+
+        function updatePreview() {
+            const qty = parseInt(qtyInput.value || 0);
+
+            document.querySelectorAll("#previewBody tr").forEach(row => {
+                const available = parseInt(row.dataset.available);
+                const afterCell = row.querySelector(".afterQty");
+
+                if (!qty) {
+                    afterCell.textContent = "–";
+                    afterCell.className = "afterQty muted";
+                    return;
+                }
+
+                const remaining = available - qty;
+
+                if (remaining < 0) {
+                    afterCell.textContent = "Insufficient stock";
+                    afterCell.className = "afterQty danger";
+                } else {
+                    afterCell.textContent = remaining;
+                    afterCell.className = "afterQty";
+                }
+            });
+        }
+
+        updatePreview();
+        qtyInput.addEventListener("input", updatePreview);
+    </script>
+}

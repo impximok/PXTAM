@@ -6,6 +6,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     bool isInactive = ViewBag.IsInactive == true;
     bool hasErrors = !ViewData.ModelState.IsValid;
+    bool hasBatches = Model.Batches != null && Model.Batches.Count > 0;
 }
 
 <style>
@@ -20,20 +21,15 @@
         --red: #dc2626;
         --redBg: rgba(220,38,38,.08);
         --greenBg: rgba(22,163,74,.10);
-        /* === Type + weight system (use these everywhere) === */
-        --fs-1: 34px; /* page title */
-        --fs-2: 14px; /* body / subtitle */
-        --fs-3: 13px; /* helper text / pills / notes */
-        --fs-4: 12px; /* table header / mini labels */
-
-        --fw-900: 900; /* titles only */
-        --fw-700: 700; /* strong text */
-        --fw-600: 600; /* normal emphasis */
-        --fw-500: 500; /* regular */
-        /* Only 3 text colors */
         --c-text: #111827;
         --c-muted: #6b7280;
-        --c-soft: #374151; /* optional mid tone */
+        --fs-title: 34px; /* page title */
+        --fs-body: 14px; /* normal text */
+        --fs-small: 12.5px; /* labels / hints */
+
+        --fw-title: 900;
+        --fw-strong: 700;
+        --fw-regular: 500;
     }
 
     html, body, main,
@@ -46,17 +42,24 @@
         width: 100%;
         display: flex;
         justify-content: center;
-        padding: 22px 18px 30px;
+        padding: 12px 18px 30px; /* ⬅ was 22px */
     }
 
     .form-card {
         width: min(980px, 100%);
         background: var(--card);
-        border: 2px solid #e5e7eb;
+        border: 1px solid #e5e7eb;
         border-radius: 26px;
         padding: 26px 28px 22px;
         box-shadow: 0 8px 22px rgba(0,0,0,.05);
     }
+
+    .form-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 78vh; /* adjust: 70vh-85vh depending your taste */
+    }
+
 
     .card-head {
         display: flex;
@@ -77,15 +80,18 @@
         color: var(--c-muted);
     }
 
-
     .header-mini {
         border: 1.5px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 10px 12px;
+        border-radius: 14px; /* was 18px */
+        padding: 6px 12px; /* ⬅ smaller box */
         background: #fff;
-        min-width: 210px;
-        flex: 0 0 auto;
+        min-width: 190px; /* was ~230px */
+        display: flex;
+        justify-content: flex-end;
+        text-align: right;
     }
+
+
 
     .mini-k {
         font-size: var(--fs-4);
@@ -93,11 +99,15 @@
         color: var(--c-muted);
     }
 
-    .mini-v {
-        font-size: var(--fs-2);
-        font-weight: var(--fw-700);
-        color: var(--c-text);
+    .header-mini {
+        padding: 8px 12px;
+        min-width: 180px;
+        border-radius: 14px;
     }
+
+        .header-mini .mini-v {
+            font-size: 16px;
+        }
 
 
     .info-row {
@@ -142,7 +152,7 @@
     }
 
     .table-wrap {
-        border: 1.5px solid #e5e7eb;
+        border: 2px solid #e5e7eb;
         border-radius: 18px;
         overflow: hidden;
         background: #fff;
@@ -158,7 +168,6 @@
         font-size: 12.5px;
         font-weight: 800;
         letter-spacing: .06em;
-        text-transform: uppercase;
         color: #374151; /* darker = more confident */
     }
 
@@ -228,12 +237,12 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 12px;
+        padding: 5px 10px;
         border-radius: 999px;
         border: 1.5px solid var(--border);
         background: var(--soft);
-        font-size: 13.5px;
-        font-weight: 900;
+        font-size: 13px;
+        font-weight: 800;
     }
 
     .delta-positive {
@@ -273,8 +282,9 @@
     .big-pill {
         height: 46px;
         border-radius: 999px !important;
-        font-size: 14px !important;
-        font-weight: 900 !important;
+        font-size: 12.5px !important; /* was 14px */
+        font-weight: 800 !important; /* keep strong but not too heavy */
+        letter-spacing: .01em;
         border: 2px solid #000 !important;
         display: flex;
         align-items: center;
@@ -380,11 +390,6 @@
         }
     }
 
-    /* Validation error state */
-    .table-wrap.has-error {
-        border-color: #dc2626;
-        box-shadow: 0 0 0 1px rgba(220,38,38,.15);
-    }
 
     .empty-row td {
         padding: 28px 16px !important;
@@ -397,28 +402,596 @@
         color: #6b7280;
     }
 
+    /* ===============================
+           POLISH PACK ✨
+        =============================== */
+    /* Table look: subtle dividers + consistent rhythm */
+    .table-wrap {
+        border: 2px solid #e5e7eb;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    /* Remove “all caps” vibe in headers */
+    thead.table-light th {
+        text-transform: none !important;
+        letter-spacing: .02em !important;
+        font-size: 12.5px;
+        font-weight: 800;
+        color: #374151;
+    }
+
+    /* Add row separators without looking like bootstrap grid */
+    .table > :not(caption) > * > * {
+        border-bottom: 1px solid #eef0f2 !important;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: 0 !important;
+    }
+
+    /* Make row height consistent even if text wraps */
+    tbody td, thead th {
+        vertical-align: middle !important;
+        line-height: 1.2;
+    }
+
+    /* Hover is subtle + premium */
+    tbody tr:hover {
+        background: rgba(17,24,39,.02) !important;
+    }
+
+    /* Expired row: clearer but still soft */
+    .expired {
+        background: rgba(220,38,38,.05) !important;
+    }
+
+        .expired .expiry-text {
+            color: var(--red);
+            font-weight: 900;
+        }
+
+    /* Optional "Expired" mini badge */
+    .expired-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(220,38,38,.35);
+        background: rgba(220,38,38,.06);
+        color: #991b1b;
+        font-size: 12px;
+        font-weight: 800;
+        margin-left: 8px;
+    }
+
+    /* Input feels more “finance / inventory system” */
+    .delta-input {
+        width: 140px;
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        font-weight: 600;
+        text-align: right;
+        padding-right: 12px;
+    }
+
+        /* Stronger focus ring */
+        .delta-input:focus {
+            border-color: #111 !important;
+            box-shadow: 0 0 0 4px rgba(17,24,39,.08) !important;
+        }
+
+        /* Remove number spinners (cleaner look) */
+        .delta-input::-webkit-outer-spin-button,
+        .delta-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .delta-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* If model has errors, highlight inputs too */
+        .input-validation-error,
+        .delta-input.input-validation-error,
+        .reason textarea.input-validation-error {
+            border-color: var(--red) !important;
+        }
+
+    /* Validation block styling (less “bootstrap default”) */
+    .validation-summary-errors,
+    .text-danger[asp-validation-summary] {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    /* Make empty state more “designed” */
+    .empty-row td {
+        padding: 34px 16px !important;
+    }
+
+    .empty-state {
+        text-align: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: #6b7280;
+    }
+
+    /* ===== Layout clean-up ===== */
+    .section {
+        margin-top: 18px;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+        .section-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: .01em;
+            color: var(--c-text);
+        }
+
+        .section-title .hint {
+            margin: 0;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--c-muted);
+        }
+
+    .card-head {
+        align-items: center; /* was flex-start */
+    }
+
+    .head-left .card-subtitle {
+        margin-top: 6px;
+    }
+
+    .meta-row {
+        margin-top: 10px;
+    }
+
+    .pill {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+    }
+
+    .table-wrap {
+        margin-top: 0;
+        border-radius: 18px;
+    }
+
+    thead.table-light th {
+        background: #f9fafb !important;
+    }
+
+    tbody td {
+        padding: 12px 16px !important; /* slightly tighter */
+    }
+
+    .empty-row td {
+        padding: 46px 16px !important;
+    }
+
+    .empty-state {
+        display: grid;
+        place-items: center;
+        gap: 8px;
+        color: var(--c-muted);
+        font-weight: 700;
+    }
+
+        .empty-state .big {
+            font-size: 14px;
+            color: var(--c-text);
+        }
+
+        .empty-state .small {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--c-muted);
+        }
+
+    .reason textarea {
+        border-radius: 16px;
+        border: 2px solid #e5e7eb;
+        padding: 12px 14px;
+        font-weight: 600;
+        resize: vertical;
+        min-height: 86px;
+    }
+
+        .reason textarea:focus {
+            border-color: #111 !important;
+        }
+
+    /* Error message style (clean + not screaming) */
+    .field-error {
+        display: block;
+        margin-top: 8px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--red);
+    }
+
+    /* IMPORTANT: no red glow on textarea error */
+    .reason textarea.input-validation-error {
+        border-color: var(--red) !important;
+        box-shadow: none !important;
+    }
+
+    .footer-bar {
+        margin-top: 18px;
+        padding: 10px 14px;
+        border-radius: 18px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .footer-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .footer-k {
+        font-size: 14px;
+        font-weight: 700;
+        color: #000;
+    }
+
+    .footer-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    @@media (max-width: 700px) {
+        .footer-actions {
+            width: 100%;
+        }
+
+            .footer-actions > * {
+                flex: 1;
+            }
+    }
+
+    .subtitle-note {
+        display: inline-block;
+        margin-top: 4px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--c-muted);
+    }
+    /* Header subtitle row */
+    .subline {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .subtext {
+        font-size: var(--fs-2);
+        font-weight: var(--fw-500);
+        color: var(--c-muted);
+    }
+
+    /* Item pill near subtitle */
+    .meta-pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        font-size: 12.5px;
+        font-weight: 800;
+        color: var(--c-text);
+    }
+
+        .meta-pill .k {
+            color: var(--c-muted);
+            font-weight: 800;
+            margin-right: 6px;
+        }
+
+    /* The rule line under subtitle */
+    .subtitle-note {
+        margin-top: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--c-muted);
+    }
+
+    .card-body-area {
+        flex: 1; /* takes remaining space */
+        display: flex;
+        flex-direction: column;
+        gap: 18px; /* consistent spacing */
+        margin-top: 14px;
+    }
+
+    /* Footer always at bottom */
+    .footer-bar {
+        margin-top: auto; /* pushes footer to bottom */
+    }
+
+    /* Fix weird spacing inside footer */
+    .footer-bar {
+        padding: 18px 18px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    /* Make button alignment nicer */
+    .footer-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+        /* Make both buttons same height and not “floating” */
+        .footer-actions .big-pill {
+            height: 46px;
+            min-width: 160px; /* optional */
+        }
+
+    /* Mobile: stack nicely */
+    @@media (max-width: 700px) {
+        .footer-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .footer-actions {
+            width: 100%;
+        }
+
+            .footer-actions > * {
+                flex: 1;
+            }
+    }
+
+    /* Make subtitle line spacing consistent */
+    .subline {
+        margin-top: 6px;
+        display: flex;
+        align-items: baseline; /* 🔥 key: align text + pill nicely */
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .subtext {
+        font-size: var(--fs-2);
+        font-weight: var(--fw-500);
+        color: var(--c-muted);
+        line-height: 1.25; /* prevent weird vertical gaps */
+        margin: 0;
+    }
+
+    /* Pill: stop it from pushing the line height */
+    .meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 10px; /* ⬅ slightly smaller */
+        border-radius: 999px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        font-size: 12.5px;
+        font-weight: 800;
+        line-height: 1; /* 🔥 key: prevents pill affecting row height */
+        position: relative;
+        top: -1px; /* tiny optical alignment (optional) */
+    }
+
+        .meta-pill .k {
+            color: var(--c-muted);
+            font-weight: 800;
+        }
+
+    /* The manual note line */
+    .subtitle-note {
+        margin-top: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--c-muted);
+        line-height: 1.25;
+    }
+
+    /* ===============================
+           TYPOGRAPHY LOCK 🔒
+        =============================== */
+
+    /* Default text */
+    .form-card, .form-card * {
+        color: var(--c-text);
+        font-size: var(--fs-body);
+        font-weight: var(--fw-regular);
+    }
+
+    /* Title */
+    .card-title {
+        font-size: var(--fs-title) !important;
+        font-weight: var(--fw-title) !important;
+        color: var(--c-text) !important;
+        margin: 0;
+    }
+
+    /* Subtitle + notes */
+    .subtext, .subtitle-note, .card-subtitle {
+        color: var(--c-muted) !important;
+        font-weight: var(--fw-regular) !important;
+        line-height: 1.25;
+    }
+
+    /* Small labels (table headers, mini label, hints) */
+    thead th,
+    .mini-k,
+    .footer-k,
+    .section-title .hint {
+        font-size: var(--fs-small) !important;
+        font-weight: var(--fw-strong) !important;
+        color: var(--c-muted) !important;
+        letter-spacing: .02em !important;
+    }
+
+    /* Values that should stand out */
+    .mini-v,
+    .delta-badge,
+    .section-title h3,
+    .empty-state .big {
+        font-weight: var(--fw-strong) !important;
+        color: var(--c-text) !important;
+    }
+
+    /* Table body stays normal */
+    tbody td {
+        font-weight: var(--fw-regular) !important;
+        color: var(--c-text) !important;
+    }
+
+    /* Error text (only exception color) */
+    .field-error,
+    .text-danger,
+    .validation-summary-errors {
+        color: #dc2626 !important;
+        font-weight: var(--fw-strong) !important;
+        font-size: var(--fs-small) !important;
+    }
+
+    .meta-pill, .meta-pill * {
+        font-size: var(--fs-small) !important;
+        font-weight: var(--fw-strong) !important;
+        color: var(--c-muted) !important;
+    }
+
+        .meta-pill span:last-child {
+            color: var(--c-text) !important;
+        }
+
+    .empty-state .big {
+        font-size: var(--fs-body) !important;
+        font-weight: var(--fw-strong) !important;
+    }
+
+    .empty-state .small {
+        font-size: var(--fs-small) !important;
+        font-weight: var(--fw-regular) !important;
+        color: var(--c-muted) !important;
+    }
+
+    .subtitle-note {
+        margin-top: 6px;
+        margin-bottom: 18px; /* ⬅ increase this */
+    }
+
+    .table-wrap {
+        margin-top: 0; /* keep table clean */
+    }
+
+    .subtitle-note {
+        margin-top: 6px;
+        margin-bottom: 18px;
+    }
+
+    /* Error message: NOT bold */
+    .field-error,
+    .reason span.text-danger,
+    span[asp-validation-for="AdjustmentReason"] {
+        font-weight: 500 !important;
+        font-size: 12.5px !important;
+        color: #dc2626 !important;
+        margin-top: 6px;
+    }
+
+    /* Reduce gap between label row and field */
+    .section-title {
+        margin-bottom: 6px !important; /* was ~10px */
+    }
+
+    /* If still too far, tighten section spacing slightly */
+    .section {
+        margin-top: 14px !important; /* was 18px */
+    }
+    /* Footer: slimmer height */
+    .footer-bar {
+        padding: 10px 14px !important; /* was 16-18px */
+        border-radius: 16px;
+    }
+
+    /* Total adjustment badge slimmer */
+    .delta-badge {
+        padding: 5px 10px !important;
+        font-size: 12.5px !important;
+        font-weight: 800 !important;
+    }
+    /* IMPORTANT: remove the big gap above the textarea */
+    .section .reason {
+        margin-top: 0 !important; /* overrides your earlier .reason { margin-top:16px } */
+    }
+
+    /* Optional: slightly reduce textarea top padding feel */
+    .reason textarea {
+        margin-top: 0 !important;
+    }
+
 </style>
 
 <div class="center-wrap">
     <div class="form-card">
-
         <div class="card-head">
             <div class="head-left">
                 <h1 class="card-title">Adjust Stock</h1>
-                <p class="card-subtitle">Adjust stock by batch for <strong>@Model.ItemName</strong>.</p>
 
-                <div class="meta-row">
-                    <span class="pill">
+                <div class="subline">
+                    <span class="subtext">
+                        Adjust stock by batch for <strong>@Model.ItemName</strong>.
+                    </span>
+
+                    <span class="pill meta-pill">
                         <span class="k">Item</span>
                         <span>#@Model.ItemID</span>
                     </span>
                 </div>
+
+                <div class="subtitle-note">
+                    Manual corrections only — damage, miscount, or system fixes.
+                </div>
             </div>
 
             <div class="header-mini">
-                <div class="mini-k">Current Inventory</div>
-                <div class="mini-v">@Model.CurrentInventoryQuantity @Model.ItemUnitOfMeasure</div>
+                <div>
+                    <div class="mini-k">Current Inventory</div>
+                    <div class="mini-v">
+                        @Model.CurrentInventoryQuantity
+                        <span class="mini-unit">@Model.ItemUnitOfMeasure</span>
+                    </div>
+                </div>
             </div>
+
         </div>
 
         @if (isInactive)
@@ -427,37 +1000,30 @@
                 This item is <strong>inactive</strong>. Stock adjustment is disabled.
             </div>
         }
-        else
-        {
-            <div class="note note-warn">
-                Manual corrections only (damage, miscount, system fixes).
-            </div>
-        }
 
-        <div class="card-divider"></div>
 
 
         <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
 
-        <div class="card-divider"></div>
 
         <form asp-action="AdjustStockByBatch"
               method="post"
               id="adjustForm"
-              class="@(isInactive ? "locked" : "")">
+              class="@(isInactive || !hasBatches ? "locked" : "")">
+
 
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="InventoryID" />
             <input type="hidden" asp-for="ItemID" />
 
-            <div class="table-wrap">
+            <div class="table-wrap @(hasErrors ? "has-error" : "")">
                 <table class="table table-borderless">
                     <thead class="table-light">
                         <tr>
                             <th style="width:22%;">Batch</th>
                             <th style="width:22%;">Expiry</th>
-                            <th style="width:18%;">Available</th>
-                            <th style="width:38%;">Adjust (+ / −)</th>
+                            <th style="width:22%;">Available</th>
+                            <th style="width:22%;">Adjust (+ / −)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -468,6 +1034,11 @@
                             <tr class="@(expired ? "expired" : "")">
                                 <td>
                                     @Model.Batches[i].BatchNumber
+                                    @if (expired)
+                                    {
+                                        <span class="expired-badge">Expired</span>
+                                    }
+
                                     <input type="hidden" asp-for="Batches[i].BatchID" />
                                 </td>
                                 <td class="expiry-text">
@@ -488,8 +1059,10 @@
                             <tr class="empty-row">
                                 <td colspan="4">
                                     <div class="empty-state">
-                                        No batches found.
+                                        <div class="big">No batches found</div>
+                                        <div class="small">There are no batch records for this item yet.</div>
                                     </div>
+
                                 </td>
                             </tr>
 
@@ -499,33 +1072,44 @@
                 </table>
             </div>
 
-            <div class="reason">
-                <label class="form-label fw-semibold">
-                    Adjustment Reason <span class="text-danger">*</span>
-                </label>
-                <textarea asp-for="AdjustmentReason"
-                          class="form-control"
-                          rows="3"
-                          placeholder="Damage, recount, correction..."
-                          disabled="@isInactive"></textarea>
-                <span asp-validation-for="AdjustmentReason" class="text-danger small"></span>
-            </div>
-
-            <div class="footer-zone">
-                <div class="delta-summary">
-                    <span>Total Adjustment</span>
-                    <span id="deltaBadge" class="delta-badge">
-                        <span id="deltaValue">0</span> @Model.ItemUnitOfMeasure
-                    </span>
+            <div class="section">
+                <div class="section-title">
+                    <h3>Adjustment Reason <span class="text-danger">*</span></h3>
+                    <p class="hint">Required for audit trail</p>
                 </div>
 
-                <div class="btn-row">
+                <div class="reason">
+<textarea asp-for="AdjustmentReason"
+          class="form-control"
+          rows="3"
+          placeholder="Damage, recount, correction..."
+          disabled="@(isInactive || !hasBatches)">
+</textarea>
+
+
+                    <span asp-validation-for="AdjustmentReason" class="field-error"></span>
+                </div>
+            </div>
+
+            <div class="footer-bar">
+                <div class="footer-left">
+                    <div class="footer-k">Total Adjustment</div>
+                    <div id="deltaBadge" class="delta-badge">
+                        <span id="deltaValue">0</span> @Model.ItemUnitOfMeasure
+                    </div>
+                </div>
+
+                <div class="footer-actions">
                     <a asp-action="StockIndex" class="big-pill big-outline">Cancel</a>
-                    <button type="submit" class="big-pill big-solid" disabled="@isInactive">
+                    <button type="submit"
+                            class="big-pill big-solid"
+                            disabled="@(isInactive || !hasBatches)">
                         Confirm Adjustment
                     </button>
+
                 </div>
             </div>
+
 
         </form>
     </div>
@@ -539,7 +1123,21 @@
 
         function updateDelta() {
             let total = 0;
-            inputs.forEach(i => total += parseInt(i.value || 0));
+        inputs.forEach(i => {
+            const v = Number(i.value);
+            total += isNaN(v) ? 0 : v;
+        });
+
+                // Auto-focus first enabled adjustment input (UX boost)
+        const firstAdjustInput = document.querySelector(
+            '.adjust-input:not([disabled])'
+        );
+
+        if (firstAdjustInput) {
+            firstAdjustInput.focus();
+        }
+
+
             deltaEl.textContent = total;
 
             badge.classList.remove("delta-positive", "delta-negative");

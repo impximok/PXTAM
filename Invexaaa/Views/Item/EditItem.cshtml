@@ -6,8 +6,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
-
 <style>
     :root {
         --page-bg: #ffffff;
@@ -1412,98 +1410,229 @@
 
 </style>
 
-
 <div class="page-wrap">
     <form asp-action="EditItem"
-          asp-controller="Item"
           method="post"
           enctype="multipart/form-data"
           class="two-card"
           id="itemForm"
           novalidate>
 
+
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Item.ItemID" />
+        <input type="hidden" asp-for="Item.ItemBarcode" />
+        <input type="hidden" asp-for="Item.ItemStatus" />
+        <input type="hidden" asp-for="Item.CategoryID" />
+        <input type="hidden" asp-for="Item.SupplierID" />
 
-        <!-- ================= LEFT CARD ================= -->
+
+
+        <!-- LEFT CARD -->
         <section class="card card-photo" aria-label="Item Photo">
+
             <h2 class="card-title">Item Photo</h2>
 
-            <div class="photo-circle" id="photoCircle" tabindex="0" role="button">
-                <img id="previewImage"
-                     src="@Model.Item?.ItemImageUrl"
-                     alt="Preview"
-                     style="@(string.IsNullOrEmpty(Model.Item?.ItemImageUrl) ? "display:none;" : "display:block;")" />
 
-                <div class="placeholder preview-text"
-                     id="previewPlaceholder"
-                     style="@(string.IsNullOrEmpty(Model.Item?.ItemImageUrl) ? "" : "display:none;")">
-                    Preview
-                </div>
+            <div class="photo-circle" id="photoCircle" tabindex="0" role="button" aria-label="Edit item photo">
+                <img id="previewImage"
+                     alt="Preview"
+                     src="@Model.Item.ItemImageUrl"
+                     style="@(string.IsNullOrEmpty(Model.Item.ItemImageUrl) ? "display:none;" : "")" />
+
+                <div class="placeholder preview-text" id="previewPlaceholder">Preview</div>
+                @if (!string.IsNullOrEmpty(Model.Item.ItemImageUrl))
+                {
+                    <script>
+                        document.addEventListener("DOMContentLoaded", () => {
+                            document.getElementById("previewPlaceholder")?.style.display = "none";
+                        });
+                    </script>
+                }
+
             </div>
 
+            <!-- ✅ store the edited image (optional but recommended) -->
             <input type="hidden" id="EditedImageData" name="EditedImageData" />
 
             <input type="file"
                    id="ItemImageInput"
-                   name="ItemImage"
+                   name="ImageFile"
                    accept="image/*"
                    hidden />
 
-            <div class="dropzone" id="dropzone" tabindex="0">
+
+
+            <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload image">
                 <div class="icon">↑</div>
                 <div class="hint">Drag & drop an image here</div>
                 <div class="choose-text">Choose File</div>
                 <small>JPG / PNG / GIF — up to 2MB</small>
             </div>
 
-            <button type="button"
-                    class="primary-btn"
-                    onclick="document.getElementById('ItemImageInput').click();">
-                Change Image
+            <!-- optional: keep a bottom button like sample -->
+            <button type="button" class="primary-btn" onclick="document.getElementById('ItemImageInput').click();">
+                Choose Image
             </button>
         </section>
 
-        <!-- ================= RIGHT CARD ================= -->
-        <section class="card" aria-label="Edit Item Form">
+        <!-- RIGHT CARD -->
+        <section class="card" aria-label="Add New Item Form">
             <h2 class="card-title">Edit Item</h2>
 
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+
             <div class="basic-grid">
+
+                <!-- Item Name (LEFT) -->
                 <div class="field">
                     <label>Item Name <span class="req">*</span></label>
                     <input asp-for="Item.ItemName" />
                     <span asp-validation-for="Item.ItemName" class="text-danger"></span>
                 </div>
 
+                <!-- Unit of Measure (RIGHT) -->
                 <div class="field">
                     <label>Unit of Measure <span class="req">*</span></label>
-                    <input asp-for="Item.ItemUnitOfMeasure" readonly />
+
+                    <div class="dd dd-uom" data-name="Item.ItemUnitOfMeasure">
+                        <input asp-for="Item.ItemUnitOfMeasure" type="hidden" id="uomHidden" />
+
+                        <div class="dd-head">
+                            <input type="text"
+                                   id="uomInput"
+                                   class="dd-input"
+                                   placeholder="Select or Type"
+                                   autocomplete="off" />
+                            <span class="dd-arrow" id="uomArrow"></span>
+
+                        </div>
+
+                        <div class="dd-menu">
+                            <div class="dd-items">
+                                <div class="dd-item" data-value="pcs">pcs</div>
+                                <div class="dd-item" data-value="unit">unit</div>
+                                <div class="dd-item" data-value="box">box</div>
+                                <div class="dd-item" data-value="kg">kg</div>
+                                <div class="dd-item" data-value="g">g</div>
+                                <div class="dd-item" data-value="l">l</div>
+                                <div class="dd-item" data-value="ml">ml</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <span asp-validation-for="Item.ItemUnitOfMeasure" class="text-danger"></span>
                 </div>
 
+                <!-- Description (FULL WIDTH BELOW) -->
                 <div class="field span-2">
                     <label>Description</label>
-                    <textarea asp-for="Item.ItemDescription" rows="3"></textarea>
+                    <textarea asp-for="Item.ItemDescription"
+                              rows="3"
+                              maxlength="500"
+                              placeholder="Optional — notes about packaging, grade, usage, etc."></textarea>
+
+                    <small class="char-hint">
+                        <span id="descCount">0</span>/500
+                    </small>
+
                     <span asp-validation-for="Item.ItemDescription" class="text-danger"></span>
                 </div>
+
             </div>
+
 
             <div class="form-grid-2">
+                <!-- CATEGORY -->
                 <div class="field">
-                    <label>Category</label>
-                    <input class="form-control"
-                           value="@Model.Categories.FirstOrDefault(c => c.CategoryID == Model.Item.CategoryID)?.CategoryName"
-                           readonly />
+                    <label>Category <span class="req">*</span></label>
+
+                    <div class="dd" data-name="Item.CategoryID">
+                        <input type="hidden" name="Item.CategoryID" value="@Model.Item?.CategoryID" />
+
+                        <div class="dd-head">
+                            <button type="button" class="dd-btn">
+                                <span class="dd-value dd-placeholder">Select Category</span>
+                                <span class="dd-arrow" aria-hidden="true"></span>
+                            </button>
+
+                            <button type="button"
+                                    class="dd-action dd-add"
+                                    title="New Category"
+                                    aria-label="New Category"
+                                    data-new-url="@Url.Action("Create", "Category")">
+                                ＋
+                            </button>
+
+                            <button type="button"
+                                    class="dd-action dd-refresh-btn"
+                                    title="Refresh categories"
+                                    aria-label="Refresh categories"
+                                    data-refresh-url="@Url.Action("ListJson", "Category")">
+                                ⟳
+                            </button>
+                        </div>
+
+                        <div class="dd-menu" role="listbox">
+                            <input type="text" class="dd-search" placeholder="Search..." autocomplete="off" />
+                            <div class="dd-items">
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <div class="dd-item" data-value="@c.CategoryID">@c.CategoryName</div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <span asp-validation-for="Item.CategoryID" class="text-danger"></span>
                 </div>
 
+                <!-- SUPPLIER -->
                 <div class="field">
-                    <label>Supplier</label>
-                    <input class="form-control"
-                           value="@Model.Suppliers.FirstOrDefault(s => s.SupplierID == Model.Item.SupplierID)?.SupplierName"
-                           readonly />
+                    <label>Supplier <span class="req">*</span></label>
+
+                    <div class="dd" data-name="Item.SupplierID" data-type="supplier">
+                        <input type="hidden" name="Item.SupplierID" value="@Model.Item?.SupplierID" />
+
+                        <div class="dd-head">
+                            <button type="button" class="dd-btn" aria-haspopup="listbox">
+                                <span class="dd-value dd-placeholder">Select Supplier</span>
+                                <span class="dd-arrow" aria-hidden="true"></span>
+                            </button>
+
+                            <button type="button"
+                                    class="dd-action dd-add"
+                                    title="New Supplier"
+                                    aria-label="New Supplier"
+                                    data-new-url="@Url.Action("Create", "Supplier")">
+                                ＋
+                            </button>
+
+                            <button type="button"
+                                    class="dd-action dd-refresh-btn"
+                                    title="Refresh suppliers"
+                                    aria-label="Refresh suppliers"
+                                    data-refresh-url="@Url.Action("ListJson", "Supplier")">
+                                ⟳
+                            </button>
+                        </div>
+
+                        <div class="dd-menu" role="listbox">
+                            <input type="text" class="dd-search" placeholder="Search..." autocomplete="off" />
+                            <div class="dd-items">
+                                @foreach (var s in Model.Suppliers)
+                                {
+                                    <div class="dd-item" data-value="@s.SupplierID">@s.SupplierName</div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <span asp-validation-for="Item.SupplierID" class="text-danger"></span>
                 </div>
             </div>
+
 
             <div class="field">
                 <label>Barcode</label>
@@ -1512,61 +1641,1020 @@
                        readonly />
             </div>
 
-            <div class="soft-divider"></div>
+ 
 
+            <div class="soft-divider"></div>
             <div class="form-grid-2">
                 <div class="field">
-                    <label>Buy Price</label>
-                    <input asp-for="Item.ItemBuyPrice" type="number" step="0.01" />
+                    <label>
+                        Buy Price <span class="req">*</span>
+                        <span class="label-unit">(RM)</span>
+                    </label>
+
+                    <input asp-for="Item.ItemBuyPrice"
+                           class="money num-dec auto-clear"
+                           type="text"
+                           inputmode="decimal"
+                           placeholder="0.00" />
+
                     <span asp-validation-for="Item.ItemBuyPrice" class="text-danger"></span>
                 </div>
 
                 <div class="field">
-                    <label>Sell Price</label>
-                    <input asp-for="Item.ItemSellPrice" type="number" step="0.01" />
+                    <label>
+                        Sell Price <span class="req">*</span>
+                        <span class="label-unit">(RM)</span>
+                    </label>
+
+                    <input asp-for="Item.ItemSellPrice"
+                           class="money num-dec auto-clear"
+                           type="text"
+                           inputmode="decimal"
+                           placeholder="0.00" />
+
                     <span asp-validation-for="Item.ItemSellPrice" class="text-danger"></span>
                 </div>
             </div>
 
             <div class="soft-divider"></div>
-
             <div class="form-grid-3">
                 <div class="field">
-                    <label>Reorder Level</label>
-                    <input asp-for="Item.ItemReorderLevel" type="number" />
+                    <label>Reorder Level <span class="req">*</span></label>
+                    <input asp-for="Item.ItemReorderLevel" class="auto-clear num-int"
+                           type="number" step="1" min="0" inputmode="numeric" />
+                    <span asp-validation-for="Item.ItemReorderLevel" class="text-danger"></span>
                 </div>
 
                 <div class="field">
-                    <label>Safety Stock</label>
-                    <input asp-for="Item.SafetyStock" type="number" />
+                    <label>Safety Stock <span class="req">*</span></label>
+                    <input asp-for="Item.SafetyStock" class="auto-clear num-int"
+                           type="number" step="1" min="0" inputmode="numeric" />
+                    <span asp-validation-for="Item.SafetyStock" class="text-danger"></span>
                 </div>
 
                 <div class="field">
-                    <label>Reorder Point</label>
-                    <input asp-for="Item.ReorderPoint" type="number" />
+                    <label>Reorder Point <span class="req">*</span></label>
+                    <input asp-for="Item.ReorderPoint" class="auto-clear num-int"
+                           type="number" step="1" min="0" inputmode="numeric" />
+                    <span asp-validation-for="Item.ReorderPoint" class="text-danger"></span>
                 </div>
             </div>
 
             <div class="field">
                 <label>Average Daily Demand</label>
-                <input asp-for="Item.AverageDailyDemand" type="number" step="0.01" />
+                <input asp-for="Item.AverageDailyDemand" class="auto-clear money num-dec"
+                       type="number" step="0.01" min="0" inputmode="decimal" />
+                <span asp-validation-for="Item.AverageDailyDemand" class="text-danger"></span>
             </div>
 
             <div class="btn-row">
-                <button type="submit" class="primary-btn" id="saveBtn">
-                    <span class="btn-text">Save Changes</span>
-                    <span class="btn-spinner"></span>
+                <button type="submit" class="primary-btn" id="saveBtn" name="submitAction" value="save">
+        <span class="btn-text">Save Changes</span>
+                    <span class="btn-spinner" aria-hidden="true"></span>
                 </button>
+
+         
             </div>
 
+
+
             <div class="back-link">
-                <a asp-action="Index" asp-controller="Item">← Back</a>
+    <a asp-action="ItemIndex" asp-controller="Item">← Back</a>
+
             </div>
         </section>
     </form>
+
+    <!-- ================= IMAGE EDITOR (ITEM) ================= -->
+    <div id="editorModal" class="editor hidden" aria-hidden="true">
+        <div class="editor-box" role="dialog" aria-modal="true" aria-label="Image editor">
+            <button type="button" class="editor-close" id="editorClose" aria-label="Close editor">✕</button>
+
+            <div class="editor-canvasWrap">
+                <canvas id="editorCanvas" width="340" height="340"></canvas>
+            </div>
+
+            <div class="editor-controls">
+                <div class="editor-zoom">
+                    <span class="zoom-label">Zoom</span>
+                    <input type="range" id="zoom" min="0.6" max="3" step="0.01" value="1">
+                </div>
+
+                <div class="editor-actions">
+                    <button type="button" class="btn solid use-btn" id="useImage">Confirm</button>
+
+                    <div class="rotate-row">
+                        <button type="button" class="btn icon" id="rotateLeft" aria-label="Rotate left">⟲</button>
+                        <button type="button" class="btn icon" id="rotateRight" aria-label="Rotate right">⟳</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-}
 
+    <script>
+                const fileInput = document.getElementById('ItemImageInput');
+                const img = document.getElementById('previewImage');
+                const placeholder = document.getElementById('previewPlaceholder');
+                const circle = document.getElementById('photoCircle');
+                const editedHidden = document.getElementById('EditedImageData');
+
+                const editorModal = document.getElementById('editorModal');
+                const editorClose = document.getElementById('editorClose');
+                const canvas = document.getElementById('editorCanvas');
+                const ctx = canvas.getContext('2d');
+
+                const zoomSlider = document.getElementById('zoom');
+                const rotateLeft = document.getElementById('rotateLeft');
+                const rotateRight = document.getElementById('rotateRight');
+                const useImage = document.getElementById('useImage');
+
+                let baseImg = new Image();
+                let angle = 0;
+                let zoomValue = 1;
+
+                // pan
+                let offsetX = 0, offsetY = 0;
+                let isDragging = false;
+                let dragStartX = 0, dragStartY = 0;
+                let startOffsetX = 0, startOffsetY = 0;
+                        const dropzone = document.getElementById("dropzone");
+
+                function openPicker() {
+                    if (!fileInput) return;
+                    fileInput.value = ""; // allow re-selecting same file
+                    fileInput.click();
+                }
+
+                // ✅ Dropzone click opens file chooser
+                dropzone.addEventListener("click", openPicker);
+                dropzone.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openPicker();
+                    }
+                });
+
+                        // ===== Drag & Drop FIX (prevent browser opening the image) =====
+                (function () {
+                    const dropzone = document.getElementById("dropzone");
+                    const fileInput = document.getElementById("ItemImageInput");
+
+                    if (!dropzone || !fileInput) return;
+
+                    // ✅ stop browser from opening dropped file anywhere
+                    ["dragenter", "dragover", "dragleave", "drop"].forEach(evt => {
+                        dropzone.addEventListener(evt, (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        });
+
+                        document.addEventListener(evt, (e) => {
+                            e.preventDefault();
+                        });
+                    });
+
+                    // optional nice hover UI
+                    dropzone.addEventListener("dragover", () => dropzone.classList.add("is-dragover"));
+                    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-dragover"));
+                    dropzone.addEventListener("drop", (e) => {
+                        dropzone.classList.remove("is-dragover");
+
+                        const files = e.dataTransfer?.files;
+                        if (!files || !files.length) return;
+
+                        const f = files[0];
+
+                        // ✅ only accept images
+                        if (!f.type.startsWith("image/")) {
+                            alert("Please drop an image file.");
+                            return;
+                        }
+
+                        // ✅ put file into input so your existing change handler works
+                        fileInput.files = files;
+
+                        // trigger your existing: fileInput.addEventListener('change', ...)
+                        fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                })();
+
+
+                function openEditor(src){
+                    editorModal.classList.remove('hidden');
+                    editorModal.setAttribute('aria-hidden', 'false');
+
+                    // reset
+                    angle = 0;
+                    zoomValue = 1;
+                    zoomSlider.value = 1;
+
+                    updateZoomTrack(); // ✅ add this
+
+                    offsetX = 0;
+                    offsetY = 0;
+
+                    baseImg.onload = () => draw();
+                    baseImg.src = "";
+                    baseImg.src = src;
+                }
+
+                function closeEditor(){
+                    editorModal.classList.add('hidden');
+                    editorModal.setAttribute('aria-hidden', 'true');
+                }
+
+                editorClose.addEventListener('click', closeEditor);
+                editorModal.addEventListener('click', (e)=>{ if(e.target === editorModal) closeEditor(); });
+                document.addEventListener('keydown', (e)=>{ if(e.key === "Escape" && !editorModal.classList.contains('hidden')) closeEditor(); });
+
+                function draw() {
+                    const W = canvas.width, H = canvas.height;
+                    const cx = W / 2, cy = H / 2;
+
+                    ctx.clearRect(0, 0, W, H);
+                    ctx.fillStyle = "#f4f5f7";
+                    ctx.fillRect(0, 0, W, H);
+
+                    ctx.save();
+
+                    // ✅ square clip
+                    ctx.beginPath();
+                    ctx.rect(0, 0, W, H);
+                    ctx.closePath();
+                    ctx.clip();
+
+                    ctx.translate(cx + offsetX, cy + offsetY);
+                    ctx.rotate(angle * Math.PI / 180);
+
+                    // ✅ only declare coverScale ONCE
+                    const coverScale = Math.max(W / baseImg.width, H / baseImg.height);
+                    const finalScale = coverScale * zoomValue;
+
+                    const dw = baseImg.width * finalScale;
+                    const dh = baseImg.height * finalScale;
+
+                    ctx.drawImage(baseImg, -dw / 2, -dh / 2, dw, dh);
+
+                    ctx.restore();
+                }
+
+
+                // Upload -> open editor
+                fileInput.addEventListener('change', () => {
+                    const f = fileInput.files?.[0];
+                    if(!f) return;
+
+                    const reader = new FileReader();
+                    reader.onload = e => openEditor(e.target.result);
+                    reader.readAsDataURL(f);
+                });
+
+                // Click circle -> reopen editor with edited image (or current image)
+                function openFromCircle(){
+                    const current = editedHidden?.value || img?.src;
+                    if(current){
+                        openEditor(current);
+                    }else{
+                        fileInput.value = "";
+                        fileInput.click();
+                    }
+                }
+
+                // =============================
+                // CLICK SQUARE → OPEN EDITOR
+                // =============================
+                circle.addEventListener('click', () => {
+
+                    // 1️⃣ If edited image exists → open editor
+                    if (editedHidden && editedHidden.value) {
+                        openEditor(editedHidden.value);
+                        return;
+                    }
+
+                    // 2️⃣ If preview image exists → open editor
+                    if (img && img.style.display !== "none" && img.src) {
+                        openEditor(img.src);
+                        return;
+                    }
+
+                    // 3️⃣ Otherwise → open file picker
+                    fileInput.value = "";
+                    fileInput.click();
+                });
+
+                // =============================
+                // KEYBOARD SUPPORT (ACCESSIBLE)
+                // =============================
+                circle.addEventListener('keydown', (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        circle.click();
+                    }
+                });
+
+                // Zoom
+                zoomSlider.addEventListener('input', (e)=>{
+                    zoomValue = parseFloat(e.target.value);
+                    draw();
+                });
+
+                function updateZoomTrack() {
+                    const min = parseFloat(zoomSlider.min);
+                    const max = parseFloat(zoomSlider.max);
+                    const val = parseFloat(zoomSlider.value);
+                    const percent = ((val - min) / (max - min)) * 100;
+
+                    zoomSlider.style.setProperty('--value', percent + '%');
+                }
+
+                updateZoomTrack();
+                zoomSlider.addEventListener('input', updateZoomTrack);
+
+
+
+                // Rotate
+                rotateLeft.addEventListener('click', ()=>{ angle -= 90; draw(); });
+                rotateRight.addEventListener('click', ()=>{ angle += 90; draw(); });
+
+                // Drag to pan
+                canvas.addEventListener('mousedown', (e)=>{
+                    isDragging = true;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    startOffsetX = offsetX;
+                    startOffsetY = offsetY;
+                    canvas.style.cursor = "grabbing";
+                });
+
+                window.addEventListener('mousemove', (e)=>{
+                    if(!isDragging) return;
+                    offsetX = startOffsetX + (e.clientX - dragStartX);
+                    offsetY = startOffsetY + (e.clientY - dragStartY);
+                    draw();
+                });
+
+                window.addEventListener('mouseup', ()=>{
+                    isDragging = false;
+                    canvas.style.cursor = "grab";
+                });
+
+                canvas.style.cursor = "grab";
+
+        useImage.addEventListener('click', ()=>{
+          const data = canvas.toDataURL("image/png");
+
+          img.src = data;
+          img.style.display = "block";
+          placeholder.style.display = "none";
+          if(editedHidden) editedHidden.value = data;
+
+          zoomSlider.value = 1;
+          zoomValue = 1;
+          updateZoomTrack(); // ✅ keep consistent
+
+          closeEditor();
+        });
+
+                // ===== Custom dropdown logic (with search + keyboard + add/refresh) =====
+                (function () {
+
+                    function closeAll(except) {
+                        document.querySelectorAll(".dd.open").forEach(x => {
+                            if (x !== except) x.classList.remove("open");
+                        });
+                    }
+
+                function setActive(items, index) {
+                    items.forEach(x => x.classList.remove("kb-active"));
+                    if (index >= 0 && items[index]) items[index].classList.add("kb-active");
+                }
+
+
+                    function getVisibleItems(dd) {
+                        return Array.from(dd.querySelectorAll(".dd-items .dd-item"))
+                            .filter(x => !x.classList.contains("hidden"));
+                    }
+
+                    function filterItems(dd, term) {
+                        const t = (term || "").trim().toLowerCase();
+                        dd.querySelectorAll(".dd-items .dd-item").forEach(item => {
+                            const txt = item.textContent.trim().toLowerCase();
+                            item.classList.toggle("hidden", t && !txt.includes(t));
+                        });
+
+                const visible = getVisibleItems(dd);
+                setActive(visible, -1); // ✅ no default highlight
+
+                    }
+
+                    document.addEventListener("click", (e) => {
+                        const dd = e.target.closest(".dd");
+                        const btn = e.target.closest(".dd-btn");
+                        const item = e.target.closest(".dd-item");
+
+                        // click outside
+                        if (!dd) {
+                            closeAll(null);
+                            return;
+                        }
+
+                        // ✅ OPEN/CLOSE by clicking the main field
+                        if (btn) {
+                            const isOpen = dd.classList.contains("open");
+                            closeAll(dd);
+                            dd.classList.toggle("open", !isOpen);
+
+                            if (!isOpen) {
+                                const search = dd.querySelector(".dd-search");
+                                if (search) {
+                                    search.value = "";
+                                    filterItems(dd, "");
+                                    setTimeout(() => search.focus(), 0);
+                                }
+                            }
+                            return;
+                        }
+
+                        // ✅ TOP + button
+                        const addBtn = e.target.closest(".dd-add");
+                        if (addBtn) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const url = addBtn.getAttribute("data-new-url");
+                            if (url) window.open(url, "_blank");
+                            return;
+                        }
+
+                        // ✅ TOP refresh button
+                        const refreshBtn = e.target.closest(".dd-refresh-btn");
+                        if (refreshBtn) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const refreshUrl = refreshBtn.getAttribute("data-refresh-url");
+                            refreshDd(dd, refreshUrl);
+                            return;
+                        }
+
+                        // ✅ Menu: New...
+                        if (item && item.classList.contains("dd-new")) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const url = item.getAttribute("data-new-url");
+                            if (url) window.open(url, "_blank");
+                            dd.classList.remove("open");
+                            return;
+                        }
+
+                        // ✅ Menu: Refresh list
+                        if (item && item.classList.contains("dd-refresh")) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const refreshUrl = item.getAttribute("data-refresh-url");
+                            refreshDd(dd, refreshUrl);
+                            return;
+                        }
+
+                        // ✅ choose item
+                        if (item && item.hasAttribute("data-value")) {
+                            const value = item.getAttribute("data-value");
+                            const text = item.textContent.trim();
+
+                            const hidden = dd.querySelector('input[type="hidden"]');
+                            const valueSpan = dd.querySelector(".dd-value");
+
+                            if (hidden) hidden.value = value;
+                            if (valueSpan) {
+                                valueSpan.textContent = text;
+                                valueSpan.classList.remove("dd-placeholder");
+                            }
+
+                            dd.querySelectorAll(".dd-items .dd-item").forEach(x => x.classList.remove("active"));
+                            item.classList.add("active");
+
+                            dd.classList.remove("open");
+                            return;
+                        }
+                    });
+
+                    // init selected values + search/keyboard
+                    document.querySelectorAll(".dd").forEach(dd => {
+                        const hidden = dd.querySelector('input[type="hidden"]');
+                        const value = hidden?.value;
+
+                        if (value) {
+                            const match = dd.querySelector(`.dd-items .dd-item[data-value="${CSS.escape(value)}"]`);
+                            if (match) match.click();
+                        }
+
+                        const search = dd.querySelector(".dd-search");
+                        if (search) {
+                            search.addEventListener("input", () => filterItems(dd, search.value));
+
+                            search.addEventListener("keydown", (e) => {
+                                const visible = getVisibleItems(dd);
+                                if (!visible.length) return;
+
+                let idx = visible.findIndex(x => x.classList.contains("kb-active"));
+                if (idx < 0) idx = -1; // ✅ start with none
+
+
+                                if (e.key === "ArrowDown") {
+                                    e.preventDefault();
+                                    idx = Math.min(idx + 1, visible.length - 1);
+                                    setActive(visible, idx);
+                                    visible[idx].scrollIntoView({ block: "nearest" });
+                                }
+
+                                if (e.key === "ArrowUp") {
+                                    e.preventDefault();
+                                    idx = Math.max(idx - 1, 0);
+                                    setActive(visible, idx);
+                                    visible[idx].scrollIntoView({ block: "nearest" });
+                                }
+
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    const pick = (idx >= 0 ? idx : 0);
+                    visible[pick]?.click();
+                }
+
+                                if (e.key === "Escape") {
+                                    dd.classList.remove("open");
+                                    dd.querySelector(".dd-btn")?.focus();
+                                }
+                            });
+                        }
+                    });
+
+                    // ESC closes all
+                    document.addEventListener("keydown", (e) => {
+                        if (e.key === "Escape") closeAll(null);
+                    });
+
+                })();
+                        // ===== Category + Supplier validation state (default grey, focus black, error red after submit) =====
+                (function () {
+                  const form = document.getElementById("itemForm");
+                  if (!form) return;
+
+                  let submitted = false;
+
+                  function setDdError(dd, isError) {
+                    if (!dd) return;
+                    dd.classList.toggle("error", !!isError);
+                  }
+
+                  function syncDd(ddSelector) {
+                    const dd = document.querySelector(ddSelector);
+                    if (!dd) return;
+
+                    const hidden = dd.querySelector('input[type="hidden"]');
+
+                    // IMPORTANT: get the correct validation span for that field
+                    const name = dd.getAttribute("data-name"); // "Item.CategoryID" / "Item.SupplierID"
+                    const span = name ? document.querySelector(`[data-valmsg-for="${name}"]`) : null;
+
+                    const hasErrorText = span && span.textContent.trim().length > 0;
+                    const hasValue = hidden && hidden.value.trim().length > 0;
+
+                    // ✅ error ONLY after submit
+                    setDdError(dd, submitted && (!hasValue || hasErrorText));
+                  }
+
+                  function syncAll() {
+                    syncDd('.dd[data-name="Item.CategoryID"]');
+                    syncDd('.dd[data-name="Item.SupplierID"]');
+                  }
+
+                  // initial: clean (grey)
+                  syncAll();
+
+                  // mark submitted, then sync
+                  form.addEventListener("submit", () => {
+                    submitted = true;
+                    setTimeout(syncAll, 0);
+                  });
+
+                  // whenever user selects items / closes menu
+                  document.addEventListener("click", (e) => {
+                    if (e.target.closest('.dd[data-name="Item.CategoryID"], .dd[data-name="Item.SupplierID"]')) {
+                      setTimeout(syncAll, 0);
+                    }
+                  });
+
+                  // watch validation span changes (jQuery updates these dynamically)
+                  ["Item.CategoryID", "Item.SupplierID"].forEach(name => {
+                    const span = document.querySelector(`[data-valmsg-for="${name}"]`);
+                    if (!span) return;
+                    new MutationObserver(syncAll).observe(span, { childList: true, subtree: true, characterData: true });
+                  });
+                })();
+
+                // ===== UOM validation state (correct UX) =====
+                (function () {
+                  const form = document.getElementById("itemForm");
+                  const dd = document.querySelector('.dd.dd-uom[data-name="Item.ItemUnitOfMeasure"]');
+                  if (!form || !dd) return;
+
+                  const hidden = dd.querySelector('input[type="hidden"]');
+                  const errorSpan = dd.closest(".field")?.querySelector("span.text-danger");
+
+                  let submitted = false;
+
+                  function syncUom() {
+                    const hasErrorText =
+                      errorSpan && errorSpan.textContent.trim().length > 0;
+
+                    const hasValue =
+                      hidden && hidden.value.trim().length > 0;
+
+                    // ✅ only show error AFTER submit
+                    dd.classList.toggle("error", submitted && (!hasValue || hasErrorText));
+                  }
+
+                  // mark submitted
+                  form.addEventListener("submit", () => {
+                    submitted = true;
+                    setTimeout(syncUom, 0);
+                  });
+
+                  // user interaction clears error
+                  dd.addEventListener("click", syncUom);
+                  dd.addEventListener("input", syncUom);
+                  dd.addEventListener("change", syncUom);
+
+                  // observe validation span
+                  if (errorSpan) {
+                    new MutationObserver(syncUom)
+                      .observe(errorSpan, { childList: true, subtree: true });
+                  }
+
+                  // initial = clean (grey)
+                  syncUom();
+                })();
+
+
+
+                // ===== Save buttons: show "Saving..." ONLY when valid =====
+                (function () {
+                  const form = document.getElementById("itemForm");
+                  if (!form) return;
+
+                  let clickedBtn = null;
+
+                  // track which submit button was clicked
+                  form.querySelectorAll('button[type="submit"]').forEach(btn => {
+                    btn.addEventListener("click", () => clickedBtn = btn);
+                  });
+
+                  form.addEventListener("submit", (e) => {
+                    // If jQuery validation exists and form is invalid -> stop submit + no loading
+                    if (window.jQuery && $(form).data("validator") && !$(form).valid()) {
+                      e.preventDefault();
+                      return;
+                    }
+
+                    // show loading on clicked button
+                    const btn = clickedBtn || document.getElementById("saveBtn");
+                    if (!btn) return;
+
+                    btn.classList.add("is-loading");
+                    const text = btn.querySelector(".btn-text");
+                    if (text) text.textContent = "Saving…";
+
+                    // disable both submit buttons to prevent double submit
+                    form.querySelectorAll('button[type="submit"]').forEach(b => b.disabled = true);
+                  });
+                })();
+
+
+
+
+                        // ===== Keyboard: Enter moves to next field (business data-entry style) =====
+                (function () {
+                    const form = document.getElementById("itemForm");
+                    if (!form) return;
+
+                    // Select inputs only (include your dropdown button too)
+                const selector = `
+                  input:not([type="hidden"]):not([type="file"]),
+                  input.dd-input,
+                  select,
+                  button.dd-btn
+                `;
+
+
+                    function getFocusable() {
+                        return Array.from(form.querySelectorAll(selector))
+                            .filter(el => !el.disabled && el.offsetParent !== null);
+                    }
+
+                    form.addEventListener("keydown", (e) => {
+                        if (e.key !== "Enter") return;
+
+                        const tag = (e.target.tagName || "").toLowerCase();
+                        const isTextarea = tag === "textarea";
+                        if (isTextarea) return;
+
+                        // allow Enter on the Save button (submit)
+                        if (e.target.id === "saveBtn") return;
+
+                const dd = e.target.closest(".dd");
+
+                // ✅ If focused on dropdown button and dropdown is CLOSED -> open it
+                if (dd && e.target.classList.contains("dd-btn") && !dd.classList.contains("open")) {
+                    e.preventDefault();
+                    e.target.click();
+                    return;
+                }
+
+                // ✅ If dropdown is open, let Enter choose item
+                if (dd && dd.classList.contains("open")) return;
+
+                        e.preventDefault();
+
+                        const focusables = getFocusable();
+                        const idx = focusables.indexOf(e.target);
+                        if (idx >= 0) {
+                            const next = focusables[idx + 1] || document.getElementById("saveBtn");
+                            next?.focus();
+                        }
+                    });
+                })();
+
+                // ===== Numeric UX: auto clear 0 on focus + select all =====
+                (function () {
+                  document.querySelectorAll(".auto-clear").forEach(el => {
+                    el.addEventListener("focus", () => {
+                      const v = (el.value || "").trim();
+
+                      // ✅ if value is 0 or 0.00, clear it for faster data entry
+                      if (v === "0" || v === "0.0" || v === "0.00") {
+                        el.value = "";
+                      }
+
+                      // select all (if not cleared)
+                      setTimeout(() => { try { el.select(); } catch {} }, 0);
+                    });
+                  });
+                })();
+
+
+                        // ===== Unsaved changes warning =====
+                (function () {
+                    const form = document.getElementById("itemForm");
+                    if (!form) return;
+
+                    let dirty = false;
+
+                    // any user change marks as dirty
+                    form.addEventListener("input", () => dirty = true);
+                    form.addEventListener("change", () => dirty = true);
+
+                    // warn when leaving page
+                    window.addEventListener("beforeunload", (e) => {
+                        if (!dirty) return;
+                        e.preventDefault();
+                        e.returnValue = "";
+                    });
+
+                    // when submit, no warning
+                    form.addEventListener("submit", () => dirty = false);
+                })();
+
+
+                // ===== Money: format to 2dp on blur =====
+        (function () {
+            document.querySelectorAll("input.money").forEach(el => {
+                el.addEventListener("blur", () => {
+                    let v = (el.value || "").trim();
+
+                    // allow empty
+                    if (v === "") return;
+
+                    // remove commas and spaces
+                    v = v.replace(/,/g, "");
+
+                    const n = Number(v);
+                    if (Number.isFinite(n)) {
+                        el.value = n.toFixed(2);
+                    }
+                });
+            });
+        })();
+
+                // ===== Hard block letters + sanitize numeric inputs (typing + paste) =====
+                (function () {
+                    // allow: digits + ONE dot for decimals
+                    function sanitizeDecimal(value) {
+                        value = (value ?? "").toString();
+
+                        // remove everything except digits and dot
+                        value = value.replace(/[^\d.]/g, "");
+
+                        // keep only first dot
+                        const parts = value.split(".");
+                        if (parts.length > 2) {
+                            value = parts[0] + "." + parts.slice(1).join("");
+                        }
+                        return value;
+                    }
+
+                    // allow: digits only
+                    function sanitizeInt(value) {
+                        value = (value ?? "").toString();
+                        return value.replace(/[^\d]/g, "");
+                    }
+
+                    // decimals
+                    document.querySelectorAll("input.num-dec").forEach(el => {
+                        el.addEventListener("input", () => {
+                            const cleaned = sanitizeDecimal(el.value);
+                            if (el.value !== cleaned) el.value = cleaned;
+                        });
+
+                        // also stop typing e/E/+/- (some browsers allow in type=number)
+                        el.addEventListener("keydown", (e) => {
+                            const bad = ["e", "E", "+", "-"];
+                            if (bad.includes(e.key)) e.preventDefault();
+                        });
+                    });
+
+                    // integers
+                    document.querySelectorAll("input.num-int").forEach(el => {
+                        el.addEventListener("input", () => {
+                            const cleaned = sanitizeInt(el.value);
+                            if (el.value !== cleaned) el.value = cleaned;
+                        });
+
+                        el.addEventListener("keydown", (e) => {
+                            const bad = ["e", "E", "+", "-", "."];
+                            if (bad.includes(e.key)) e.preventDefault();
+                        });
+                    });
+                })();
+
+                        // ===== Custom dropdown: show red border when invalid =====
+                (function () {
+                    const form = document.getElementById("itemForm");
+                    if (!form) return;
+
+                    function setDdError(dd, isError) {
+                        if (!dd) return;
+                        dd.classList.toggle("error", !!isError);
+                    }
+
+                    function syncDdByHidden(ddSelector) {
+                        const dd = document.querySelector(ddSelector);
+                        if (!dd) return;
+
+                        const hidden = dd.querySelector('input[type="hidden"]');
+                        const span = dd.closest(".field")?.querySelector("span.text-danger");
+
+                        // rule: if has validation text OR hidden is empty => error
+                        const hasSpanError = span && (span.textContent || "").trim().length > 0;
+                        const hasValue = hidden && (hidden.value || "").trim().length > 0;
+
+                        setDdError(dd, hasSpanError || !hasValue);
+                    }
+
+                    function syncAll() {
+                        syncDdByHidden('.dd[data-name="Item.CategoryID"]');
+                        syncDdByHidden('.dd[data-name="Item.SupplierID"]');
+                    }
+
+                    // initial
+                    syncAll();
+
+                    // when user interacts with dropdown (selects item)
+                    document.addEventListener("click", (e) => {
+                        if (e.target.closest(".dd")) setTimeout(syncAll, 0);
+                    });
+
+                    // when typing / changing anything
+                    form.addEventListener("change", () => syncAll());
+                    form.addEventListener("input", () => syncAll());
+
+                    // when submit (jQuery validation updates messages right before submit)
+                    form.addEventListener("submit", () => setTimeout(syncAll, 0));
+
+                    // watch validation spans (jQuery validate updates text dynamically)
+                    document.querySelectorAll('.field span.text-danger').forEach(span => {
+                        const obs = new MutationObserver(() => syncAll());
+                        obs.observe(span, { childList: true, subtree: true, characterData: true });
+                    });
+                })();
+
+
+                (function () {
+                  const dd = document.querySelector(".dd.dd-uom");
+                  if (!dd) return;
+
+                  const input = document.getElementById("uomInput");
+                  const arrow = document.getElementById("uomArrow");
+
+                  function open() { dd.classList.add("open"); }
+                  function close() { dd.classList.remove("open"); }
+                  function toggle() { dd.classList.toggle("open"); }
+
+                  input.addEventListener("focus", open);
+                  input.addEventListener("click", toggle);
+
+                  arrow.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggle();
+                    input.focus();
+                  });
+
+                  dd.querySelectorAll(".dd-item[data-value]").forEach(it => {
+                    it.addEventListener("click", () => {
+                      input.value = it.getAttribute("data-value");
+                      close();
+
+                      // ✅ IMPORTANT: trigger validation update
+                      input.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                  });
+
+                  document.addEventListener("click", (e) => {
+                    if (!dd.contains(e.target)) close();
+                  });
+                })();
+
+
+
+                        async function refreshDd(dd, refreshUrl) {
+                    const itemsWrap = dd.querySelector(".dd-items");
+                    if (!itemsWrap || !refreshUrl) return;
+
+                    // keep selected value
+                    const hidden = dd.querySelector('input[type="hidden"]');
+                    const currentValue = hidden ? hidden.value : "";
+
+                    // loading UI on top button if exists
+                    const topBtn = dd.querySelector(".dd-refresh-btn");
+                    if (topBtn) { topBtn.disabled = true; topBtn.textContent = "…"; }
+
+                    try {
+                        const res = await fetch(refreshUrl, { headers: { "Accept": "application/json" } });
+                        if (!res.ok) throw new Error("Refresh failed");
+
+                        const data = await res.json(); // [{id,name}]
+                        itemsWrap.innerHTML = "";
+
+                        data.forEach(x => {
+                            const div = document.createElement("div");
+                            div.className = "dd-item";
+                            div.setAttribute("data-value", x.id);
+                            div.textContent = x.name;
+                            itemsWrap.appendChild(div);
+                        });
+
+                        // reselect if still exists
+                        if (currentValue) {
+                            const match = dd.querySelector(`.dd-items .dd-item[data-value="${CSS.escape(currentValue)}"]`);
+                            if (match) match.click();
+                        }
+
+                    } catch (err) {
+                        console.error(err);
+                        alert("Could not refresh list. Please try again.");
+                    } finally {
+                        if (topBtn) { topBtn.disabled = false; topBtn.textContent = "⟳"; }
+                    }
+                }
+
+                (function () {
+                    const desc = document.querySelector('[name="Item.ItemDescription"]');
+                    const counter = document.getElementById("descCount");
+
+                    if (!desc || !counter) return;
+
+                    const paint = () => {
+                        const len = desc.value.length;
+                        counter.textContent = len;
+                        counter.textContent = len;
+
+                        counter.style.color =
+                            len > 450 ? "#dc2626" :
+                            len > 350 ? "#f59e0b" :
+                            "#6b7280";
+                    };
+
+                    paint(); // init count
+                    desc.addEventListener("input", paint);
+                })();
+
+
+
+    </script>
+
+}

@@ -329,6 +329,100 @@ namespace Invexaaa.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult MinusStockBatchBulk(string inventoryIds)
+        {
+            if (string.IsNullOrWhiteSpace(inventoryIds))
+                return RedirectToAction(nameof(StockIndex));
+
+            var ids = inventoryIds.Split(',').Select(int.Parse).ToList();
+
+            var preview =
+                from inv in _context.Inventories
+                join item in _context.Items on inv.ItemID equals item.ItemID
+                where ids.Contains(inv.InventoryID)
+                && item.ItemStatus == "Active"
+                select new BulkMinusPreviewRow
+                {
+                    InventoryID = inv.InventoryID,
+                    ItemName = item.ItemName,
+                    AvailableQuantity = inv.InventoryTotalQuantity
+                };
+
+            return View(new BulkMinusStockViewModel
+            {
+                InventoryIds = ids,
+                PreviewItems = preview.ToList()
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult MinusStockBatchBulk(BulkMinusStockViewModel vm)
+        {
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            using var tx = _context.Database.BeginTransaction();
+
+            try
+            {
+                foreach (var inventoryId in vm.InventoryIds)
+                {
+                    var inv =
+    _context.Inventories
+        .First(i => i.InventoryID == inventoryId);
+
+
+                    if (IsItemInactive(inv.ItemID))
+                        continue;
+
+                    if (vm.QuantityToDeduct > inv.InventoryTotalQuantity)
+                        continue;
+
+                    int remaining = vm.QuantityToDeduct;
+
+                    var batches = _context.StockBatches
+                        .Where(b => b.ItemID == inv.ItemID && b.BatchQuantity > 0)
+                        .OrderBy(b => b.BatchExpiryDate)
+                        .ToList();
+
+                    foreach (var batch in batches)
+                    {
+                        if (remaining <= 0) break;
+
+                        var deduct = Math.Min(batch.BatchQuantity, remaining);
+                        batch.BatchQuantity -= deduct;
+                        remaining -= deduct;
+
+                        _context.StockTransactions.Add(new StockTransaction
+                        {
+                            UserID = userId,
+                            ItemID = inv.ItemID,
+                            BatchID = batch.BatchID,
+                            TransactionType = "OUT",
+                            TransactionQuantity = deduct,
+                            TransactionRemark = vm.Reason
+                        });
+                    }
+
+                    inv.InventoryTotalQuantity -= vm.QuantityToDeduct;
+                    inv.InventoryLastUpdated = DateTime.Now;
+                }
+
+                _context.SaveChanges();
+                tx.Commit();
+
+                return RedirectToAction(nameof(StockIndex));
+            }
+            catch
+            {
+                tx.Rollback();
+                throw;
+            }
+        }
 
 
         // =====================================================
@@ -360,6 +454,32 @@ namespace Invexaaa.Controllers
 
             return View("StockAdjustmentHistory", history.ToList());
         }
+
+        public IActionResult StockTransactionHistory()
+        {
+            var history =
+                from t in _context.StockTransactions
+                join i in _context.Items on t.ItemID equals i.ItemID
+                join u in _context.Users on t.UserID equals u.UserID
+                join b in _context.StockBatches on t.BatchID equals b.BatchID into bj
+                from batch in bj.DefaultIfEmpty()
+                orderby t.TransactionDate descending
+                select new StockTransactionHistoryViewModel
+                {
+                    TransactionDate = t.TransactionDate,
+                    ItemName = i.ItemName,
+                    BatchNumber = batch != null ? batch.BatchNumber : "-",
+                    TransactionType = t.TransactionType,
+                    TransactionQuantity = t.TransactionQuantity,
+                    TransactionRemark = t.TransactionRemark,
+                    UserName = u.UserFullName
+
+
+                };
+
+            return View(history.ToList());
+        }
+
 
         // ==============================
         // EDIT EXPIRY (GET)

@@ -4,6 +4,7 @@
 
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var systemUrl = Configuration["PublicBaseUrl"];
 }
 
@@ -96,30 +97,110 @@
         text-transform: uppercase;
     }
 
-    /* ===========================
-       STOCK SUBMENU
-    =========================== */
+
+    /* =====================================================
+       STOCK SUBMENU — FINAL, LOCKED
+    ===================================================== */
 
     .invexa-submenu {
         display: none;
         flex-direction: column;
-        margin-bottom: 6px;
+        margin: 6px 0 12px 0; /* ✅ consistent vertical rhythm */
+        padding-left: 18px; /* ✅ less indentation */
+        border-left: 2px solid #e5e7eb;
     }
 
-
-        .invexa-submenu .invexa-side-link {
-            justify-content: flex-start;
-            padding-left: 42px; /* visual nesting */
-            height: 38px;
-            border-radius: 10px;
-            font-size: 13px;
-        }
-
-    /* Show submenu ONLY when sidebar is expanded AND Stock is active */
-    .invexa-side:hover .stock-parent.active + .invexa-submenu,
-    .invexa-side.expanded .stock-parent.active + .invexa-submenu {
+    .invexa-side:hover .invexa-submenu,
+    .invexa-side.expanded .invexa-submenu {
         display: flex;
     }
+
+    .invexa-submenu .invexa-side-link {
+        height: 40px; /* ✅ closer to parent */
+        margin-bottom: 4px; /* ✅ breathing room */
+        background: transparent;
+        border-radius: 10px; /* ✅ softer, matches system */
+        padding: 0 14px 0 36px; /* ✅ aligned text + icon */
+        justify-content: flex-start;
+        position: relative;
+    }
+
+
+        /* disable main pill hover */
+        .invexa-submenu .invexa-side-link:hover {
+            background: transparent;
+        }
+
+        .invexa-submenu .invexa-side-link i {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        /* inset hover highlight */
+        .invexa-submenu .invexa-side-link::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 4px;
+            bottom: 4px;
+            background: transparent;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .invexa-submenu .invexa-side-link:hover::after {
+            background: #f7f7f7;
+        }
+
+        /* ensure text + icon above highlight */
+        .invexa-submenu .invexa-side-link > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* active indicator */
+        .invexa-submenu .invexa-side-link.active::before {
+            content: "";
+            position: absolute;
+            left: 10px;
+            top: 6px;
+            bottom: 6px;
+            width: 3px;
+            background: #9ca3af;
+            border-radius: 2px;
+        }
+    /* Submenu section label tighter */
+    .invexa-submenu .invexa-side-section {
+        margin: 10px 0 6px;
+        padding-left: 26px;
+        font-size: 10px;
+        letter-spacing: .08em;
+        color: #9ca3af;
+    }
+
+    /* Submenu icon lighter */
+    .invexa-submenu .invexa-side-link i {
+        font-size: 15px;
+        opacity: .75;
+    }
+
+    /* Active submenu stronger */
+    .invexa-submenu .invexa-side-link.active::before {
+        background: #111827;
+    }
+
+    .invexa-submenu .invexa-side-link i {
+        font-size: 16px;
+        margin-right: 10px;
+        opacity: .75;
+    }
+
+    .invexa-submenu .invexa-side-text {
+        font-size: 13.5px;
+    }
+
 
 
     /* Push QR to bottom */
@@ -201,13 +282,26 @@
     <!-- ===== STOCK SUBMENU ===== -->
     <div class="invexa-submenu">
 
-        <a asp-controller="Stock" asp-action="StockAdjustmentHistory"
-           class="invexa-side-link">
-            <i class="bi bi-clock-history"></i>
+
+
+        <a asp-controller="Stock"
+           asp-action="StockTransactionHistory"
+           class="invexa-side-link @(currentAction == "StockTransactionHistory" ? "active" : "")">
+            <i class="bi bi-arrow-left-right"></i>
+            <span class="invexa-side-text">Transaction History</span>
+        </a>
+
+
+        <a asp-controller="Stock"
+           asp-action="StockAdjustmentHistory"
+           class="invexa-side-link @(currentAction == "StockAdjustmentHistory" ? "active" : "")">
+            <i class="bi bi-sliders"></i>
             <span class="invexa-side-text">Adjustment History</span>
         </a>
 
+
     </div>
+
 
     <a asp-controller="ExpiryTracking" asp-action="ExpiryTrackingIndex"
        class="invexa-side-link @(currentController == "ExpiryTracking" ? "active" : "")">

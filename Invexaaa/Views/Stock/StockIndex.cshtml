@@ -601,16 +601,28 @@
             <p class="subtitle">Search, filter and manage inventory stock.</p>
         </div>
 
-        <!-- Bulk Add button (keeps same id + logic) -->
-        <button id="bulkAddBtn"
-                class="add-btn"
-                type="button"
-                disabled
-                title="Add stock to selected items"
-                aria-label="Add stock to selected items">
-            <i class="bi bi-plus-lg"></i>
-            <span>Add Stock</span>
-        </button>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <!-- Add Stock -->
+            <button id="bulkAddBtn"
+                    class="add-btn"
+                    type="button"
+                    disabled>
+                <i class="bi bi-plus-lg"></i>
+                <span>Add Stock</span>
+            </button>
+
+            <!-- Stock Out (bulk + single) -->
+            <button id="bulkOutBtn"
+                    class="add-btn"
+                    type="button"
+                    disabled
+                    style="background:#fff!important;color:#dc2626!important;border-color:#dc2626!important;">
+                <i class="bi bi-dash-lg"></i>
+                <span>Stock Out</span>
+            </button>
+        </div>
+
+
     </div>
 
     <!-- FILTERS (SupplierIndex-style) -->
@@ -834,14 +846,19 @@
                BULK SELECT + ADD (your logic)
             =============================== */
             const selectAll = document.getElementById("selectAll");
-            const bulkBtn = document.getElementById("bulkAddBtn");
+        const bulkAddBtn = document.getElementById("bulkAddBtn");
+        const bulkOutBtn = document.getElementById("bulkOutBtn");
 
-            function updateBulkButton() {
-                const validChecks =
-                    Array.from(document.querySelectorAll(".row-check:checked"))
-                        .filter(c => !c.disabled);
-                bulkBtn.disabled = validChecks.length === 0;
-            }
+        function updateBulkButton() {
+            const checked =
+                Array.from(document.querySelectorAll(".row-check:checked"))
+                    .filter(c => !c.disabled);
+
+            bulkAddBtn.disabled = checked.length === 0;
+            bulkOutBtn.disabled = checked.length === 0; // ✅ allow 1 OR many
+        }
+
+
 
             selectAll.addEventListener("change", function () {
                 document.querySelectorAll(".row-check").forEach(c => {
@@ -854,13 +871,21 @@
                 c.addEventListener("change", updateBulkButton)
             );
 
-            bulkBtn.addEventListener("click", function () {
-                const ids = Array.from(document.querySelectorAll(".row-check:checked"))
-                    .filter(c => !c.disabled)
-                    .map(c => c.value)
-                    .join(",");
-                window.location.href = `/Stock/AddStockBatch?inventoryIds=${ids}`;
-            });
+        bulkAddBtn.addEventListener("click", function () {
+            const ids = Array.from(document.querySelectorAll(".row-check:checked"))
+                .filter(c => !c.disabled)
+                .map(c => c.value)
+                .join(",");
+            window.location.href = `/Stock/AddStockBatch?inventoryIds=${ids}`;
+        });
+
+        bulkOutBtn.addEventListener("click", function () {
+            const ids = Array.from(document.querySelectorAll(".row-check:checked"))
+                .filter(c => !c.disabled)
+                .map(c => c.value)
+                .join(",");
+            window.location.href = `/Stock/MinusStockBatchBulk?inventoryIds=${ids}`;
+        });
 
 
             /* ===============================
