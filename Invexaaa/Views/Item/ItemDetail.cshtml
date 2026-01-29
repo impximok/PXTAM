@@ -41,14 +41,28 @@
                 <div class="barcode-box">
                     @if (!string.IsNullOrWhiteSpace(Model.ItemBarcode))
                     {
-                        <img src="@Url.Action("Generate", "Barcode", new { code = Model.ItemBarcode })" alt="Barcode" />
-                        <div class="barcode-text">@Model.ItemBarcode</div>
+                        <div class="barcode-grid">
+                            <!-- BARCODE -->
+                            <div class="barcode-item">
+                                <img src="@Url.Action("Generate", "Barcode", new { code = Model.ItemBarcode })"
+                                     alt="Barcode" />
+                                <div class="barcode-text">@Model.ItemBarcode</div>
+                            </div>
+
+                            <!-- QR CODE -->
+                            <div class="barcode-item">
+                                <img src="@Url.Action("GenerateQr", "Barcode", new { code = Model.ItemBarcode })"
+                                     alt="QR Code" />
+                                <div class="barcode-text">QR Code</div>
+                            </div>
+                        </div>
                     }
                     else
                     {
                         <div class="barcode-text">No barcode available</div>
                     }
                 </div>
+
 
             </div>
         </div>
@@ -59,7 +73,7 @@
             <div class="panel__header">
                 <div>
                     <div class="pageTitle">@Model.ItemName</div>
-                    <div class="subText">@Model.CategoryName • @Model.SupplierName</div>
+                    <div class="subText">@Model.CategoryName</div>
                 </div>
 
                 <span class="pill @(isInactive ? "pill--inactive" : "pill--active")">
@@ -503,5 +517,20 @@
             align-items: center;
             justify-content: center;
         }
+
+        .barcode-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            align-items: center;
+            justify-items: center;
+        }
+
+        .barcode-item img {
+            max-width: 160px;
+            width: 100%;
+            height: auto;
+        }
+
 
     </style>

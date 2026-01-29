@@ -7,37 +7,444 @@
 }
 
 <style>
-    .preview-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
+    /* ===============================
+               INVEXA · BLACK & WHITE SYSTEM
+            =============================== */
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e6e7eb;
+        --soft: #f3f4f6;
+        --shadow: 0 10px 24px rgba(0,0,0,.06);
+        --radius: 18px;
+        --danger: #dc2626;
+    }
+
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: var(--bg) !important;
+    }
+
+    /* Page wrapper */
+    .page-wrap {
+        width: 100%;
+        padding: 10px 18px 26px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .page-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 6px 2px 14px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 18px;
+    }
+
+    .title {
+        font-weight: 800;
+        letter-spacing: .2px;
+        color: var(--text);
+        font-size: 34px;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .subtitle {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    /* Card */
+    .inv-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .inv-card__head {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
         background: #fff;
     }
 
-    .preview-header {
-        padding: 12px 16px;
-        font-weight: 700;
-        border-bottom: 1px solid #e5e7eb;
+    .inv-card__title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: .2px;
     }
 
-    .preview-table th {
+    .inv-card__sub {
+        margin: 6px 0 0;
         font-size: 13px;
-        font-weight: 700;
-        color: #444;
+        color: var(--muted);
     }
 
-    .preview-table td {
-        font-size: 14px;
+    .inv-card__body {
+        padding: 16px 18px 18px;
+    }
+
+    /* Form grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 18px;
+        align-items: end;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .inv-label {
+        font-size: 13px; /* ✅ smaller labels */
+        font-weight: 600;
+        color: #000;
+        letter-spacing: .25px;
+        margin-bottom: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .req {
+        color: var(--danger);
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    /* Inputs (system rules: default 2px border, focus 2px black) */
+    .inv-input {
+        border-radius: 14px !important;
+        border: 2px solid var(--border) !important;
+        background: #fff !important;
+        padding: 12px 12px !important;
+        font-size: 14px !important;
+        color: var(--text) !important;
+        box-shadow: none !important;
+        transition: border-color 160ms ease;
+    }
+
+        .inv-input:focus {
+            border: 2px solid #111 !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Unobtrusive validation adds this */
+        .input-validation-error,
+        .inv-input.input-validation-error {
+            border: 2px solid var(--danger) !important;
+        }
+
+            .input-validation-error:focus,
+            .inv-input.input-validation-error:focus {
+                border: 2px solid var(--danger) !important;
+            }
+
+    /* Error text: not bold */
+    .field-validation-error,
+    .text-danger {
+        display: block;
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: 500 !important;
+        color: var(--danger) !important;
+    }
+
+    /* Actions (right aligned like your system) */
+    .actions {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 10px 20px !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        border: 2px solid #111 !important;
+        min-width: 170px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+        white-space: nowrap;
+        gap: 8px;
+    }
+
+    /* Primary = Stock Out (danger style but same hover behavior) */
+    .pill-btn--danger {
+        background: #fff !important;
+        color: var(--danger) !important;
+        border-color: var(--danger) !important;
+    }
+
+        .pill-btn--danger:hover {
+            background: var(--danger) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,.10);
+        }
+
+    .pill-btn--ghost {
+        background: #fff !important;
+        color: #111 !important;
+    }
+
+        .pill-btn--ghost:hover {
+            background: #111 !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,.10);
+        }
+
+        .pill-btn:active,
+        .pill-btn--ghost:active,
+        .pill-btn--danger:active {
+            box-shadow: 0 2px 8px rgba(0,0,0,.16);
+        }
+
+    /* Table */
+    .inv-table {
+        width: 100%;
+        margin: 0;
+    }
+
+        .inv-table thead th {
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: .35px;
+            text-transform: uppercase;
+            color: #111827;
+            background: var(--soft);
+            border-bottom: 1px solid var(--border) !important;
+            padding: 12px 14px !important;
+            white-space: nowrap;
+        }
+
+        .inv-table tbody td {
+            font-size: 14px;
+            color: #111827;
+            font-weight: 600;
+            border-top: 1px solid #eef0f3 !important;
+            padding: 14px 14px !important;
+            vertical-align: middle;
+        }
+
+        .inv-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .mono-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        min-width: 52px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1.5px solid #d1d5db;
+        background: #fff;
+        font-size: 12px;
+        font-weight: 800;
+        color: #111827;
+        white-space: nowrap;
+    }
+
+    .mono-pill--muted {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+        color: #6b7280;
+        font-weight: 700;
+    }
+
+    .mono-pill--danger {
+        background: #fff;
+        border-color: var(--danger);
+        color: var(--danger);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .pill-btn {
+            width: 100%;
+        }
+    }
+
+    .success-banner {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #fff;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    .success-left {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .success-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        background: #16a34a;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        margin-top: 8px; /* tick lower */
+    }
+
+    .success-title {
+        font-weight: 800;
         color: #111;
     }
 
-    .danger {
-        color: #dc2626;
-        font-weight: 700;
+    .success-sub {
+        font-size: 13px;
+        color: #000;
+        margin-top: 2px;
     }
 
-    .muted {
-        color: #9ca3af;
+    .pill-btn--success {
+        background: #16a34a !important;
+        border: 2px solid #16a34a !important;
+        color: #fff !important;
     }
+
+        .pill-btn--success:hover {
+            background: #fff !important;
+            color: #16a34a !important;
+        }
+
+    /* Preview Card (same system style as other panels) */
+    .preview-card {
+        margin-top: 18px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    /* Preview header bar */
+    .preview-header {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+        background: #fff;
+    }
+
+    /* Preview card (same style as Stock In "Stock Preview") */
+    .preview-card {
+        margin-top: 18px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .preview-head {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        background: #fff;
+    }
+
+    .preview-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: .2px;
+    }
+
+    .preview-sub {
+        margin: 6px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    .success-banner {
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        background: #fff;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        box-shadow: 0 10px 24px rgba(0,0,0,.06);
+    }
+    /* Primary black action button */
+    .pill-btn--primary {
+        background: #111 !important;
+        color: #fff !important;
+        border-color: #111 !important;
+    }
+
+
+
+        .pill-btn--primary:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+    .pill-btn--ghost {
+        background: #fff !important;
+        color: #111 !important;
+        border: 2px solid #111 !important;
+    }
+
+        .pill-btn--ghost:hover {
+            background: #111 !important;
+            color: #fff !important;
+        }
+
+    .pill-btn--primary {
+        background: #111 !important;
+        color: #fff !important;
+        border: 2px solid #111 !important;
+    }
+
+        .pill-btn--primary:hover {
+            background: #fff !important;
+            color: #111 !important;
+            border-color: #111 !important;
+        }
+
 </style>
 
 <div class="page-wrap">
@@ -50,8 +457,7 @@
         </div>
     </div>
 
-    <!-- FORM -->
-    <form asp-action="MinusStockBatchBulk" method="post">
+    <form asp-action="MinusStockBatchBulk" method="post" novalidate>
         @Html.AntiForgeryToken()
 
         @foreach (var id in Model.InventoryIds)
@@ -59,70 +465,127 @@
             <input type="hidden" name="InventoryIds" value="@id" />
         }
 
-        <!-- INPUT PANEL -->
-        <div class="preview-card mb-4">
-            <div style="padding:22px; max-width:520px;">
-                <div class="mb-3">
-                    <label class="label">Quantity to Deduct (per item)</label>
-                    <input asp-for="QuantityToDeduct"
-                           type="number"
-                           min="1"
-                           class="control"
-                           id="qtyInput"
-                           placeholder="Enter quantity" />
-                    <span asp-validation-for="QuantityToDeduct" class="text-danger"></span>
+        <!-- ENTRY CARD -->
+        <div class="inv-card">
+            <div class="inv-card__head">
+                <h2 class="inv-card__title">Stock Out Entry</h2>
+                <p class="inv-card__sub">Enter quantity and reason. Preview updates live.</p>
+            </div>
+
+            <div class="inv-card__body">
+                <div class="form-grid">
+                    <div class="field">
+                        <div class="inv-label">
+                            Quantity to Deduct (per item) <span class="req">*</span>
+                        </div>
+
+                        <input asp-for="QuantityToDeduct"
+                               type="number"
+                               min="1"
+                               class="form-control inv-input"
+                               id="qtyInput"
+                               placeholder="e.g. 3" />
+
+                        <span asp-validation-for="QuantityToDeduct" class="text-danger"></span>
+                    </div>
+
+                    <div class="field">
+                        <div class="inv-label">
+                            Reason <span class="req">*</span>
+                        </div>
+
+                        <input asp-for="Reason"
+                               class="form-control inv-input"
+                               placeholder="e.g. Sales, Usage, Spoilage" />
+
+                        <span asp-validation-for="Reason" class="text-danger"></span>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="label">Reason</label>
-                    <input asp-for="Reason"
-                           class="control"
-                           placeholder="e.g. Sales, Usage, Spoilage" />
-                    <span asp-validation-for="Reason" class="text-danger"></span>
+                <div class="actions">
+                    <button type="submit" class="pill-btn pill-btn--primary">
+                        Confirm
+                    </button>
+
+
+
+                    <a asp-action="StockIndex" class="pill-btn pill-btn--ghost">
+                        Cancel
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- LIVE PREVIEW -->
-        <div class="preview-card">
-            <div class="preview-header">
-                Live Stock Out Preview
-            </div>
+        @if (!Model.ShowSummary)
+        {
+            <!-- LIVE PREVIEW (BEFORE CONFIRM) -->
+            <div class="preview-card">
+                <div class="preview-head">
+                    <h2 class="preview-title">Live Stock Out Preview</h2>
+                    <p class="preview-sub">Check stock levels before confirming deduction.</p>
+                </div>
 
-            <table class="table preview-table mb-0">
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Current Stock</th>
-                        <th>After Deduction</th>
-                    </tr>
-                </thead>
-                <tbody id="previewBody">
-                    @foreach (var p in Model.PreviewItems)
-                    {
-                        <tr data-available="@p.AvailableQuantity">
-                            <td>@p.ItemName</td>
-                            <td>@p.AvailableQuantity</td>
-                            <td class="afterQty muted">–</td>
+                <table class="table inv-table mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width:55%">Item</th>
+                            <th style="width:20%">Current</th>
+                            <th style="width:25%">After Deduction</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody id="previewBody">
+                        @foreach (var p in Model.PreviewItems)
+                        {
+                            <tr data-available="@p.AvailableQuantity">
+                                <td>@p.ItemName</td>
+                                <td>
+                                    <span class="mono-pill">@p.AvailableQuantity</span>
+                                </td>
+                                <td class="afterQty">
+                                    <span class="mono-pill mono-pill--muted">–</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <!-- SUCCESS (REPLACES PREVIEW) -->
+            <div class="success-banner mt-4">
+                <div class="success-left">
+                    <div class="success-icon">✓</div>
+                    <div>
+                        <div class="success-title">Stock Out Successful</div>
+                        <div class="success-sub">
+                            @{
+                                var names = (Model.PreviewItems ?? new()).Select(x => x.ItemName).ToList();
+                                var count = names.Count;
 
-        <!-- ACTIONS -->
-        <div style="display:flex; gap:12px; margin-top:22px;">
-            <button type="submit"
-                    class="add-btn"
-                    style="background:#fff!important;color:#dc2626!important;border-color:#dc2626!important;">
-                <i class="bi bi-dash-lg"></i>
-                Confirm Stock Out
-            </button>
+                                if (count == 1)
+                                {
+                                    <text>Deducted <b>@Model.QuantityToDeduct</b> unit(s) from <b>@names[0]</b> with reason <b>@Model.Reason</b>.</text>
+                                }
+                                else
+                                {
+                                    <text>Deducted <b>@Model.QuantityToDeduct</b> unit(s) from <b>@count</b> item(s) with reason <b>@Model.Reason</b>.</text>
+                                }
+                            }
+                        </div>
 
-            <a asp-action="StockIndex" class="pill-btn pill-outline">
-                Cancel
-            </a>
-        </div>
+                    </div>
+                </div>
+
+                <a asp-action="StockIndex" class="pill-btn pill-btn--ghost">
+                    Back to Stock
+                </a>
+            </div>
+
+        }
+
+
+
     </form>
 </div>
 
@@ -132,32 +595,39 @@
     <script>
         const qtyInput = document.getElementById("qtyInput");
 
+        function setAfterCell(afterCell, html) {
+            afterCell.innerHTML = html;
+        }
+
         function updatePreview() {
-            const qty = parseInt(qtyInput.value || 0);
+                    const tbody = document.getElementById("previewBody");
+        if (!tbody) return;
+
+            const qty = parseInt(qtyInput.value || 0, 10);
 
             document.querySelectorAll("#previewBody tr").forEach(row => {
-                const available = parseInt(row.dataset.available);
+                const available = parseInt(row.dataset.available, 10);
                 const afterCell = row.querySelector(".afterQty");
 
                 if (!qty) {
-                    afterCell.textContent = "–";
-                    afterCell.className = "afterQty muted";
+                    setAfterCell(afterCell, `<span class="mono-pill mono-pill--muted">–</span>`);
                     return;
                 }
 
                 const remaining = available - qty;
 
                 if (remaining < 0) {
-                    afterCell.textContent = "Insufficient stock";
-                    afterCell.className = "afterQty danger";
+                    setAfterCell(afterCell, `<span class="mono-pill mono-pill--danger">Insufficient</span>`);
                 } else {
-                    afterCell.textContent = remaining;
-                    afterCell.className = "afterQty";
+                    setAfterCell(afterCell, `<span class="mono-pill">${remaining}</span>`);
                 }
             });
         }
 
         updatePreview();
         qtyInput.addEventListener("input", updatePreview);
+
+
+
     </script>
 }

@@ -52,6 +52,11 @@ namespace Invexaaa.Data
             modelBuilder.Entity<StockBatch>()
                 .Property(b => b.RowVersion)
                 .IsRowVersion();
+            modelBuilder.Entity<StockTransaction>(entity =>
+            {
+                entity.Property(e => e.UnitCost)
+                      .HasPrecision(18, 4);
+            });
 
         }
     }

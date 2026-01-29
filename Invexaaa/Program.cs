@@ -6,9 +6,16 @@ using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
 using Invexaaa.Data;
 using QuestPDF.Infrastructure;
+using OfficeOpenXml;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// EPPlus 8 – NON-COMMERCIAL (personal)
+ExcelPackage.License.SetNonCommercialPersonal("Invexa");
+// OR if this is a school / non-profit project:
+// ExcelPackage.License.SetNonCommercialOrganization("Your Organization");
 
 QuestPDF.Settings.License = LicenseType.Community;
 // MVC
@@ -80,7 +87,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<InvexaDbContext>();
     context.Database.Migrate();
-    InvexaDbSeeder.Seed(context);
+   InvexaDbSeeder.Seed(context);
 }
 
 app.Run();

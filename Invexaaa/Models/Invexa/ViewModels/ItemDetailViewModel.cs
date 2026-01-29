@@ -9,7 +9,7 @@ namespace Invexaaa.Models.ViewModels
         public int ItemID { get; set; }
         public string ItemName { get; set; }
         public string CategoryName { get; set; }
-        public string SupplierName { get; set; }
+
 
         public string UnitOfMeasure { get; set; }
         public decimal BuyPrice { get; set; }

@@ -679,22 +679,203 @@
         font-size: 13px;
     }
 
+    .icon-btn[data-tooltip] {
+        position: relative;
+    }
+
+        .icon-btn[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -34px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            color: #fff;
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+    /* ===== Invexa Toast (Improved) ===== */
+    .ix-toast {
+        position: fixed;
+        top: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100000;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        max-width: 520px;
+        width: calc(100% - 32px);
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 14px 40px rgba(0,0,0,.14);
+        animation: toast-in .25s ease-out;
+    }
+
+    .ix-toast-danger {
+        border: 1.5px solid rgba(220, 38, 38, 0.35);
+        background: linear-gradient( to right, rgba(220, 38, 38, 0.08), #ffffff 35% );
+    }
+
+    /* icon */
+    .ix-toast-icon {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: rgba(220, 38, 38, 0.12);
+        color: #991b1b;
+    }
+
+    /* text */
+    .ix-toast-body {
+        flex: 1;
+    }
+
+    .ix-toast-title {
+        font-size: 14px;
+        font-weight: 800;
+        color: #111;
+        margin-bottom: 2px;
+    }
+
+    .ix-toast-text {
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.45;
+    }
+
+    /* actions */
+    .ix-toast-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    .ix-toast-btn {
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1.5px solid transparent;
+        background: transparent;
+    }
+
+    .ix-toast-outline {
+        border-color: #dc2626;
+        color: #dc2626;
+    }
+
+        .ix-toast-outline:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+
+    /* animation */
+    @@keyframes toast-in {
+        from
+
+    {
+        opacity: 0;
+        transform: translate(-50%, -8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    }
 </style>
 
 <div class="page-wrap">
+    @if (TempData["Error"] != null)
+    {
+        <div class="ix-toast ix-toast-danger" id="errorToast">
+            <div class="ix-toast-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+            <div class="ix-toast-body">
+                <div class="ix-toast-title">This category can’t be deleted</div>
+                <div class="ix-toast-text">
+                    @TempData["Error"]
+                </div>
+            </div>
+
+            <div class="ix-toast-actions">
+                <button type="button" class="ix-toast-btn ix-toast-outline"
+                        onclick="document.getElementById('errorToast').remove()">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    }
+
 
     <div class="page-head">
+        
+
         <div>
             <h1 class="title">Maintain Category</h1>
             <p class="subtitle">Search, filter and manage categories.</p>
         </div>
 
-        <a asp-action="Create"
-           class="icon-btn"
-           title="Add Category"
-           aria-label="Add Category">
-            <i class="bi bi-plus-lg"></i>
-        </a>
+        <div style="display:flex; gap:10px; align-items:center;">
+
+            <!-- Download Template -->
+            <!-- Export REAL database data -->
+            <a asp-controller="Category"
+               asp-action="Export"
+               class="icon-btn"
+               title="Export Categories"
+               aria-label="Export Categories">
+                <i class="bi bi-download"></i>
+            </a>
+
+
+
+            <!-- Import Excel / CSV -->
+            <form asp-action="Import"
+                  asp-controller="Category"
+                  method="post"
+                  enctype="multipart/form-data"
+                  style="margin:0"
+                  onsubmit="handleImportSubmit(this)">
+                @Html.AntiForgeryToken()
+
+                <label class="icon-btn"
+                       title="Import Excel"
+                       aria-label="Import Excel"
+                       data-tooltip="Import Excel"
+                       style="cursor:pointer">
+                    <i class="bi bi-upload"></i>
+
+                    <input type="file"
+                           name="file"
+                           accept=".xlsx,.csv"
+                           onchange="this.form.submit()" />
+
+                </label>
+            </form>
+
+            <!-- Add Category -->
+            <a asp-action="Create"
+               class="icon-btn"
+               title="Add Category"
+               aria-label="Add Category">
+                <i class="bi bi-plus-lg"></i>
+            </a>
+
+        </div>
+
+
     </div>
 
     <div class="filters">
@@ -786,9 +967,10 @@
 
                         <!-- ⬆ wider + earlier -->
                         <th style="width:42%;">Description</th>
-
+                        <th style="width:160px;">Costing</th>
                         <th style="width:140px">Status</th>
                         <th style="width:170px">Actions</th>
+
                     </tr>
                 </thead>
 
@@ -816,8 +998,10 @@
                         {
                             <tr data-name="@item.CategoryName"
                                 data-status="@item.CategoryStatus"
+                                data-costing="@item.CostingMethod"
                                 data-id="@item.CategoryID"
                                 data-desc="@item.CategoryDescription">
+
 
                                 <td>
                                     <input class="chk chk-row" type="checkbox" />
@@ -825,6 +1009,13 @@
                                 <td>@item.CategoryID</td>
                                 <td>@item.CategoryName</td>
                                 <td>@item.CategoryDescription</td>
+
+                                <td>
+                                    <span class="pill">
+                                        @item.CostingMethod
+                                    </span>
+                                </td>
+
                                 <td>
                                     @if (item.CategoryStatus == "Active")
                                     {
@@ -835,6 +1026,7 @@
                                         <span class="pill inactive">Inactive</span>
                                     }
                                 </td>
+
                                 <td>
                                     <div class="row-actions">
                                         <a asp-action="Edit"
@@ -1145,6 +1337,13 @@
       const nameEl = document.getElementById('deleteName');
       const confirmBtn = document.getElementById('confirmDeleteBtn');
       let pendingForm = null;
+          confirmBtn?.addEventListener('click', () => {
+      if (!pendingForm) return;
+
+      pendingForm.submit();   // ✅ ACTUALLY POST TO CONTROLLER
+      pendingForm = null;
+    });
+
 
       function openModal(form) {
         pendingForm = form;
@@ -1230,16 +1429,7 @@
         if (e.key === 'Escape' && bulkModal?.classList.contains('open')) closeBulkModal();
       });
 
-      // confirm bulk delete (HOOK THIS TO YOUR BACKEND)
-      confirmBulkBtn?.addEventListener('click', () => {
-        const rows = getSelectedRows();
-        const ids = rows.map(r => r.dataset.id).filter(Boolean);
-
-        // ✅ Replace with real POST call / form submit
-        console.log("Bulk delete IDs:", ids);
-
-        closeBulkModal();
-      });
+     
 
       /* ===============================
          8) Init
@@ -1250,4 +1440,15 @@
       });
 
     })();
+</script>
+
+<script>
+    function handleImportSubmit(form) {
+        const btn = form.querySelector('.icon-btn');
+        if (!btn) return;
+
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.6';
+        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i>';
+    }
 </script>

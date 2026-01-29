@@ -241,8 +241,8 @@
         border-radius: 10px;
         cursor: pointer;
         margin: 2px 0;
-        font-weight: 500;
-        font-size: 14px;
+        font-weight: 700;
+        font-size: 13px;
     }
 
         .cs2-item:hover {
@@ -388,6 +388,174 @@
             cursor: not-allowed;
         }
 
+    /* ===============================
+           Paging bar (INVEXA style like Stock Tx)
+        =============================== */
+    .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 18px;
+        padding: 12px 14px;
+        border-top: 1px solid #e5e7eb;
+        background: #fff;
+        border-radius: 18px;
+    }
+
+    .pager-left {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* compact, business-friendly range pill */
+    .pager-range {
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid #e5e7eb;
+        font-size: 13px;
+        font-weight: 800;
+        color: #111;
+        background: #fff;
+        letter-spacing: .2px;
+    }
+
+    .pager-label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+        letter-spacing: .25px;
+        white-space: nowrap;
+    }
+
+    /* right side buttons */
+    .pager-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    /* pill page button */
+    .pager-btn {
+        height: 38px;
+        min-width: 38px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #fff;
+        color: #000;
+        font-size: 13px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        cursor: pointer;
+        transition: background-color 180ms ease, color 180ms ease, opacity 180ms ease;
+    }
+
+        .pager-btn:hover,
+        .pager-btn:focus-visible {
+            background: #000;
+            color: #fff;
+            outline: none;
+        }
+
+        .pager-btn.is-active {
+            background: #000;
+            color: #fff;
+        }
+
+        .pager-btn.is-disabled,
+        .pager-btn[aria-disabled="true"] {
+            opacity: .35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    /* ===== Rows per page: reuse cs2 but compact ===== */
+    .pager-cs2 .cs2-btn {
+        height: 38px;
+        min-width: 92px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #fff;
+        color: #111;
+        font-size: 13px;
+        font-weight: 900;
+        padding: 0 40px 0 14px;
+    }
+
+    .pager-cs2 .cs2-menu {
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        border-radius: 14px;
+        padding: 6px;
+        box-shadow: 0 16px 45px rgba(0,0,0,.14);
+        z-index: 99999;
+    }
+
+
+
+    .pager-dots {
+        color: var(--muted);
+        font-weight: 800;
+        padding: 0 6px;
+    }
+
+    /* mobile stack */
+    @@media (max-width: 700px) {
+        .pager {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .pager-right {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    /* cs2 flip mode */
+    .cs2.open-up .cs2-menu {
+        top: auto !important;
+        bottom: calc(100% + 8px) !important;
+    }
+
+    .pager-range {
+        display: inline-flex;
+        align-items: center;
+        letter-spacing: .1px;
+        white-space: nowrap;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        font-size: 12px;
+        font-weight: 600;
+        background: var(--soft);
+        color: #111;
+    }
+
+
+    /* pager outer shell = crisp card */
+    .pager {
+        background: #fff !important;
+        border: 2px solid var(--border) !important; /* stronger border */
+        border-radius: 18px !important;
+        box-shadow: none !important; /* remove any fade shadow */
+        overflow: hidden; /* clean edges */
+    }
+
+    .grid-shell, .page-wrap {
+        background: #fff !important;
+    }
+
 </style>
 
 <div class="page-wrap">
@@ -399,12 +567,47 @@
             <p class="subtitle">Search, filter and manage items.</p>
         </div>
 
-        <a href="/Item/CreateItem"
-           class="icon-btn"
-           title="Add Item"
-           aria-label="Add Item">
-            <i class="bi bi-plus-lg"></i>
-        </a>
+        <div class="d-flex align-items-center gap-2">
+
+            <!-- Export -->
+            <a asp-controller="Item"
+               asp-action="Export"
+               class="pill-btn pill-outline"
+               title="Export Items">
+                Export
+            </a>
+
+            <!-- Import -->
+            <form asp-controller="Item"
+                  asp-action="Import"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="d-inline">
+                @Html.AntiForgeryToken()
+
+                <label class="pill-btn pill-outline mb-0"
+                       title="Import Items"
+                       style="cursor:pointer;">
+                    Import
+                    <input type="file"
+                           name="file"
+                           accept=".xlsx,.csv"
+                           hidden
+                           onchange="this.form.submit();" />
+                </label>
+            </form>
+
+            <!-- Create Item -->
+            <a asp-controller="Item"
+               asp-action="CreateItem"
+               class="icon-btn"
+               title="Add Item"
+               aria-label="Add Item">
+                <i class="bi bi-plus-lg"></i>
+            </a>
+
+        </div>
+
     </div>
 
 
@@ -511,12 +714,13 @@
             }
             else
             {
-                foreach (var item in Model)
+                @foreach (var item in Model)
                 {
                     <div class="col-xl-3 col-lg-4 col-md-6">
-                        @Html.Partial("_ItemCard", item)
+                        <partial name="_ItemCard" model="item" />
                     </div>
                 }
+
             }
         </div>
     </div>
@@ -527,57 +731,131 @@
             int page = ViewBag.Page ?? 1;
             int pageSize = ViewBag.PageSize ?? 12;
             int total = ViewBag.TotalCount ?? Model.Count();
-            int totalPages = (int)Math.Ceiling(total / (double)pageSize);
+            int totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+
+            int start = total == 0 ? 0 : ((page - 1) * pageSize) + 1;
+            int end = Math.Min(page * pageSize, total);
+
+            // paging window
+            int window = 5; // how many numbers shown in middle
+            int startP = Math.Max(1, page - window / 2);
+            int endP = Math.Min(totalPages, startP + window - 1);
+            startP = Math.Max(1, endP - window + 1);
+
+            bool hasPrev = page > 1;
+            bool hasNext = page < totalPages;
         }
 
-        <small class="text-muted">
-            Showing @Model.Count() of @total items
-        </small>
+        <div class="pager-left">
+            <span class="pager-range">
+                Showing @start–@end of @total
+            </span>
 
-        <nav>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item @(page <= 1 ? "disabled" : "")">
-                    <a class="page-link"
-                       asp-controller="Item"
-                       asp-action="ItemIndex"
-                       asp-route-page="@(page - 1)"
-                       asp-route-search="@qVal"
-                       asp-route-categoryId="@catVal"
-                       asp-route-status="@stVal">
-                        Previous
-                    </a>
-                </li>
+            <span class="pager-label">Rows per page</span>
 
-                @for (int p = 1; p <= totalPages; p++)
+            <!-- real select -->
+            <select class="real-select" id="PageSizeSelect" name="pageSize">
+                <option value="48" selected="@(pageSize == 48)">48</option>
+                <option value="96" selected="@(pageSize == 96)">96</option>
+                <option value="150" selected="@(pageSize == 150)">150</option>
+                <option value="300" selected="@(pageSize == 300)">300</option>
+            </select>
+
+            <!-- custom select -->
+            <div class="cs2 pager-cs2" data-select="PageSizeSelect">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">@pageSize</span>
+                    <span class="cs2-caret"></span>
+                </button>
+
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="48">48</button>
+                    <button type="button" class="cs2-item" data-value="96">96</button>
+                    <button type="button" class="cs2-item" data-value="150">150</button>
+                    <button type="button" class="cs2-item" data-value="300">300</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="pager-right">
+            <!-- Prev -->
+            <a class="pager-btn @(hasPrev ? "" : "is-disabled")"
+               asp-controller="Item"
+               asp-action="ItemIndex"
+               asp-route-page="@(page - 1)"
+               asp-route-pageSize="@pageSize"
+               asp-route-search="@qVal"
+               asp-route-categoryId="@catVal"
+               asp-route-status="@stVal"
+               aria-disabled="@(hasPrev ? "false" : "true")">
+                Prev
+            </a>
+
+            <!-- First + dots -->
+            @if (startP > 1)
+            {
+                <a class="pager-btn @(page == 1 ? "is-active" : "")"
+                   asp-controller="Item"
+                   asp-action="ItemIndex"
+                   asp-route-page="1"
+                   asp-route-pageSize="@pageSize"
+                   asp-route-search="@qVal"
+                   asp-route-categoryId="@catVal"
+                   asp-route-status="@stVal">1</a>
+
+                if (startP > 2)
                 {
-                    <li class="page-item @(p == page ? "active" : "")">
-                        <a class="page-link"
-                           asp-controller="Item"
-                           asp-action="ItemIndex"
-                           asp-route-page="@p"
-                           asp-route-search="@qVal"
-                           asp-route-categoryId="@catVal"
-                           asp-route-status="@stVal">
-                            @p
-                        </a>
-                    </li>
+                    <span class="pager-dots">…</span>
+                }
+            }
+
+            <!-- Middle window -->
+            @for (int p = startP; p <= endP; p++)
+            {
+                <a class="pager-btn @(p == page ? "is-active" : "")"
+                   asp-controller="Item"
+                   asp-action="ItemIndex"
+                   asp-route-page="@p"
+                   asp-route-pageSize="@pageSize"
+                   asp-route-search="@qVal"
+                   asp-route-categoryId="@catVal"
+                   asp-route-status="@stVal">@p</a>
+            }
+
+            <!-- Last + dots -->
+            @if (endP < totalPages)
+            {
+                if (endP < totalPages - 1)
+                {
+                    <span class="pager-dots">…</span>
                 }
 
-                <li class="page-item @(page >= totalPages ? "disabled" : "")">
-                    <a class="page-link"
-                       asp-controller="Item"
-                       asp-action="ItemIndex"
-                       asp-route-page="@(page + 1)"
-                       asp-route-search="@qVal"
-                       asp-route-categoryId="@catVal"
-                       asp-route-status="@stVal">
-                        Next
-                    </a>
-                </li>
-            </ul>
+                <a class="pager-btn @(page == totalPages ? "is-active" : "")"
+                   asp-controller="Item"
+                   asp-action="ItemIndex"
+                   asp-route-page="@totalPages"
+                   asp-route-pageSize="@pageSize"
+                   asp-route-search="@qVal"
+                   asp-route-categoryId="@catVal"
+                   asp-route-status="@stVal">@totalPages</a>
+            }
 
-        </nav>
+            <!-- Next -->
+            <a class="pager-btn @(hasNext ? "" : "is-disabled")"
+               asp-controller="Item"
+               asp-action="ItemIndex"
+               asp-route-page="@(page + 1)"
+               asp-route-pageSize="@pageSize"
+               asp-route-search="@qVal"
+               asp-route-categoryId="@catVal"
+               asp-route-status="@stVal"
+               aria-disabled="@(hasNext ? "false" : "true")">
+                Next
+            </a>
+        </div>
     </div>
+
 
 </div>
 
@@ -590,75 +868,168 @@
 
 <script>
     (() => {
-      /* ===============================
-         Custom Select (cs2 dropdown)
-      ================================ */
+
+      /* =========================================================
+         CS2 (Custom Select) - FIXED dropdown (no clipping) + flip
+         Works for:
+         - Filters cs2 (Category/Status)
+         - Pager cs2 (Rows per page)
+      ========================================================== */
       function setupCS2(cs) {
         const selectId = cs.dataset.select;
         const real = document.getElementById(selectId);
         if (!real) return;
 
-        const btn = cs.querySelector('.cs2-btn');
-        const valueEl = cs.querySelector('.cs2-value');
-        const items = Array.from(cs.querySelectorAll('.cs2-item'));
+        const btn = cs.querySelector(".cs2-btn");
+        const valueEl = cs.querySelector(".cs2-value");
+        const items = Array.from(cs.querySelectorAll(".cs2-item"));
+        const menu = cs.querySelector(".cs2-menu");
+        if (!btn || !valueEl || !menu || items.length === 0) return;
 
         const setActive = (val) => {
+          items.forEach(x => x.classList.remove("is-selected"));
           const found = items.find(i => String(i.dataset.value) === String(val));
+          if (found) found.classList.add("is-selected");
           valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "Select");
         };
 
+        const cleanupFixedMenu = () => {
+          // restore default CSS positioning
+          menu.style.position = "";
+          menu.style.left = "";
+          menu.style.top = "";
+          menu.style.bottom = "";
+          menu.style.width = "";
+          menu.style.maxHeight = "";
+          menu.style.right = "";
+          menu.style.zIndex = "";
+        };
+
+        const positionFixedMenu = () => {
+          // ✅ fixed so it ignores clipping parents
+          const rect = btn.getBoundingClientRect();
+
+          menu.style.position = "fixed";
+          menu.style.left = rect.left + "px";
+          menu.style.width = rect.width + "px";
+          menu.style.right = "auto";
+          menu.style.zIndex = "999999";
+
+          // reset
+          menu.style.top = "auto";
+          menu.style.bottom = "auto";
+          menu.style.maxHeight = "";
+
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const spaceAbove = rect.top;
+
+          // measure menu height
+          menu.style.display = "block";
+          menu.style.visibility = "hidden";
+          const menuH = menu.scrollHeight || 240;
+          menu.style.visibility = "";
+          menu.style.display = "";
+
+          const desired = Math.min(320, menuH);
+          const openUp = spaceBelow < Math.min(220, desired) && spaceAbove > spaceBelow;
+
+          if (openUp) {
+            menu.style.bottom = (window.innerHeight - rect.top + 8) + "px";
+            menu.style.maxHeight = Math.max(140, Math.min(desired, spaceAbove - 16)) + "px";
+          } else {
+            menu.style.top = (rect.bottom + 8) + "px";
+            menu.style.maxHeight = Math.max(140, Math.min(desired, spaceBelow - 16)) + "px";
+          }
+        };
+
+        const close = () => {
+          cs.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+          cleanupFixedMenu();
+        };
+
+        // initial label
         setActive(real.value);
 
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
-          cs.classList.toggle('open');
-          btn.setAttribute('aria-expanded', cs.classList.contains('open') ? 'true' : 'false');
+
+          const willOpen = !cs.classList.contains("open");
+
+          // close other dropdowns first
+          document.querySelectorAll(".cs2.open").forEach(other => {
+            if (other !== cs) {
+              other.classList.remove("open");
+              other.querySelector(".cs2-btn")?.setAttribute("aria-expanded", "false");
+              const m = other.querySelector(".cs2-menu");
+              if (m) {
+                m.style.position = "";
+                m.style.left = "";
+                m.style.top = "";
+                m.style.bottom = "";
+                m.style.width = "";
+                m.style.maxHeight = "";
+                m.style.right = "";
+                m.style.zIndex = "";
+              }
+            }
+          });
+
+          cs.classList.toggle("open", willOpen);
+          btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+
+          if (willOpen) positionFixedMenu();
+          else cleanupFixedMenu();
         });
 
         items.forEach(i => {
-          i.addEventListener('click', (e) => {
+          i.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
 
-            real.value = i.dataset.value;
+            real.value = i.dataset.value ?? "";
             real.dispatchEvent(new Event("change", { bubbles: true }));
-            setActive(i.dataset.value);
+            setActive(real.value);
 
-            cs.classList.remove('open');
-            btn.setAttribute('aria-expanded', 'false');
+            // ✅ if this is pager "rows per page", auto navigate with querystring
+            if (selectId === "PageSizeSelect") {
+              // keep current filters/search, reset page to 1
+              const url = new URL(window.location.href);
+              url.searchParams.set("pageSize", real.value);
+              url.searchParams.set("page", "1");
+              window.location.href = url.toString();
+              return;
+            }
+
+            close();
           });
         });
 
-        document.addEventListener('click', (e) => {
-          if (!cs.contains(e.target)) {
-            cs.classList.remove('open');
-            btn.setAttribute('aria-expanded', 'false');
-          }
+        // click outside closes
+        document.addEventListener("click", (e) => {
+          if (!cs.contains(e.target)) close();
+        });
+
+        // escape closes
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && cs.classList.contains("open")) close();
+        });
+
+        // keep aligned when scrolling/resizing
+        window.addEventListener("scroll", () => {
+          if (cs.classList.contains("open")) positionFixedMenu();
+        }, true);
+
+        window.addEventListener("resize", () => {
+          if (cs.classList.contains("open")) positionFixedMenu();
         });
       }
 
-      document.querySelectorAll('.cs2[data-select]').forEach(setupCS2);
-
-      // Enter in search => submit form nicely
-      const q = document.getElementById('q');
-      const filterForm = document.getElementById('filterForm');
-      q?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          filterForm?.requestSubmit?.();
-        }
-      });
-
-          // ensure cs2 labels match selected option text (server-selected options)
-    document.querySelectorAll('.cs2[data-select]').forEach(cs => {
-      const selectId = cs.dataset.select;
-      const real = document.getElementById(selectId);
-      const valueEl = cs.querySelector('.cs2-value');
-      if (!real || !valueEl) return;
-
-      const selectedText = real.options[real.selectedIndex]?.text || valueEl.textContent;
-      valueEl.textContent = selectedText;
-    });
+      // init all cs2
+      document.querySelectorAll(".cs2[data-select]").forEach(setupCS2);
 
     })();
 </script>
+
+

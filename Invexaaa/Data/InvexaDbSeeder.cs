@@ -9,6 +9,14 @@ namespace Invexaaa.Data
     {
         public static void Seed(InvexaDbContext context)
         {
+            // ======================================
+            // 🚫 DO NOT SEED AGAIN IF USERS EXIST
+            // ======================================
+            if (context.Users.Any())
+            {
+                return; // 🔒 DB already initialized → STOP
+            }
+
             // ===============================
             // ADMIN – System
             // ===============================

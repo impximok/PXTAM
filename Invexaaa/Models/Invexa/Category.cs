@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Invexaaa.Models.Invexa.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Invexaaa.Models.Invexa
 {
@@ -18,5 +19,8 @@ namespace Invexaaa.Models.Invexa
         [MaxLength(20, ErrorMessage = "Category status must not exceed 20 characters.")]
         public string? CategoryStatus { get; set; }
 
+        [Required]
+        [Range(1, 3, ErrorMessage = "Please select a costing method")]
+        public CostingMethod CostingMethod { get; set; }
     }
 }

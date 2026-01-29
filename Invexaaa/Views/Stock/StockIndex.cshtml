@@ -147,7 +147,7 @@
         background: transparent !important;
         color: #000 !important;
         white-space: nowrap;
-        height: 46px;
+        height: 44px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -750,8 +750,10 @@
                                 <td>
                                     <input type="checkbox"
                                            class="row-check chk"
+                                           autocomplete="off"
                                            value="@s.InventoryID"
                                            @(isInactive ? "disabled" : "") />
+
                                 </td>
                                 <td>
                                     <span class="item-name">@s.ItemName</span>
@@ -861,14 +863,35 @@
         const bulkAddBtn = document.getElementById("bulkAddBtn");
         const bulkOutBtn = document.getElementById("bulkOutBtn");
 
-        function updateBulkButton() {
-            const checked =
-                Array.from(document.querySelectorAll(".row-check:checked"))
-                    .filter(c => !c.disabled);
+        function syncBulkUI() {
+            const checks = Array.from(document.querySelectorAll(".row-check"))
+                .filter(c => !c.disabled);
 
+            const checked = checks.filter(c => c.checked);
+
+            // enable/disable buttons
             bulkAddBtn.disabled = checked.length === 0;
-            bulkOutBtn.disabled = checked.length === 0; // ✅ allow 1 OR many
+            bulkOutBtn.disabled = checked.length === 0;
+
+            // sync header checkbox (selectAll)
+            if (checks.length === 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+                return;
+            }
+
+            if (checked.length === 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            } else if (checked.length === checks.length) {
+                selectAll.checked = true;
+                selectAll.indeterminate = false;
+            } else {
+                selectAll.checked = false;
+                selectAll.indeterminate = true;
+            }
         }
+
 
 
 
@@ -876,12 +899,15 @@
                 document.querySelectorAll(".row-check").forEach(c => {
                     if (!c.disabled) c.checked = this.checked;
                 });
-                updateBulkButton();
+                  syncBulkUI();
+
             });
 
             document.querySelectorAll(".row-check").forEach(c =>
-                c.addEventListener("change", updateBulkButton)
+            c.addEventListener("change", syncBulkUI)
             );
+                    // ✅ Fix for "Back" navigation / BFCache restoring checkbox states
+        window.addEventListener("pageshow", syncBulkUI);
 
         bulkAddBtn.addEventListener("click", function () {
             const ids = Array.from(document.querySelectorAll(".row-check:checked"))
@@ -949,8 +975,9 @@
                     r.style.display = (matchText && matchStatus) ? "" : "none";
                 });
 
-                applySortToVisibleRows();
-                updateBulkButton();
+                 applySortToVisibleRows();
+                 syncBulkUI();
+
             }
 
             // ✅ ONLY these triggers
@@ -990,11 +1017,13 @@
                 // clear header checkbox
                 if (selectAll) selectAll.checked = false;
 
-                updateBulkButton();
+        syncBulkUI();
+
             });
 
             // ✅ do NOT auto-filter at load
-            updateBulkButton();
+        syncBulkUI();
+
         })();
     </script>
 }

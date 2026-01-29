@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 using ZXing;
 using ZXing.Common;
+using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using System.Globalization;
 
 namespace Invexaaa.Controllers
 {
@@ -36,8 +39,7 @@ namespace Invexaaa.Controllers
     join c in _context.Categories
         on i.CategoryID equals c.CategoryID
 
-    join s in _context.Suppliers
-        on i.SupplierID equals s.SupplierID
+
 
     // ✅ LEFT JOIN Inventory (CRITICAL FIX)
     join inv in _context.Inventories
@@ -52,7 +54,6 @@ namespace Invexaaa.Controllers
         CategoryID = i.CategoryID,
         CategoryName = c.CategoryName,
 
-        SupplierName = s.SupplierName,
 
         ItemSellPrice = i.ItemSellPrice,
         ItemStatus = i.ItemStatus,
@@ -123,7 +124,7 @@ namespace Invexaaa.Controllers
             var item =
     (from i in _context.Items
      join c in _context.Categories on i.CategoryID equals c.CategoryID
-     join s in _context.Suppliers on i.SupplierID equals s.SupplierID
+
      join inv in _context.Inventories on i.ItemID equals inv.ItemID
      where i.ItemID == id
      select new ItemDetailViewModel
@@ -131,7 +132,7 @@ namespace Invexaaa.Controllers
          ItemID = i.ItemID,
          ItemName = i.ItemName,
          CategoryName = c.CategoryName,
-         SupplierName = s.SupplierName,
+   
 
          UnitOfMeasure = i.ItemUnitOfMeasure,
          BuyPrice = i.ItemBuyPrice,
@@ -185,7 +186,7 @@ namespace Invexaaa.Controllers
                 Categories = _context.Categories
                     .Where(c => c.CategoryStatus == "Active")
                     .ToList(),
-                Suppliers = _context.Suppliers.ToList()
+
             });
         }
 
@@ -200,7 +201,7 @@ namespace Invexaaa.Controllers
             if (!ModelState.IsValid)
             {
                 vm.Categories = _context.Categories.ToList();
-                vm.Suppliers = _context.Suppliers.ToList();
+
                 return View("CreateItem", vm);
             }
             // ================= IMAGE UPLOAD =================
@@ -283,7 +284,7 @@ namespace Invexaaa.Controllers
             {
                 Item = item,
                 Categories = _context.Categories.ToList(),
-                Suppliers = _context.Suppliers.ToList()
+    
             };
 
             return View(vm);
@@ -300,7 +301,7 @@ namespace Invexaaa.Controllers
             {
                 // 🔴 IMPORTANT: reload dropdown data
                 model.Categories = _context.Categories.ToList();
-                model.Suppliers = _context.Suppliers.ToList();
+            
                 return View(model);
             }
 
@@ -312,7 +313,7 @@ namespace Invexaaa.Controllers
             item.ItemDescription = model.Item.ItemDescription;
             item.ItemUnitOfMeasure = model.Item.ItemUnitOfMeasure;
             item.CategoryID = model.Item.CategoryID;
-            item.SupplierID = model.Item.SupplierID;
+
             item.ItemBuyPrice = model.Item.ItemBuyPrice;
             item.ItemSellPrice = model.Item.ItemSellPrice;
             item.ItemReorderLevel = model.Item.ItemReorderLevel;
@@ -558,6 +559,249 @@ namespace Invexaaa.Controllers
                 return NotFound("Item not found");
 
             return RedirectToAction("ItemDetail", new { id = itemId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Import(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["Error"] = "Please upload a valid Excel (.xlsx) or CSV file.";
+                return RedirectToAction(nameof(ItemIndex));
+            }
+
+            var newItems = new List<Item>();
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            // ======================
+            // CSV IMPORT (UTF-8 SAFE)
+            // ======================
+            if (extension == ".csv")
+            {
+                using var reader = new StreamReader(file.OpenReadStream(), true);
+                bool isHeader = true;
+
+                while (!reader.EndOfStream)
+                {
+                    var line = await reader.ReadLineAsync();
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
+                    if (isHeader)
+                    {
+                        isHeader = false;
+                        continue;
+                    }
+
+                    var cols = line.Split(',');
+
+                    if (cols.Length < 6) continue;
+
+                    var itemName = cols[0].Trim().TrimStart('\uFEFF');
+                    var categoryName = cols[1].Trim();
+
+                    if (string.IsNullOrWhiteSpace(itemName)) continue;
+
+                    bool exists = await _context.Items
+                        .AnyAsync(i => i.ItemName == itemName);
+
+                    if (exists) continue;
+
+                    var category = await _context.Categories
+                        .FirstOrDefaultAsync(c => c.CategoryName == categoryName);
+
+                    if (category == null) continue;
+
+                    newItems.Add(new Item
+                    {
+                        ItemName = itemName,
+                        CategoryID = category.CategoryID,
+                        ItemUnitOfMeasure = cols[2].Trim(),
+                        ItemBuyPrice = decimal.TryParse(cols[3], out var buy) ? buy : 0,
+                        ItemSellPrice = decimal.TryParse(cols[4], out var sell) ? sell : 0,
+                        ItemStatus = string.IsNullOrWhiteSpace(cols[5]) ? "Active" : cols[5].Trim(),
+                        ItemCreatedDate = DateTime.Now,
+                        ItemImageUrl = "/images/items/item-default.png"
+                    });
+                }
+            }
+
+            // ======================
+            // XLSX IMPORT (EPPlus 8)
+            // ======================
+            else if (extension == ".xlsx")
+            {
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                using var package = new ExcelPackage(stream);
+                var sheet = package.Workbook.Worksheets.FirstOrDefault();
+
+                if (sheet?.Dimension == null)
+                {
+                    TempData["Error"] = "Excel file is empty.";
+                    return RedirectToAction(nameof(ItemIndex));
+                }
+
+                int rows = sheet.Dimension.Rows;
+
+                for (int row = 2; row <= rows; row++)
+                {
+                    var itemName = sheet.Cells[row, 1].Text.Trim();
+                    var categoryName = sheet.Cells[row, 2].Text.Trim();
+
+                    if (string.IsNullOrWhiteSpace(itemName)) continue;
+
+                    bool exists = await _context.Items
+                        .AnyAsync(i => i.ItemName == itemName);
+
+                    if (exists) continue;
+
+                    var category = await _context.Categories
+                        .FirstOrDefaultAsync(c => c.CategoryName == categoryName);
+
+                    if (category == null) continue;
+
+                    newItems.Add(new Item
+                    {
+                        ItemName = itemName,
+                        CategoryID = category.CategoryID,
+                        ItemUnitOfMeasure = sheet.Cells[row, 3].Text.Trim(),
+                        ItemBuyPrice = decimal.TryParse(sheet.Cells[row, 4].Text, out var buy) ? buy : 0,
+                        ItemSellPrice = decimal.TryParse(sheet.Cells[row, 5].Text, out var sell) ? sell : 0,
+                        ItemReorderLevel = int.TryParse(sheet.Cells[row, 6].Text, out var rl) ? rl : 0,
+                        SafetyStock = int.TryParse(sheet.Cells[row, 7].Text, out var ss) ? ss : 0,
+                        ItemStatus = string.IsNullOrWhiteSpace(sheet.Cells[row, 8].Text)
+                            ? "Active"
+                            : sheet.Cells[row, 8].Text.Trim(),
+                        ItemCreatedDate = DateTime.Now
+                    });
+                }
+            }
+            else
+            {
+                TempData["Error"] = "Unsupported file type.";
+                return RedirectToAction(nameof(ItemIndex));
+            }
+
+            // =====================================================
+            // ⭐ AUTO-GENERATE BARCODE FOR IMPORTED ITEMS
+            // =====================================================
+            var lastBarcode = await _context.Items
+                .Where(i => i.ItemBarcode != null)
+                .OrderByDescending(i => i.ItemID)
+                .Select(i => i.ItemBarcode)
+                .FirstOrDefaultAsync();
+
+            int nextNumber = 1;
+
+            if (!string.IsNullOrEmpty(lastBarcode))
+            {
+                // Expected format: INVX-000123
+                var numberPart = lastBarcode.Split('-')[1];
+                nextNumber = int.Parse(numberPart) + 1;
+            }
+
+            // Assign barcode to each imported item
+            foreach (var item in newItems)
+            {
+                item.ItemBarcode = $"INVX-{nextNumber:D6}";
+                nextNumber++;
+            }
+
+
+            if (newItems.Any())
+            {
+                _context.Items.AddRange(newItems);
+                await _context.SaveChangesAsync();
+
+                // Auto-create inventory rows
+                var inventories = newItems.Select(i => new Inventory
+                {
+                    ItemID = i.ItemID,
+                    InventoryTotalQuantity = 0
+                });
+
+                _context.Inventories.AddRange(inventories);
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["Success"] = $"{newItems.Count} items imported successfully.";
+            return RedirectToAction(nameof(ItemIndex));
+        }
+
+        [HttpGet]
+        public IActionResult Export()
+        {
+            var items =
+    (from i in _context.Items
+     join c in _context.Categories
+         on i.CategoryID equals c.CategoryID
+     orderby i.ItemID
+     select new
+     {
+         i.ItemID,
+         i.ItemName,
+         CategoryName = c.CategoryName,
+         i.ItemUnitOfMeasure,
+         i.ItemBuyPrice,
+         i.ItemSellPrice,
+         i.ItemReorderLevel,
+         i.SafetyStock,
+         i.ItemStatus,
+         i.ItemBarcode
+     })
+    .AsNoTracking()
+    .ToList();
+
+
+            if (!items.Any())
+            {
+                TempData["Error"] = "No item data found to export.";
+                return RedirectToAction(nameof(ItemIndex));
+            }
+
+            using var package = new ExcelPackage();
+            var sheet = package.Workbook.Worksheets.Add("Items");
+
+            // Header
+            sheet.Cells[1, 1].Value = "ItemID";
+            sheet.Cells[1, 2].Value = "ItemName";
+            sheet.Cells[1, 3].Value = "CategoryName";
+            sheet.Cells[1, 4].Value = "UnitOfMeasure";
+            sheet.Cells[1, 5].Value = "BuyPrice";
+            sheet.Cells[1, 6].Value = "SellPrice";
+            sheet.Cells[1, 7].Value = "ReorderLevel";
+            sheet.Cells[1, 8].Value = "SafetyStock";
+            sheet.Cells[1, 9].Value = "ItemStatus";
+            sheet.Cells[1, 10].Value = "Barcode";
+
+            sheet.Cells[1, 1, 1, 10].Style.Font.Bold = true;
+
+            int row = 2;
+            foreach (var i in items)
+            {
+                sheet.Cells[row, 1].Value = i.ItemID;
+                sheet.Cells[row, 2].Value = i.ItemName ?? "";
+                sheet.Cells[row, 3].Value = i.CategoryName ?? "";
+                sheet.Cells[row, 4].Value = i.ItemUnitOfMeasure ?? "";
+                sheet.Cells[row, 5].Value = i.ItemBuyPrice;
+                sheet.Cells[row, 6].Value = i.ItemSellPrice;
+                sheet.Cells[row, 7].Value = i.ItemReorderLevel;
+                sheet.Cells[row, 8].Value = i.SafetyStock;
+                sheet.Cells[row, 9].Value = i.ItemStatus ?? "";
+                sheet.Cells[row, 10].Value = i.ItemBarcode ?? "";
+                row++;
+            }
+
+            sheet.Cells.AutoFitColumns();
+
+            return File(
+                package.GetAsByteArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"Items_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+            );
         }
 
     }

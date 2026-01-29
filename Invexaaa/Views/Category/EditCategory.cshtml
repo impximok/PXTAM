@@ -368,6 +368,20 @@
                         <span asp-validation-for="CategoryStatus" class="text-danger cat-validation"></span>
                     </div>
 
+                    <div class="cat-field">
+                        <label asp-for="CostingMethod" class="cat-label">
+                            Costing Method <span class="req-star">*</span>
+                        </label>
+
+                        <select asp-for="CostingMethod" class="cat-control">
+                            <option value="1">FIFO</option>
+                            <option value="2">Weighted Average</option>
+                            <option value="3">Fixed</option>
+                        </select>
+
+                        <span asp-validation-for="CostingMethod" class="text-danger cat-validation"></span>
+                    </div>
+
                     <!-- Description -->
                     <div class="cat-field cat-span-2">
                         <label asp-for="CategoryDescription" class="cat-label">Description</label>

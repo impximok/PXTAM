@@ -11,8 +11,7 @@ namespace Invexaaa.Models.Invexa
         [Range(1, int.MaxValue, ErrorMessage = "Category is required.")]
         public int CategoryID { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Supplier is required.")]
-        public int SupplierID { get; set; }
+
 
         [Required(ErrorMessage = "Item name is required.")]
         [StringLength(100, ErrorMessage = "Item name must not exceed 100 characters.")]
