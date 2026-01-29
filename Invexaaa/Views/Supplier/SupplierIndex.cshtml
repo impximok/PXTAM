@@ -524,8 +524,8 @@
         border-radius: 10px;
         cursor: pointer;
         margin: 2px 0;
-        font-weight: 500;
-        font-size: 14px;
+        font-weight: 700;
+        font-size: 13px;
     }
 
         .cs2-item:hover {
@@ -709,6 +709,155 @@
             color: #dc2626;
             border-color: #dc2626;
             outline: none;
+        }
+
+    /* ===== table footer like Category ===== */
+    .table-footer {
+        border-top: 1px solid #e5e7eb;
+        padding: 12px 14px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    /* ===== pager layout ===== */
+    .pager-left {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .pager-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .pager-range {
+        display: inline-flex;
+        align-items: center;
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #111;
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .pager-label {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    /* pager buttons */
+    .pager-btn {
+        height: 38px;
+        min-width: 58px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #fff;
+        color: #000;
+        font-size: 13px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color .18s ease, color .18s ease, opacity .18s ease;
+    }
+
+        .pager-btn:hover,
+        .pager-btn:focus-visible {
+            background: #000;
+            color: #fff;
+            outline: none;
+        }
+
+        .pager-btn.is-active {
+            min-width: 38px;
+            padding: 0 14px;
+            background: #000;
+            color: #fff;
+        }
+
+        .pager-btn[disabled] {
+            opacity: .35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    .pager-dots {
+        font-weight: 900;
+        color: #6b7280;
+        padding: 0 4px;
+    }
+
+    /* compact cs2 for footer */
+    .pager-cs2 .cs2-btn {
+        height: 38px;
+        min-width: 80px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        font-size: 13px;
+        font-weight: 900;
+        padding: 0 44px 0 14px;
+    }
+
+    .pager-cs2 .cs2-menu {
+        z-index: 999999 !important;
+        box-shadow: 0 16px 45px rgba(0,0,0,.14);
+    }
+
+    .pager-cs2 .cs2-item {
+        text-align: center;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    /* mobile */
+    @@media (max-width: 700px) {
+        .table-footer {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .pager-right {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    /* ===============================
+                   Subtle vertical column separators
+                ================================ */
+
+    /* Header column separators */
+    .sys-table thead th {
+        border-right: 1px solid #eceef2;
+    }
+
+        .sys-table thead th:last-child {
+            border-right: none;
+        }
+
+    /* Body column separators */
+    .sys-table tbody td {
+        border-right: 1px solid #f0f2f5;
+    }
+
+        .sys-table tbody td:last-child {
+            border-right: none;
         }
 
 </style>
@@ -952,6 +1101,40 @@
                 </tbody>
             </table>
         </div>
+        <!-- ✅ Table footer pagination (CategoryIndex style) -->
+        <div class="table-footer" id="pagerBar">
+            <div class="pager-left">
+                <span class="pager-range" id="pagerInfo">Showing 0–0 of 0</span>
+
+                <span class="pager-label">Rows per page</span>
+
+                <!-- real select (hidden) -->
+                <select class="real-select" id="pageSize">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                </select>
+
+                <!-- custom select -->
+                <div class="cs2 pager-cs2" data-select="pageSize">
+                    <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="cs2-value">50</span>
+                        <span class="cs2-caret"></span>
+                    </button>
+
+                    <div class="cs2-menu" role="listbox">
+                        <button type="button" class="cs2-item" data-value="10">10</button>
+                        <button type="button" class="cs2-item" data-value="25">25</button>
+                        <button type="button" class="cs2-item" data-value="50">50</button>
+                        <button type="button" class="cs2-item" data-value="100">100</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pager-right" id="pagerBtns"></div>
+        </div>
+
     </div>
 
     <!-- Delete Confirm Modal (MATCH CategoryIndex) -->
@@ -980,7 +1163,9 @@
 <script>
     (() => {
 
-      // refs
+      /* ===============================
+         Refs (filters)
+      ================================ */
       const q = document.getElementById('q');
       const statusSelect = document.getElementById('SupplierStatus');
       const sortSelect = document.getElementById('SupplierSort');
@@ -995,47 +1180,144 @@
         const real = document.getElementById(selectId);
         if (!real) return;
 
-        const btn = cs.querySelector('.cs2-btn');
-        const valueEl = cs.querySelector('.cs2-value');
-        const items = Array.from(cs.querySelectorAll('.cs2-item'));
+        const btn = cs.querySelector(".cs2-btn");
+        const valueEl = cs.querySelector(".cs2-value");
+        const items = Array.from(cs.querySelectorAll(".cs2-item"));
+        const menu = cs.querySelector(".cs2-menu");
+        if (!btn || !menu) return;
+
+        const originalParent = menu.parentElement;
+        const originalNext = menu.nextSibling;
 
         const setActive = (val) => {
-          const found = items.find(i => i.dataset.value === val);
-          valueEl.textContent = found ? found.textContent : items[0].textContent;
+          const found = items.find(i => String(i.dataset.value) === String(val));
+          if (valueEl) valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "");
         };
 
+        const measureHeight = () => {
+          const prevDisplay = menu.style.display;
+          const prevVis = menu.style.visibility;
+          menu.style.display = "block";
+          menu.style.visibility = "hidden";
+          const h = menu.scrollHeight || 240;
+          menu.style.visibility = prevVis;
+          menu.style.display = prevDisplay;
+          return h;
+        };
+
+        const placeMenuOnBody = () => {
+          document.body.appendChild(menu);
+          menu.style.position = "fixed";
+          menu.style.zIndex = "2147483647";
+        };
+
+        const returnMenuHome = () => {
+          if (originalParent) {
+            if (originalNext) originalParent.insertBefore(menu, originalNext);
+            else originalParent.appendChild(menu);
+          }
+        };
+
+        const positionMenu = () => {
+          const rect = btn.getBoundingClientRect();
+          const menuH = measureHeight();
+
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const spaceAbove = rect.top;
+          const desired = Math.min(320, menuH);
+
+          const forceUp = cs.classList.contains("pager-cs2");
+          const openUp = forceUp || (spaceBelow < Math.min(220, desired) && spaceAbove > spaceBelow);
+          cs.classList.toggle("open-up", openUp);
+
+          menu.style.left = rect.left + "px";
+          menu.style.width = rect.width + "px";
+          menu.style.right = "auto";
+          menu.style.top = "auto";
+          menu.style.bottom = "auto";
+          menu.style.maxHeight = "";
+
+          if (openUp) {
+            menu.style.bottom = (window.innerHeight - rect.top + 8) + "px";
+            menu.style.maxHeight = Math.max(140, Math.min(desired, spaceAbove - 16)) + "px";
+          } else {
+            menu.style.top = (rect.bottom + 8) + "px";
+            menu.style.maxHeight = Math.max(140, Math.min(desired, spaceBelow - 16)) + "px";
+          }
+        };
+
+        const open = () => {
+          document.querySelectorAll(".cs2.open").forEach(other => {
+            if (other !== cs) {
+              other.classList.remove("open", "open-up");
+              other.querySelector(".cs2-btn")?.setAttribute("aria-expanded", "false");
+            }
+          });
+
+          cs.classList.add("open");
+          btn.setAttribute("aria-expanded", "true");
+
+          placeMenuOnBody();
+          menu.style.display = "block";
+          positionMenu();
+        };
+
+        const close = () => {
+          cs.classList.remove("open", "open-up");
+          btn.setAttribute("aria-expanded", "false");
+
+          menu.style.display = "none";
+          menu.style.position = "";
+          menu.style.left = "";
+          menu.style.top = "";
+          menu.style.bottom = "";
+          menu.style.width = "";
+          menu.style.maxHeight = "";
+          menu.style.right = "";
+          menu.style.zIndex = "";
+
+          returnMenuHome();
+        };
+
+        // init
         setActive(real.value);
 
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
-          cs.classList.toggle('open');
-          btn.setAttribute('aria-expanded', cs.classList.contains('open') ? 'true' : 'false');
+          cs.classList.contains("open") ? close() : open();
         });
 
         items.forEach(i => {
-          i.addEventListener('click', (e) => {
+          i.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
 
-            real.value = i.dataset.value;
+            real.value = i.dataset.value ?? "";
             real.dispatchEvent(new Event("change", { bubbles: true }));
-            setActive(i.dataset.value);
-
-            cs.classList.remove('open');
-            btn.setAttribute('aria-expanded', 'false');
+            setActive(real.value);
+            close();
           });
         });
 
-        document.addEventListener('click', (e) => {
-          if (!cs.contains(e.target)) {
-            cs.classList.remove('open');
-            btn.setAttribute('aria-expanded', 'false');
-          }
+        document.addEventListener("click", (e) => {
+          if (!e.target.closest(".cs2") && cs.classList.contains("open")) close();
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && cs.classList.contains("open")) close();
+        });
+
+        window.addEventListener("scroll", () => {
+          if (cs.classList.contains("open")) positionMenu();
+        }, true);
+
+        window.addEventListener("resize", () => {
+          if (cs.classList.contains("open")) positionMenu();
         });
       }
-      document.querySelectorAll('.cs2[data-select]').forEach(setupCS2);
 
+      document.querySelectorAll('.cs2[data-select]').forEach(setupCS2);
 
       /* ===============================
          Table / rows
@@ -1045,32 +1327,104 @@
 
       const chkAll = document.getElementById('chk-all');
 
-      // store original rows (server-rendered)
+      // server-rendered real data rows only
       const allRows = Array.from(tbody.querySelectorAll('tr[data-name]'));
+
+      /* ===============================
+         Pager refs + state
+      ================================ */
+      const pagerBar   = document.getElementById('pagerBar');
+      const pagerInfo  = document.getElementById('pagerInfo');
+      const pagerBtns  = document.getElementById('pagerBtns');
+      const pageSizeEl = document.getElementById('pageSize');
+
+      let filteredRows = [...allRows];
+      let pageSize = parseInt(pageSizeEl?.value || "50", 10);
+      let page = 1;
+
+      const makeDots = () => {
+        const s = document.createElement('span');
+        s.className = "pager-dots";
+        s.textContent = "…";
+        return s;
+      };
+
+      function clampPage() {
+        const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+        page = Math.min(Math.max(page, 1), totalPages);
+        return totalPages;
+      }
+
+      function renderPager(totalPages) {
+        if (!pagerBar) return;
+
+        const total = filteredRows.length;
+
+        // ✅ hide pager in empty state
+        pagerBar.style.display = (total === 0) ? "none" : "flex";
+        if (total === 0) return;
+
+        const startIdx = (page - 1) * pageSize;
+        const endIdx = Math.min(startIdx + pageSize, total);
+
+        if (pagerInfo) pagerInfo.textContent = `Showing ${startIdx + 1}–${endIdx} of ${total}`;
+
+        if (!pagerBtns) return;
+        pagerBtns.innerHTML = "";
+
+        const makeBtn = (label, onClick, opts = {}) => {
+          const b = document.createElement('button');
+          b.type = "button";
+          b.className = "pager-btn" + (opts.active ? " is-active" : "");
+          b.textContent = label;
+          if (opts.disabled) b.disabled = true;
+          b.addEventListener('click', onClick);
+          return b;
+        };
+
+        pagerBtns.appendChild(makeBtn("Prev", () => { page--; render(); }, { disabled: page === 1 }));
+
+        const windowSize = 5;
+        let start = Math.max(1, page - Math.floor(windowSize / 2));
+        let end = Math.min(totalPages, start + windowSize - 1);
+        start = Math.max(1, end - windowSize + 1);
+
+        if (start > 1) {
+          pagerBtns.appendChild(makeBtn("1", () => { page = 1; render(); }, { active: page === 1 }));
+          if (start > 2) pagerBtns.appendChild(makeDots());
+        }
+
+        for (let p = start; p <= end; p++) {
+          pagerBtns.appendChild(makeBtn(String(p), () => { page = p; render(); }, { active: page === p }));
+        }
+
+        if (end < totalPages) {
+          if (end < totalPages - 1) pagerBtns.appendChild(makeDots());
+          pagerBtns.appendChild(makeBtn(String(totalPages), () => { page = totalPages; render(); }, { active: page === totalPages }));
+        }
+
+        pagerBtns.appendChild(makeBtn("Next", () => { page++; render(); }, { disabled: page === totalPages }));
+      }
 
       /* ===============================
          Bulk selection bar
       ================================ */
       const bulkBar = document.getElementById('bulkBar');
-      const bulkCount = document.getElementById('bulkCount');
 
       function getSelectedIds() {
         return Array.from(tbody.querySelectorAll('.chk-row:checked'))
           .map(cb => cb.value)
           .filter(Boolean);
       }
-    function updateBulkBar() {
-      const ids = getSelectedIds();
-      const n = ids.length;
 
-      const bulkBar = document.getElementById('bulkBar');
-      const bulkText = document.getElementById('bulkText');
+      function updateBulkBar() {
+        const ids = getSelectedIds();
+        const n = ids.length;
 
-      if (bulkText) bulkText.textContent = `${n} selected`;
-      if (bulkBar) bulkBar.hidden = (n === 0);
-    }
-
-
+        const bulkText = document.getElementById('bulkText');
+        if (bulkText) bulkText.textContent = `${n} selected`;
+        if (bulkBar) bulkBar.hidden = (n === 0);
+      }
 
       function getVisibleCheckboxes() {
         return Array.from(tbody.querySelectorAll('tr[data-name] .chk-row'));
@@ -1118,23 +1472,50 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `<td colspan="9"><div class="empty-state">No suppliers found.</div></td>`;
           tbody.appendChild(tr);
+
+          // ✅ no checkboxes visible in empty state
           updateHeaderCheckboxState();
           updateBulkBar();
           return;
         }
 
         rows.forEach(r => tbody.appendChild(r));
-
         updateHeaderCheckboxState();
         updateBulkBar();
       }
 
-      function applyFilterSort() {
+      function render() {
+        const totalPages = clampPage();
+
+        if (filteredRows.length === 0) {
+          renderRows([]);
+
+          // ✅ ensure pager hidden
+          if (pagerBar) pagerBar.style.display = "none";
+          if (pagerInfo) pagerInfo.textContent = "Showing 0–0 of 0";
+          if (pagerBtns) pagerBtns.innerHTML = "";
+
+          // ✅ ensure bulk bar hidden
+          if (bulkBar) bulkBar.hidden = true;
+          return;
+        }
+
+        const startIdx = (page - 1) * pageSize;
+        const rows = filteredRows.slice(startIdx, startIdx + pageSize);
+
+        renderRows(rows);
+        renderPager(totalPages);
+      }
+
+      /* ===============================
+         Filter + Sort
+      ================================ */
+      function applyFilterSort(resetToFirstPage = true) {
         const keyword = (q?.value || "").trim().toLowerCase();
         const status = statusSelect?.value || "";
         const sort = sortSelect?.value || "az";
 
-        let filtered = allRows.filter(tr => {
+        filteredRows = allRows.filter(tr => {
           const name = (tr.dataset.name || "").toLowerCase();
           const phone = (tr.dataset.phone || "").toLowerCase();
           const st = (tr.dataset.status || "");
@@ -1143,7 +1524,7 @@
           return matchText && matchStatus;
         });
 
-        filtered.sort((a, b) => {
+        filteredRows.sort((a, b) => {
           if (sort === "az" || sort === "za") {
             const an = (a.dataset.name || "").toLowerCase();
             const bn = (b.dataset.name || "").toLowerCase();
@@ -1157,57 +1538,70 @@
           return sort === "lt_asc" ? (al - bl) : (bl - al);
         });
 
-        renderRows(filtered);
+        if (resetToFirstPage) page = 1;
+        render();
       }
 
-      btnFilter?.addEventListener('click', applyFilterSort);
+      /* ===============================
+         Events (ONLY ONCE)
+      ================================ */
+      btnFilter?.addEventListener('click', () => applyFilterSort(true));
+
       btnReset?.addEventListener('click', () => {
         if (q) q.value = "";
         if (statusSelect) statusSelect.value = "";
         if (sortSelect) sortSelect.value = "az";
-        renderRows(allRows);
+
+        filteredRows = [...allRows];
+        page = 1;
+        render();
       });
 
       q?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          applyFilterSort();
+          applyFilterSort(true);
         }
       });
 
-      // initial
+      pageSizeEl?.addEventListener('change', () => {
+        pageSize = parseInt(pageSizeEl.value || "50", 10);
+        page = 1;
+        render();
+      });
+
+      /* ===============================
+         Initial
+      ================================ */
+      filteredRows = [...allRows];
+      page = 1;
+      render();
       updateHeaderCheckboxState();
       updateBulkBar();
 
-
       /* ===============================
-         Bulk delete flow (WORKING)
+         Bulk delete flow (your existing)
       ================================ */
       const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
       const bulkDeleteForm = document.getElementById('bulkDeleteForm');
       const bulkDeleteIds = document.getElementById('bulkDeleteIds');
-
       const bulkModal = document.getElementById('bulkDeleteModal');
-      const bulkN = document.getElementById('bulkN');
-      const bulkIdsText = document.getElementById('bulkIdsText');
       const confirmBulkDeleteBtn = document.getElementById('confirmBulkDeleteBtn');
 
-    function openBulkModal() {
-      const ids = getSelectedIds();
-      if (!ids.length) return;
+      function openBulkModal() {
+        const ids = getSelectedIds();
+        if (!ids.length) return;
 
-      const bulkModal = document.getElementById('bulkDeleteModal');
-      const bulkCountEl = document.getElementById('bulkModalCount');
-      const bulkIdsEl = document.getElementById('bulkIds');
+        const bulkCountEl = document.getElementById('bulkModalCount');
+        const bulkIdsEl = document.getElementById('bulkIds');
 
-      if (bulkCountEl) bulkCountEl.textContent = String(ids.length);
-      if (bulkIdsEl) bulkIdsEl.textContent = ids.join(', ');
+        if (bulkCountEl) bulkCountEl.textContent = String(ids.length);
+        if (bulkIdsEl) bulkIdsEl.textContent = ids.join(', ');
 
-      bulkModal?.classList.add('open');
-      bulkModal?.setAttribute('aria-hidden', 'false');
-      bulkModal?.querySelector('.ix-outline')?.focus();
-    }
-
+        bulkModal?.classList.add('open');
+        bulkModal?.setAttribute('aria-hidden', 'false');
+        bulkModal?.querySelector('.ix-outline')?.focus();
+      }
 
       function closeBulkModal() {
         bulkModal?.classList.remove('open');
@@ -1232,58 +1626,52 @@
         if (e.key === 'Escape' && bulkModal?.classList.contains('open')) closeBulkModal();
       });
 
-         /* ===============================
-       Single Delete Modal (ROW DELETE)
-    ================================ */
-    const deleteModal = document.getElementById('deleteModal');
-    const deleteNameEl = document.getElementById('deleteName');
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+      /* ===============================
+         Single Delete Modal (ROW DELETE)
+      ================================ */
+      const deleteModal = document.getElementById('deleteModal');
+      const deleteNameEl = document.getElementById('deleteName');
+      const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-    let pendingDeleteForm = null;
+      let pendingDeleteForm = null;
 
-    function openDeleteModal(form) {
-      pendingDeleteForm = form;
+      function openDeleteModal(form) {
+        pendingDeleteForm = form;
 
-      const name = form.dataset.name || "this supplier";
-      if (deleteNameEl) deleteNameEl.textContent = `"${name}"`;
+        const name = form.dataset.name || "this supplier";
+        if (deleteNameEl) deleteNameEl.textContent = `"${name}"`;
 
-      deleteModal?.classList.add('open');
-      deleteModal?.setAttribute('aria-hidden', 'false');
-      deleteModal?.querySelector('.ix-outline')?.focus();
-    }
+        deleteModal?.classList.add('open');
+        deleteModal?.setAttribute('aria-hidden', 'false');
+        deleteModal?.querySelector('.ix-outline')?.focus();
+      }
 
-    function closeDeleteModal() {
-      deleteModal?.classList.remove('open');
-      deleteModal?.setAttribute('aria-hidden', 'true');
-      pendingDeleteForm = null;
-    }
+      function closeDeleteModal() {
+        deleteModal?.classList.remove('open');
+        deleteModal?.setAttribute('aria-hidden', 'true');
+        pendingDeleteForm = null;
+      }
 
-    // Intercept ONLY the row delete forms
-    document.addEventListener('submit', (e) => {
-      const form = e.target.closest('form.delete-form');
-      if (!form) return;
+      document.addEventListener('submit', (e) => {
+        const form = e.target.closest('form.delete-form');
+        if (!form) return;
 
-      e.preventDefault();   // stop immediate submit
-      e.stopPropagation();  // avoid other submit listeners
-      openDeleteModal(form);
-    });
+        e.preventDefault();
+        e.stopPropagation();
+        openDeleteModal(form);
+      });
 
-    // Confirm -> actually submit
-    confirmDeleteBtn?.addEventListener('click', () => {
-      if (pendingDeleteForm) pendingDeleteForm.submit();
-    });
+      confirmDeleteBtn?.addEventListener('click', () => {
+        if (pendingDeleteForm) pendingDeleteForm.submit();
+      });
 
-    // Close (backdrop + cancel)
-    deleteModal?.addEventListener('click', (e) => {
-      if (e.target?.dataset?.close === "true") closeDeleteModal();
-    });
+      deleteModal?.addEventListener('click', (e) => {
+        if (e.target?.dataset?.close === "true") closeDeleteModal();
+      });
 
-    // Escape closes
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && deleteModal?.classList.contains('open')) closeDeleteModal();
-    });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && deleteModal?.classList.contains('open')) closeDeleteModal();
+      });
 
     })();
 </script>
-
-

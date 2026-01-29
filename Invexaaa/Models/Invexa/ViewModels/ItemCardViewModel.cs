@@ -7,7 +7,7 @@
         public string ItemName { get; set; }
         public int CategoryID { get; set; }
         public string CategoryName { get; set; }
-        public string SupplierName { get; set; }
+
 
         public decimal ItemSellPrice { get; set; }
         public string ItemStatus { get; set; }

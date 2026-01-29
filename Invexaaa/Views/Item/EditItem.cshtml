@@ -1427,7 +1427,7 @@
         <input type="hidden" asp-for="Item.ItemBarcode" />
         <input type="hidden" asp-for="Item.ItemStatus" />
         <input type="hidden" asp-for="Item.CategoryID" />
-        <input type="hidden" asp-for="Item.SupplierID" />
+        
 
 
 
@@ -1591,49 +1591,7 @@
                     <span asp-validation-for="Item.CategoryID" class="text-danger"></span>
                 </div>
 
-                <!-- SUPPLIER -->
-                <div class="field">
-                    <label>Supplier <span class="req">*</span></label>
-
-                    <div class="dd" data-name="Item.SupplierID" data-type="supplier">
-                        <input type="hidden" name="Item.SupplierID" value="@Model.Item?.SupplierID" />
-
-                        <div class="dd-head">
-                            <button type="button" class="dd-btn" aria-haspopup="listbox">
-                                <span class="dd-value dd-placeholder">Select Supplier</span>
-                                <span class="dd-arrow" aria-hidden="true"></span>
-                            </button>
-
-                            <button type="button"
-                                    class="dd-action dd-add"
-                                    title="New Supplier"
-                                    aria-label="New Supplier"
-                                    data-new-url="@Url.Action("Create", "Supplier")">
-                                ＋
-                            </button>
-
-                            <button type="button"
-                                    class="dd-action dd-refresh-btn"
-                                    title="Refresh suppliers"
-                                    aria-label="Refresh suppliers"
-                                    data-refresh-url="@Url.Action("ListJson", "Supplier")">
-                                ⟳
-                            </button>
-                        </div>
-
-                        <div class="dd-menu" role="listbox">
-                            <input type="text" class="dd-search" placeholder="Search..." autocomplete="off" />
-                            <div class="dd-items">
-                                @foreach (var s in Model.Suppliers)
-                                {
-                                    <div class="dd-item" data-value="@s.SupplierID">@s.SupplierName</div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-
-                    <span asp-validation-for="Item.SupplierID" class="text-danger"></span>
-                </div>
+                
             </div>
 
 
@@ -2233,7 +2191,7 @@
 
                   function syncAll() {
                     syncDd('.dd[data-name="Item.CategoryID"]');
-                    syncDd('.dd[data-name="Item.SupplierID"]');
+                    
                   }
 
                   // initial: clean (grey)
@@ -2247,13 +2205,13 @@
 
                   // whenever user selects items / closes menu
                   document.addEventListener("click", (e) => {
-                    if (e.target.closest('.dd[data-name="Item.CategoryID"], .dd[data-name="Item.SupplierID"]')) {
+                    if (e.target.closest('.dd[data-name="Item.CategoryID"]')) {
                       setTimeout(syncAll, 0);
                     }
                   });
 
                   // watch validation span changes (jQuery updates these dynamically)
-                  ["Item.CategoryID", "Item.SupplierID"].forEach(name => {
+                  ["Item.CategoryID"].forEach(name => {
                     const span = document.querySelector(`[data-valmsg-for="${name}"]`);
                     if (!span) return;
                     new MutationObserver(syncAll).observe(span, { childList: true, subtree: true, characterData: true });
@@ -2530,7 +2488,7 @@
 
                     function syncAll() {
                         syncDdByHidden('.dd[data-name="Item.CategoryID"]');
-                        syncDdByHidden('.dd[data-name="Item.SupplierID"]');
+                        
                     }
 
                     // initial

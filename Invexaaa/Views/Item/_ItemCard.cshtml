@@ -11,11 +11,12 @@
 
         <div class="itemCard__media">
             <img src="@(string.IsNullOrWhiteSpace(Model.ItemImageUrl)
-                                             ? "/images/no-image.png"
-                                             : Model.ItemImageUrl)"
-                 alt="@Model.ItemName"
+                     ? "/images/items/item-default.png"
+                     : Model.ItemImageUrl)"
+                 onerror="this.onerror=null;this.src='/images/items/item-default.png';"
                  class="itemCard__img"
-                 onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                 alt="@Model.ItemName" />
+
 
             <span class="itemCard__statusPill @(Model.ItemStatus == "Active" ? "isActive" : "isInactive")">
                 @Model.ItemStatus
@@ -33,10 +34,7 @@
                     <span class="label">Category</span>
                     <span class="value">@Model.CategoryName</span>
                 </div>
-                <div class="itemCard__metaRow">
-                    <span class="label">Supplier</span>
-                    <span class="value">@Model.SupplierName</span>
-                </div>
+                
             </div>
 
             <div class="itemCard__price">

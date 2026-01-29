@@ -15,7 +15,11 @@ namespace Invexaaa.Models.ViewModels
         public string Reason { get; set; } = "";
 
         public List<BulkMinusPreviewRow> PreviewItems { get; set; } = new();
+
+        public bool ShowSummary { get; set; } = false;
+
     }
+
 
     public class BulkMinusPreviewRow
     {

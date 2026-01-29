@@ -557,6 +557,21 @@
                     <span asp-validation-for="CategoryStatus" class="text-danger small"></span>
                 </div>
 
+                <!-- Costing Method -->
+                <div class="field">
+                    <label asp-for="CostingMethod" class="label">
+                        Costing Method <span class="req">*</span>
+                    </label>
+
+                    <select asp-for="CostingMethod" class="control">
+                        <option value="">Select Costing Method</option>
+                        <option value="1">FIFO</option>
+                        <option value="2">Weighted Average</option>
+                        <option value="3">Fixed</option>
+                    </select>
+
+                    <span asp-validation-for="CostingMethod" class="text-danger small"></span>
+                </div>
 
 
                 <!-- Description -->

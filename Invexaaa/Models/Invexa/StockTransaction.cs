@@ -25,6 +25,10 @@ namespace Invexaaa.Models.Invexa
         [Range(1, int.MaxValue, ErrorMessage = "Transaction quantity must be at least 1.")]
         public int TransactionQuantity { get; set; }
 
+        [Required(ErrorMessage = "Unit cost is required.")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Unit cost must be greater than 0.")]
+        public decimal UnitCost { get; set; }
+
         [Required(ErrorMessage = "Transaction date is required.")]
         public DateTime TransactionDate { get; set; } = DateTime.Now;
 

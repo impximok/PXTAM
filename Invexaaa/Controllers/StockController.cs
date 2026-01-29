@@ -3,6 +3,7 @@ using Invexaaa.Models.Invexa;
 using Invexaaa.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Security.Claims;
 
 namespace Invexaaa.Controllers
@@ -119,7 +120,6 @@ namespace Invexaaa.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AdjustStockByBatch(AdjustStockByBatchViewModel vm)
         {
-
             // 🔒 BLOCK inactive items
             if (IsItemInactive(vm.ItemID))
             {
@@ -127,12 +127,23 @@ namespace Invexaaa.Controllers
                 return RedirectToAction("ItemDetail", "Item", new { id = vm.ItemID });
             }
 
-            // ✅ VALIDATION GUARD (MISSING)
+            // ✅ If invalid, re-load batches so the page can render properly
             if (!ModelState.IsValid)
             {
+                vm.Batches = _context.StockBatches
+                    .Where(b => b.ItemID == vm.ItemID)
+                    .OrderBy(b => b.BatchExpiryDate)
+                    .Select(b => new AdjustStockBatchRowViewModel
+                    {
+                        BatchID = b.BatchID,
+                        BatchNumber = b.BatchNumber,
+                        BatchExpiryDate = b.BatchExpiryDate,
+                        AvailableQuantity = b.BatchQuantity
+                    })
+                    .ToList();
+
                 return View(vm);
             }
-
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -140,10 +151,8 @@ namespace Invexaaa.Controllers
 
             try
             {
-                var inventory = _context.Inventories
-                    .First(i => i.InventoryID == vm.InventoryID);
+                var inventory = _context.Inventories.First(i => i.InventoryID == vm.InventoryID);
 
-                var inventoryQtyBefore = inventory.InventoryTotalQuantity;
                 int netInventoryChange = 0;
 
                 var adjustment = new StockAdjustment
@@ -159,27 +168,34 @@ namespace Invexaaa.Controllers
 
                 foreach (var row in vm.Batches)
                 {
-                    if (row.AdjustQuantity == 0)
-                        continue;
+                    if (row.AdjustQuantity == 0) continue;
 
-                    var batch = _context.StockBatches
-                        .First(b => b.BatchID == row.BatchID);
+                    var batch = _context.StockBatches.First(b => b.BatchID == row.BatchID);
 
-                    // ❌ Prevent negative batch quantity
                     if (batch.BatchQuantity + row.AdjustQuantity < 0)
                     {
-                        ModelState.AddModelError("",
-                            $"Batch {batch.BatchNumber} cannot go below zero.");
+                        ModelState.AddModelError("", $"Batch {batch.BatchNumber} cannot go below zero.");
+
+                        // reload batches for view
+                        vm.Batches = _context.StockBatches
+                            .Where(b => b.ItemID == vm.ItemID)
+                            .OrderBy(b => b.BatchExpiryDate)
+                            .Select(b => new AdjustStockBatchRowViewModel
+                            {
+                                BatchID = b.BatchID,
+                                BatchNumber = b.BatchNumber,
+                                BatchExpiryDate = b.BatchExpiryDate,
+                                AvailableQuantity = b.BatchQuantity
+                            })
+                            .ToList();
+
                         return View(vm);
                     }
 
-                    var batchQtyBefore = batch.BatchQuantity;
-
-                    // ✅ Apply batch change
+                    var before = batch.BatchQuantity;
                     batch.BatchQuantity += row.AdjustQuantity;
                     netInventoryChange += row.AdjustQuantity;
 
-                    // ✅ Stock transaction
                     _context.StockTransactions.Add(new StockTransaction
                     {
                         UserID = userId,
@@ -190,13 +206,12 @@ namespace Invexaaa.Controllers
                         TransactionRemark = vm.AdjustmentReason
                     });
 
-                    // ✅ Per-batch adjustment detail (AUDIT GOLD)
                     _context.StockAdjustmentDetails.Add(new StockAdjustmentDetail
                     {
                         AdjustmentID = adjustment.AdjustmentID,
                         ItemID = vm.ItemID,
                         BatchID = batch.BatchID,
-                        QuantityBefore = batchQtyBefore,
+                        QuantityBefore = before,
                         QuantityAfter = batch.BatchQuantity,
                         QuantityDifference = row.AdjustQuantity
                     });
@@ -205,10 +220,22 @@ namespace Invexaaa.Controllers
                 if (netInventoryChange == 0)
                 {
                     ModelState.AddModelError("", "No adjustments were entered.");
+
+                    vm.Batches = _context.StockBatches
+                        .Where(b => b.ItemID == vm.ItemID)
+                        .OrderBy(b => b.BatchExpiryDate)
+                        .Select(b => new AdjustStockBatchRowViewModel
+                        {
+                            BatchID = b.BatchID,
+                            BatchNumber = b.BatchNumber,
+                            BatchExpiryDate = b.BatchExpiryDate,
+                            AvailableQuantity = b.BatchQuantity
+                        })
+                        .ToList();
+
                     return View(vm);
                 }
 
-                // ✅ Update inventory total
                 inventory.InventoryTotalQuantity += netInventoryChange;
                 inventory.InventoryLastUpdated = DateTime.Now;
 
@@ -219,10 +246,13 @@ namespace Invexaaa.Controllers
             }
             catch
             {
-                tx.Rollback();
+                if (tx.GetDbTransaction().Connection != null)
+                    tx.Rollback();
+
                 throw;
             }
         }
+
 
         // ============================
         // ADD STOCK (GET)
@@ -395,6 +425,8 @@ namespace Invexaaa.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult MinusStockBatchBulk(BulkMinusStockViewModel vm)
         {
+            vm.PreviewItems = BuildMinusPreview(vm.InventoryIds);
+
             if (!ModelState.IsValid)
                 return View(vm);
 
@@ -406,10 +438,7 @@ namespace Invexaaa.Controllers
             {
                 foreach (var inventoryId in vm.InventoryIds)
                 {
-                    var inv =
-    _context.Inventories
-        .First(i => i.InventoryID == inventoryId);
-
+                    var inv = _context.Inventories.First(i => i.InventoryID == inventoryId);
 
                     if (IsItemInactive(inv.ItemID))
                         continue;
@@ -450,14 +479,18 @@ namespace Invexaaa.Controllers
                 _context.SaveChanges();
                 tx.Commit();
 
-                return RedirectToAction(nameof(StockIndex));
+                vm.ShowSummary = true;
+                return View(vm);
             }
             catch
             {
-                tx.Rollback();
+                if (tx.GetDbTransaction().Connection != null)
+                    tx.Rollback();
+
                 throw;
             }
         }
+
 
 
         // =====================================================
@@ -565,6 +598,19 @@ namespace Invexaaa.Controllers
 
             return RedirectToAction("ExpiryTrackingIndex", "ExpiryTracking");
         }
+        private List<BulkMinusPreviewRow> BuildMinusPreview(List<int> ids)
+        {
+            if (ids == null || ids.Count == 0) return new();
 
+            return (from inv in _context.Inventories
+                    join item in _context.Items on inv.ItemID equals item.ItemID
+                    where ids.Contains(inv.InventoryID) && item.ItemStatus == "Active"
+                    select new BulkMinusPreviewRow
+                    {
+                        InventoryID = inv.InventoryID,
+                        ItemName = item.ItemName,
+                        AvailableQuantity = inv.InventoryTotalQuantity
+                    }).ToList();
+        }
     }
 }

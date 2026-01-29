@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="wwwroot\images\Items\" />
     <Folder Include="wwwroot\sounds\" />
   </ItemGroup>
 
@@ -23,6 +22,7 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="EPPlus" Version="8.4.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.7">
