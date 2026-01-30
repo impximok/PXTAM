@@ -1,12 +1,13 @@
 global using Invexaaa.Models;
 global using Invexaaa.Models.Invexa;
+using Invexaaa.Data;
 using Invexaaa.Helpers;
+using Invexaaa.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Rotativa.AspNetCore;
-using Invexaaa.Data;
-using QuestPDF.Infrastructure;
 using OfficeOpenXml;
+using QuestPDF.Infrastructure;
+using Rotativa.AspNetCore;
 
 
 
@@ -24,6 +25,9 @@ builder.Services.AddControllersWithViews();
 // DbContext
 builder.Services.AddDbContext<InvexaDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<UnitConversionService>();
+
 
 // Auth
 

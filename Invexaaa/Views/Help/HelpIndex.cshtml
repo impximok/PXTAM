@@ -5,237 +5,873 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4 help-container">
-
-    <h2 class="help-title mb-2">Help & User Guide</h2>
-    <p class="help-muted">
-        This page explains how to use the Invexa Smart Inventory Intelligence System.
-        All information reflects the system’s actual functionality and user permissions.
-    </p>
-
-    <hr />
+<div class="help-page">
 
     <!-- ===================== -->
-    <!-- QUICK HELP / FAQ -->
+    <!-- HEADER -->
     <!-- ===================== -->
-    <h5 class="mt-4">Quick Help (FAQ)</h5>
-
-    <div class="accordion mt-3" id="helpFaq">
-
-        <!-- FAQ 1 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#faq1">
-                    How do I create a new item (product)?
-                </button>
-            </h2>
-            <div id="faq1" class="accordion-collapse collapse show">
-                <div class="accordion-body">
-                    Go to <strong>Items</strong> → <strong>Create Item</strong>.
-                    Only <strong>Admin</strong> and <strong>Manager</strong> roles are allowed to create items.
-                    An inventory record is automatically created with zero quantity.
-                </div>
-            </div>
+    <div class="help-head">
+        <div>
+            <h2 class="help-title">Help & User Guide</h2>
+            <p class="help-muted">
+                This page explains how to use the Invexa Smart Inventory Intelligence System.
+                All information reflects the system’s actual functionality and user permissions.
+            </p>
         </div>
-
-        <!-- FAQ 2 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#faq2">
-                    How do I add stock to an item?
-                </button>
-            </h2>
-            <div id="faq2" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    Go to <strong>Stock</strong> → <strong>Add Stock Batch</strong>.
-                    Stock is added by batch, and each batch must have an expiry date.
-                    Inactive items cannot be restocked.
-                </div>
-            </div>
-        </div>
-
-        <!-- FAQ 3 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#faq3">
-                    What does “Low Stock” and “Reorder Required” mean?
-                </button>
-            </h2>
-            <div id="faq3" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <strong>Low Stock</strong> means the quantity is at or below the reorder level.<br />
-                    <strong>Reorder Required</strong> means the quantity has fallen below the reorder point.
-                </div>
-            </div>
-        </div>
-
-        <!-- FAQ 4 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#faq4">
-                    What is “Near Expiry”?
-                </button>
-            </h2>
-            <div id="faq4" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    Expiry status is calculated dynamically:
-                    <ul>
-                        <li><strong>Expired</strong> – Expiry date before today</li>
-                        <li><strong>Near Expiry</strong> – Expiry date within 7 or 30 days (based on filter)</li>
-                        <li><strong>Safe</strong> – Expiry date more than 30 days away</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- FAQ 5 -->
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#faq5">
-                    Who can modify inventory and stock?
-                </button>
-            </h2>
-            <div id="faq5" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <strong>Admin</strong> and <strong>Manager</strong> users can manage items and stock.
-                    <strong>Staff</strong> users have limited access.
-                    Inactive items cannot be adjusted or restocked.
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <hr class="help-section" />
+    <!-- ===================== -->
+    <!-- FAQ CARD -->
+    <!-- ===================== -->
+    <section class="help-card">
+        <div class="help-card-head">
+            <h5 class="help-h">Quick Help (FAQ)</h5>
+            <span class="help-chip">Common questions</span>
+        </div>
+
+        <div class="accordion inv-accordion" id="helpFaq">
+
+            <!-- FAQ 1 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="h1">
+                    <button class="accordion-button" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faq1"
+                            aria-expanded="true" aria-controls="faq1">
+                        How do I create a new item (product)?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse show" aria-labelledby="h1" data-bs-parent="#helpFaq">
+                    <div class="accordion-body">
+                        Go to <strong>Items</strong> → <strong>Create Item</strong>.
+                        Only <strong>Admin</strong> and <strong>Manager</strong> roles are allowed to create items.
+                        An inventory record is automatically created with zero quantity.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="h2">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faq2"
+                            aria-expanded="false" aria-controls="faq2">
+                        How do I add stock to an item?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" aria-labelledby="h2" data-bs-parent="#helpFaq">
+                    <div class="accordion-body">
+                        Go to <strong>Stock</strong> → <strong>Add Stock Batch</strong>.
+                        Stock is added by batch, and each batch must have an expiry date.
+                        Inactive items cannot be restocked.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="h3">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faq3"
+                            aria-expanded="false" aria-controls="faq3">
+                        What does “Low Stock” and “Reorder Required” mean?
+                    </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" aria-labelledby="h3" data-bs-parent="#helpFaq">
+                    <div class="accordion-body">
+                        <strong>Low Stock</strong> means the quantity is at or below the reorder level.<br />
+                        <strong>Reorder Required</strong> means the quantity has fallen below the reorder point.
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="h4">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faq4"
+                            aria-expanded="false" aria-controls="faq4">
+                        What is “Near Expiry”?
+                    </button>
+                </h2>
+                <div id="faq4" class="accordion-collapse collapse" aria-labelledby="h4" data-bs-parent="#helpFaq">
+                    <div class="accordion-body">
+                        Expiry status is calculated dynamically:
+                        <ul class="help-ul">
+                            <li><strong>Expired</strong> – Expiry date before today</li>
+                            <li><strong>Near Expiry</strong> – Expiry date within 7 or 30 days (based on filter)</li>
+                            <li><strong>Safe</strong> – Expiry date more than 30 days away</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ 5 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="h5">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#faq5"
+                            aria-expanded="false" aria-controls="faq5">
+                        Who can modify inventory and stock?
+                    </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" aria-labelledby="h5" data-bs-parent="#helpFaq">
+                    <div class="accordion-body">
+                        <strong>Admin</strong> and <strong>Manager</strong> users can manage items and stock.
+                        <strong>Staff</strong> users have limited access.
+                        Inactive items cannot be adjusted or restocked.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
 
     <!-- ===================== -->
-    <!-- SYSTEM FEATURES -->
+    <!-- FEATURES CARD -->
     <!-- ===================== -->
-    <h5>System Features Overview</h5>
+    <section class="help-card">
+        <div class="help-card-head">
+            <h5 class="help-h">System Features Overview</h5>
+            <span class="help-chip">What you can do</span>
+        </div>
 
-    <ul class="mt-2">
-        <li>
-            <strong>Item Management</strong> – View, create, edit, deactivate, or permanently delete items.
-            Each item includes category, supplier, pricing, reorder settings, and barcode.
-        </li>
-        <li>
-            <strong>Inventory Overview</strong> – Displays total stock quantity and health status
-            (Critical, Low, Healthy).
-        </li>
-        <li>
-            <strong>Batch-Based Stock Management</strong> – Stock is added and adjusted by batch with
-            full audit tracking and quantity validation.
-        </li>
-        <li>
-            <strong>Expiry Tracking</strong> – Batch expiry status is calculated live and can be filtered
-            by category, expiry status, and date range.
-        </li>
-        <li>
-            <strong>Alerts Dashboard</strong> – Highlights expired batches, near-expiry items,
-            low stock items, and reorder requirements.
-        </li>
-        <li>
-            <strong>Role-Based Access Control</strong> – Different permissions for Admin, Manager, and Staff
-            to ensure system security.
-        </li>
-    </ul>
-
-    <hr class="help-section" />
+        <ul class="feature-list">
+            <li>
+                <span class="dot"></span>
+                <div>
+                    <strong>Item Management</strong>
+                    <div class="help-muted small">View, create, edit, deactivate, or permanently delete items. Includes category, supplier, pricing, reorder settings, and barcode.</div>
+                </div>
+            </li>
+            <li>
+                <span class="dot"></span>
+                <div>
+                    <strong>Inventory Overview</strong>
+                    <div class="help-muted small">Displays total stock quantity and health status (Critical, Low, Healthy).</div>
+                </div>
+            </li>
+            <li>
+                <span class="dot"></span>
+                <div>
+                    <strong>Batch-Based Stock Management</strong>
+                    <div class="help-muted small">Stock is added and adjusted by batch with audit tracking and quantity validation.</div>
+                </div>
+            </li>
+            <li>
+                <span class="dot"></span>
+                <div>
+                    <strong>Expiry Tracking</strong>
+                    <div class="help-muted small">Batch expiry status is calculated live and can be filtered by category, expiry status, and date range.</div>
+                </div>
+            </li>
+            <li>
+                <span class="dot"></span>
+                <div>
+                    <strong>Alerts Dashboard</strong>
+                    <div class="help-muted small">Highlights expired batches, near-expiry items, low stock items, and reorder requirements.</div>
+                </div>
+            </li>
+            <li>
+                <span class="dot"></span>
+                <div>
+                    <strong>Role-Based Access Control</strong>
+                    <div class="help-muted small">Different permissions for Admin, Manager, and Staff to ensure security.</div>
+                </div>
+            </li>
+        </ul>
+    </section>
 
     <!-- ===================== -->
-    <!-- USER GUIDE DOWNLOAD -->
+    <!-- DOWNLOAD CARD -->
     <!-- ===================== -->
-    <h5>User Guide (PDF)</h5>
-    <p class="help-muted">
-        Download the official user guide generated directly from the system logic.
-        This ensures the documentation always remains accurate and up to date.
-    </p>
+    <section class="help-card">
+        <div class="help-card-head">
+            <h5 class="help-h">User Guide (PDF)</h5>
+            <span class="help-chip">Official doc</span>
+        </div>
 
-    <a asp-controller="Help"
-       asp-action="DownloadUserGuide"
-       class="btn btn-download btn-sm">
-        Download User Guide (PDF)
-    </a>
-    <div class="mt-4 qr-section">
-        <p class="help-muted mb-2">
-            Scan to download the User Guide
-        </p>
+        <div class="guide-grid">
+            <!-- LEFT -->
+            <div class="guide-left">
+                <p class="help-muted guide-desc">
+                    Download the official user guide generated directly from the system logic.
+                    This ensures documentation remains accurate and up to date.
+                </p>
 
-        <img src="@Url.Action("UserGuideQr", "Help")"
-             alt="User Guide QR Code"
-             class="qr-image" />
-    </div>
+                <div class="guide-actions">
+                    <a asp-controller="Help"
+                       asp-action="DownloadUserGuide"
+                       class="btn inv-btn-primary">
+                        Download User Guide (PDF)
+                    </a>
+
+
+                </div>
+            </div>
+
+
+            <!-- RIGHT -->
+            <div class="guide-right">
+                <div class="qr-box refined">
+                    <div class="qr-title">Scan to download</div>
+
+                    <img src="@Url.Action("UserGuideQr", "Help")"
+                         alt="User Guide QR Code"
+                         class="qr-image" />
+
+                    <div class="qr-help">
+                        Share this QR code with staff for quick access.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
 
 
 </div>
 
 <style>
-    .help-container {
-        max-width: 900px;
-        margin: auto;
-        color: #111;
+    /* ===============================
+               INVEXA · BLACK & WHITE SYSTEM
+            =============================== */
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e6e7eb;
+        --soft: #f6f7f9;
+        --shadow: 0 10px 24px rgba(0,0,0,.06);
+        --radius: 18px;
+        --focus: 0 0 0 4px rgba(17,17,17,.08);
+    }
+
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: var(--bg) !important;
+    }
+
+    .help-page {
+        width: 100%;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 10px 18px 28px;
+        color: var(--text);
+    }
+
+    /* Header */
+    .help-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 4px 14px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 16px;
     }
 
     .help-title {
-        font-weight: 600;
-        letter-spacing: 0.4px;
+        margin: 0;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
     }
 
     .help-muted {
-        color: #666;
-        font-size: 0.95rem;
+        color: var(--muted);
+        margin: 6px 0 0;
+        font-size: 14px;
+        line-height: 1.55;
     }
 
-    .accordion-button {
-        background-color: #fff;
-        color: #111;
-        font-weight: 500;
-        border-bottom: 1px solid #ddd;
+    /* Card */
+    .help-card {
+        background: var(--card);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px 18px;
+        margin-top: 16px;
     }
 
-        .accordion-button:not(.collapsed) {
-            background-color: #f8f8f8;
-            box-shadow: none;
+    .help-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .help-h {
+        margin: 0;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        font-size: 20px;
+    }
+
+    .help-chip {
+        border: 1px solid var(--border);
+        background: #fff;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* Accordion - Invexa style */
+    .inv-accordion .accordion-item {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-top: 10px;
+        background: #fff;
+    }
+
+        .inv-accordion .accordion-item:first-child {
+            margin-top: 0;
         }
 
-    .accordion-body {
-        background-color: #fff;
-        border-left: 3px solid #000;
-        padding-left: 1rem;
-        font-size: 0.95rem;
+    .inv-accordion .accordion-button {
+        background: #fff;
+        color: var(--text);
+        font-weight: 700;
+        padding: 14px 14px;
+        box-shadow: none !important;
     }
 
-    .help-section {
-        margin-top: 2.5rem;
-    }
-
-    .btn-download {
-        border: 1px solid #000;
-        color: #000;
-        background-color: transparent;
-    }
-
-        .btn-download:hover {
-            background-color: #000;
-            color: #fff;
+        .inv-accordion .accordion-button:focus {
+            box-shadow: var(--focus) !important;
         }
 
-    .qr-section {
-        margin-top: 2rem;
+        .inv-accordion .accordion-button:not(.collapsed) {
+            background: var(--soft);
+        }
+
+    .inv-accordion .accordion-body {
+        background: #fff;
+        border-left: 3px solid #111;
+        padding: 12px 14px;
+        font-size: 14px;
+        color: var(--text);
+    }
+
+    .help-ul {
+        margin: 10px 0 0;
+        padding-left: 18px;
+    }
+
+    /* Feature list */
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 6px 0 0;
+        display: grid;
+        gap: 12px;
+    }
+
+        .feature-list li {
+            display: grid;
+            grid-template-columns: 10px 1fr;
+            gap: 12px;
+            align-items: start;
+            padding: 12px 12px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #fff;
+        }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #111;
+        margin-top: 7px;
+    }
+
+    /* Download + QR layout */
+    .download-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 14px;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    @@media (max-width: 860px) {
+        .download-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .qr-box {
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 12px;
         text-align: center;
+        background: #fff;
+    }
+
+    .qr-title {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+        margin-bottom: 10px;
     }
 
     .qr-image {
         width: 160px;
         height: 160px;
-        border: 1px solid #000;
+        border: 1px solid #111;
         padding: 8px;
-        background-color: #fff;
+        background: #fff;
+        border-radius: 12px;
+    }
+
+    /* Slightly stronger CTA */
+    .inv-btn-lg {
+        padding: 12px 18px;
+        font-size: 15px;
+        border-radius: 14px;
+    }
+
+    /* Tip text refinement */
+    .help-tip {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    /* Download layout refinement */
+    .download-grid.refined {
+        margin-top: 14px;
+        align-items: stretch;
+    }
+
+    /* QR box – more “card-like” */
+    .qr-box.refined {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed var(--border);
+        background: linear-gradient(#fff, #fff) padding-box, linear-gradient(180deg, #e5e7eb, #f3f4f6) border-box;
+    }
+
+    /* QR title emphasis */
+    .qr-title {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        color: var(--muted);
+    }
+
+    /* QR image breathing room */
+    .qr-image {
+        margin-top: 2px;
+    }
+
+    /* Split layout */
+    .download-split {
+        display: grid;
+        grid-template-columns: 1.4fr 0.6fr;
+        gap: 18px;
+        margin-top: 12px;
+        align-items: stretch;
+    }
+
+    /* Left side */
+    .download-left {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* Right side */
+    .download-right {
+        display: flex;
+    }
+
+    /* QR card fills right column */
+    .qr-box.refined {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        padding: 14px;
+        background: #fff;
+    }
+
+    /* Mobile fallback */
+    @@media (max-width: 860px) {
+        .download-split {
+            grid-template-columns: 1fr;
+        }
+
+        .download-right {
+            margin-top: 12px;
+        }
+    }
+
+    /* Tighten left column spacing */
+    .download-left {
+        gap: 6px;
+    }
+
+    /* Medium CTA instead of hero */
+    .inv-btn-md {
+        padding: 8px 14px;
+        font-size: 14px;
+        border-radius: 12px;
+        width: fit-content;
+        min-width: 220px;
+    }
+
+    /* Reduce paragraph spacing */
+    .download-left .help-muted {
+        margin-bottom: 6px;
+    }
+
+    /* Subtle tip text */
+    .help-tip {
+        font-size: 12.5px;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+
+    /* Balance columns vertically */
+    .download-split {
+        align-items: center;
+    }
+
+    /* QR box slightly tighter */
+    .qr-box.refined {
+        padding: 12px;
+    }
+
+    /* QR image scale down a bit */
+    .qr-image {
+        width: 140px;
+        height: 140px;
+    }
+
+    /* Description spacing under title */
+    .help-desc {
+        margin: 6px 0 12px;
+        max-width: 620px;
+    }
+
+    /* Two-column layout with better balance */
+    .guide-grid {
+        display: grid;
+        grid-template-columns: 1.25fr 0.75fr;
+        gap: 18px;
+        margin-top: 10px;
+        align-items: start; /* ✅ key: no vertical centering */
+    }
+
+    /* Left column */
+    .guide-left {
+        min-width: 0;
+    }
+
+    .guide-desc {
+        margin: 0 0 12px;
+        max-width: 640px;
+        margin-bottom: 6px; /* was too large */
+    }
+
+    /* Actions block: keeps button + tip grouped (no floating button) */
+    .guide-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding-top: 2px;
+    }
+
+    /* Button size (not too big, not too small) */
+    .inv-btn-md {
+        padding: 9px 14px;
+        font-size: 14px;
+        border-radius: 12px;
+        width: fit-content;
+        min-width: 240px;
+    }
+
+    /* Tip styling */
+    .help-tip {
+        font-size: 12.5px;
+        color: var(--muted);
+        margin: 0;
+    }
+
+    /* Right column: align QR to top and make it feel anchored */
+    .guide-right {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    /* QR box refinement */
+    .qr-box.refined {
+        width: 100%;
+        max-width: 320px;
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        padding: 14px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* QR title */
+    .qr-title {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 12px;
+    }
+
+    /* QR size (balanced with button) */
+    .qr-image {
+        width: 150px;
+        height: 150px;
+        border: 1px solid #111;
+        padding: 8px;
+        background: #fff;
+        border-radius: 12px;
+    }
+
+    /* Mobile */
+    @@media (max-width: 860px) {
+        .guide-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .guide-right {
+            justify-content: flex-start;
+        }
+
+        .qr-box.refined {
+            max-width: 100%;
+        }
+    }
+
+    /* ===============================
+           INVEXA PRIMARY BUTTON
+        =============================== */
+    .inv-btn-primary {
+        background: #111;
+        color: #fff;
+        border: 2px solid #111;
+        padding: 9px 16px; /* ✅ system-sized */
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        border-radius: 16px;
+        width: fit-content;
+        min-width: 220px;
+        transition: background-color .12s ease, transform .08s ease, box-shadow .12s ease;
+    }
+
+        /* Hover */
+        .inv-btn-primary:hover {
+            background: #fff;
+            border: 2px solid #000;
+        }
+
+        /* Focus (keyboard accessibility) */
+        .inv-btn-primary:focus {
+            outline: none;
+        }
+
+        /* Disabled (future-proof) */
+        .inv-btn-primary:disabled,
+        .inv-btn-primary.disabled {
+            background: #e5e7eb;
+            border-color: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+    /* Pull action closer to description */
+    .guide-desc {
+        margin-bottom: 8px; /* was too big before */
+    }
+
+    /* Group button + tip tightly */
+    .guide-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px; /* tight, intentional */
+    }
+
+    /* Make sure button doesn't drift */
+    .inv-btn-primary {
+        margin-top: 0;
+    }
+
+    .qr-image {
+        width: 140px;
+        height: 140px;
+    }
+
+    .qr-box.refined {
+        border-style: dashed;
+        border-color: var(--border);
+    }
+
+    .guide-grid {
+        position: relative;
+    }
+
+        .guide-grid::before {
+            content: "";
+            position: absolute;
+            left: 62%;
+            top: 10px;
+            bottom: 10px;
+            width: 1px;
+            background: var(--border);
+        }
+
+    .inv-accordion .accordion-item {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .inv-accordion .accordion-collapse.show {
+        background: var(--soft);
+    }
+
+    .inv-accordion .accordion-button {
+        font-size: 15px;
+        font-weight: 800;
+        padding: 14px 16px;
+        background: #fff;
+        color: var(--text);
+    }
+
+    .inv-accordion .accordion-body {
+        border-left: 3px solid #111;
+        padding: 12px 16px;
+        font-size: 14px;
+        line-height: 1.6;
+        background: #fff;
+    }
+
+    .inv-accordion .accordion-button::after {
+        transform: rotate(0deg);
+        transition: transform .2s ease;
+    }
+
+    .inv-accordion .accordion-button:not(.collapsed)::after {
+        transform: rotate(180deg);
+    }
+
+    .inv-accordion .accordion-item + .accordion-item {
+        margin-top: 10px;
+    }
+
+    .inv-accordion .accordion-button:hover {
+        background: var(--soft);
+    }
+
+    .feature-dot {
+        width: 5px;
+        height: 5px;
+        background: #111;
+        border-radius: 50%;
+        margin-top: 6px;
+        flex-shrink: 0;
+    }
+
+    .feature-title {
+        font-weight: 800;
+        font-size: 15px;
+        margin-bottom: 2px;
+        color: var(--text);
+    }
+
+    .feature-desc {
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.55;
+    }
+
+
+    .feature-item {
+        display: flex;
+        gap: 12px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+    }
+
+    .feature-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .feature-item:hover {
+        background: var(--soft);
+    }
+
+    .help-card {
+        margin-bottom: 24px; /* ✅ key spacing fix */
+    }
+
+        .help-card + .help-card {
+            margin-top: 24px;
+        }
+
+    .guide-left {
+        max-width: 520px; /* key fix */
+    }
+
+    .guide-left {
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* consistent rhythm */
+    }
+
+    .guide-desc {
+        margin-bottom: 0px;
+    }
+
+    .guide-actions {
+        margin-top: 2px; /* tiny nudge up */
+    }
+
+    .guide-grid {
+        align-items: start;
+    }
+
+    .qr-help {
+        margin-top: 10px;
+        font-size: 12.5px;
+        color: var(--muted);
+        text-align: center;
+        line-height: 1.4;
     }
 
 </style>

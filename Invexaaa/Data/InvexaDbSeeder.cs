@@ -9,64 +9,63 @@ namespace Invexaaa.Data
     {
         public static void Seed(InvexaDbContext context)
         {
-            // ======================================
-            // 🚫 DO NOT SEED AGAIN IF USERS EXIST
-            // ======================================
-            if (context.Users.Any())
+            // ===============================
+            // USERS (seed once)
+            // ===============================
+            if (!context.Users.Any())
             {
-                return; // 🔒 DB already initialized → STOP
+                SeedUsers(context);
             }
 
             // ===============================
-            // ADMIN – System
+            // MULTI-UOM (seed once)
             // ===============================
+            SeedItemUnitConversions(context);
+        }
+
+        // =====================================================
+        // USERS
+        // =====================================================
+        private static void SeedUsers(InvexaDbContext context)
+        {
             UpsertUser(
                 context,
-                email: "emilycarter@invexa.com",
-                fullName: "Emily Carter",
-                phone: "0123456789",
-                role: "Admin",
-                password: "Emily@123",
-                defaultImage: "/images/users/Admin.jpg"
+                "emilycarter@invexa.com",
+                "Emily Carter",
+                "0123456789",
+                "Admin",
+                "Emily@123",
+                "/images/users/Admin.jpg"
             );
 
-            // ===============================
-            // ADMIN – You
-            // ===============================
             UpsertUser(
                 context,
-                email: "impximok@gmail.com",
-                fullName: "impximok",
-                phone: "0123456791",
-                role: "Admin",
-                password: "Impximok@123",
-                defaultImage: "/images/users/Admin.jpg"
+                "impximok@gmail.com",
+                "impximok",
+                "0123456791",
+                "Admin",
+                "Impximok@123",
+                "/images/users/Admin.jpg"
             );
 
-            // ===============================
-            // MANAGER
-            // ===============================
             UpsertUser(
                 context,
-                email: "sophiawilliams@invexa.com",
-                fullName: "Sophia Williams",
-                phone: "0123456790",
-                role: "Manager",
-                password: "Sophia@123",
-                defaultImage: "/images/users/Manager.jpg"
+                "sophiawilliams@invexa.com",
+                "Sophia Williams",
+                "0123456790",
+                "Manager",
+                "Sophia@123",
+                "/images/users/Manager.jpg"
             );
 
-            // ===============================
-            // STAFF
-            // ===============================
             UpsertUser(
                 context,
-                email: "danielthompson@invexa.com",
-                fullName: "Daniel Thompson",
-                phone: "0123456791",
-                role: "Staff",
-                password: "Daniel@123",
-                defaultImage: "/images/users/Staff.jpg"
+                "danielthompson@invexa.com",
+                "Daniel Thompson",
+                "0123456791",
+                "Staff",
+                "Daniel@123",
+                "/images/users/Staff.jpg"
             );
 
             context.SaveChanges();
@@ -88,9 +87,6 @@ namespace Invexaaa.Data
 
             if (user == null)
             {
-                // ===============================
-                // INSERT (FIRST TIME ONLY)
-                // ===============================
                 context.Users.Add(new User
                 {
                     UserFullName = fullName,
@@ -105,24 +101,61 @@ namespace Invexaaa.Data
             }
             else
             {
-                // ===============================
-                // UPDATE (SAFE / NON-DESTRUCTIVE)
-                // ===============================
                 user.UserFullName = fullName;
                 user.UserPhone = phone;
                 user.UserRole = role;
                 user.UserStatus = "Active";
 
-                // ⚠️ CRITICAL RULE:
-                // Only assign default image if user never set one
                 if (string.IsNullOrWhiteSpace(user.UserProfileImageUrl))
                 {
                     user.UserProfileImageUrl = defaultImage;
                 }
-
-                // ❌ DO NOT reset password
-                // ❌ DO NOT override user profile image
             }
+        }
+
+        // =====================================================
+        // MULTI-UOM – SEED BASE UNIT + DEFAULT CONVERSIONS
+        // =====================================================
+        private static void SeedItemUnitConversions(InvexaDbContext context)
+        {
+            // 🔒 Prevent duplicate seeding
+            if (context.ItemUnitConversions.Any())
+                return;
+
+            var items = context.Items.ToList();
+
+            foreach (var item in items)
+            {
+                var baseUnit = item.ItemUnitOfMeasure.Trim().ToLower();
+
+                // BASE UNIT (MANDATORY)
+                context.ItemUnitConversions.Add(new ItemUnitConversion
+                {
+                    ItemID = item.ItemID,
+                    UnitName = baseUnit,
+                    BaseUnitMultiplier = 1,
+                    IsBaseUnit = true
+                });
+
+                // DEFAULT SECONDARY UNITS (editable later)
+                context.ItemUnitConversions.Add(new ItemUnitConversion
+                {
+                    ItemID = item.ItemID,
+                    UnitName = "pack",
+                    BaseUnitMultiplier = 6,
+                    IsBaseUnit = false
+                });
+
+                context.ItemUnitConversions.Add(new ItemUnitConversion
+                {
+                    ItemID = item.ItemID,
+                    UnitName = "carton",
+                    BaseUnitMultiplier = 24,
+                    IsBaseUnit = false
+                });
+            }
+
+            context.SaveChanges();
         }
     }
 }

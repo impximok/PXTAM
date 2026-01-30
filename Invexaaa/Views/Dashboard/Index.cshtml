@@ -9,209 +9,1140 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
 <style>
-    /* ==== DASHBOARD (SCOPED, NO CONFLICT) ==== */
-
-    .invexa-dashboard-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
+    /* ===============================
+               INVEXA · BLACK & WHITE SYSTEM
+            =============================== */
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e6e7eb;
+        --soft: #f6f7f9;
+        --shadow: 0 10px 24px rgba(0,0,0,.06);
+        --radius: 18px;
+        --focus: 0 0 0 4px rgba(17,17,17,.08);
+        --ok: #22c55e;
+        --warn: #f59e0b;
+        --danger: #ef4444;
+        --danger2: #7f1d1d;
     }
 
-    .invexa-stats {
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: var(--bg) !important;
+    }
+
+    .dash-wrap {
+        width: 100%;
+        padding: 10px 18px 28px;
+    }
+
+    /* Header */
+    .dash-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 16px;
+    }
+
+    .dash-title {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        color: var(--text);
+    }
+
+    .dash-sub {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .dash-chip {
+        border: 1px solid var(--border);
+        background: #fff;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    /* Stats */
+    .dash-stats {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-        margin-bottom: 30px;
+        gap: 14px;
+        margin-bottom: 16px;
     }
 
-    .invexa-stat-card {
-        background: #fff;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-
-        .invexa-stat-card p {
-            margin: 0;
-            color: #6b7280;
-            font-size: 14px;
+    @@media (max-width: 1200px) {
+        .dash-stats {
+            grid-template-columns: repeat(2, 1fr);
         }
+    }
 
-        .invexa-stat-card h3 {
-            margin-top: 8px;
-            font-size: 26px;
+    @@media (max-width: 680px) {
+        .dash-stats {
+            grid-template-columns: 1fr;
         }
-
-    .invexa-warning {
-        color: #f59e0b;
     }
 
-    .invexa-danger {
-        color: #ef4444;
+    .stat-card {
+        background: var(--card);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px 16px;
+        min-height: 98px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
-    .invexa-ok {
-        color: #22c55e;
+    .stat-label {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
     }
 
-    .invexa-content-row {
+    .stat-value {
+        margin: 6px 0 0;
+        font-size: 28px;
+        font-weight: 900;
+        color: var(--text);
+        line-height: 1.1;
+    }
+
+    .stat-meta {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .t-ok {
+        color: var(--ok);
+    }
+
+    .t-warn {
+        color: var(--warn);
+    }
+
+    .t-danger {
+        color: var(--danger);
+    }
+
+    /* Main layout */
+    .dash-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
-        gap: 25px;
+        gap: 14px;
+        align-items: start;
     }
 
-    .invexa-panel {
+    @@media (max-width: 1100px) {
+        .dash-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .panel {
+        background: var(--card);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px 18px;
+    }
+
+    .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .panel-title {
+        margin: 0;
+        font-weight: 900;
+        letter-spacing: 0.2px;
+        color: var(--text);
+        font-size: 16px;
+    }
+
+    /* Table */
+    .sys-table-wrap {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
         background: #fff;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
 
-    .invexa-table {
+    table.sys-table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 15px;
     }
 
-        .invexa-table th,
-        .invexa-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
+    .sys-table thead th {
+        background: var(--soft);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .sys-table tbody td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+        color: var(--text);
+        vertical-align: middle;
+    }
+
+    .sys-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .inactive-row {
+        opacity: .72;
+    }
+
+    .badge-soft {
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--muted);
+        font-weight: 800;
+        font-size: 11px;
+        border-radius: 999px;
+        padding: 4px 8px;
+    }
+
+    /* Right panel chart */
+    .chart-box {
+        display: grid;
+        place-items: center;
+        margin: 8px 0 12px;
+    }
+
+    .legend-box p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text);
+    }
+
+        .legend-box p + p {
+            margin-top: 6px;
         }
+
+    .legend-box strong {
+        font-weight: 900;
+    }
+
+    .mini-note {
+        margin-top: 12px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    /* Quick insights row */
+    .dash-insights {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    @@media (max-width: 1100px) {
+        .dash-insights {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .insight {
+        background: #fff;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 12px 14px;
+    }
+
+    .insight-label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .3px;
+    }
+
+    .insight-value {
+        margin-top: 6px;
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--text);
+        line-height: 1.15;
+    }
+
+    .insight-meta {
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .dash-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .dash-select {
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 12px;
+        padding: 6px 10px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+        .dash-select:focus {
+            outline: none;
+            box-shadow: var(--focus);
+        }
+
+    .panel-head {
+        display: flex;
+        align-items: center; /* ✅ same baseline */
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .panel-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: auto; /* ✅ push to far right */
+    }
+
+    /* Make selects consistent and not too tall */
+    .dash-select {
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 12px;
+        padding: 6px 10px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--text);
+        height: 34px; /* ✅ locks weird vertical jump */
+        line-height: 1;
+    }
+
+        .dash-select:focus {
+            outline: none;
+            box-shadow: var(--focus);
+        }
+
+    @@media (max-width: 560px) {
+        .panel-head {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .panel-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .panel-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: auto;
+    }
+
+    .dash-select {
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 12px;
+        padding: 6px 10px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--text);
+        height: 34px;
+        line-height: 1;
+    }
+
+        .dash-select:focus {
+            outline: none;
+            box-shadow: var(--focus);
+        }
+
+    @@media (max-width: 560px) {
+        .panel-head {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .panel-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    .inv-select {
+        position: relative;
+    }
+
+    .inv-select-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        height: 34px;
+        padding: 6px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        font-size: 12.5px;
+        font-weight: 800;
+        line-height: 1;
+        cursor: pointer;
+        transition: box-shadow .12s ease, border-color .12s ease, transform .08s ease;
+    }
+
+        .inv-select-btn:hover {
+            border-color: #d1d5db;
+        }
+
+        .inv-select-btn:focus {
+            outline: none;
+            box-shadow: var(--focus);
+        }
+
+        .inv-select-btn i {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+    .inv-select-menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        min-width: 180px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 6px;
+        display: none;
+        z-index: 50;
+    }
+
+    .inv-select.open .inv-select-menu {
+        display: block;
+    }
+
+    .inv-select-opt {
+        width: 100%;
+        text-align: left;
+        padding: 9px 10px;
+        border: 0;
+        background: transparent;
+        border-radius: 10px;
+        font-size: 12.5px;
+        font-weight: 800;
+        color: var(--text);
+        cursor: pointer;
+    }
+
+        .inv-select-opt:hover {
+            background: var(--soft);
+        }
+
+
+    .inv-select {
+        position: relative;
+        display: inline-block; /* important: wrapper width = button width */
+    }
+
+    .inv-select-menu {
+        position: absolute;
+        left: 0;
+        right: 0; /* forces same width as wrapper */
+        top: calc(100% + 8px);
+        width: 100%; /* ✅ menu = button width */
+
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        display: none;
+        z-index: 50;
+    }
+
+    .inv-select {
+        position: relative;
+        display: inline-block;
+    }
+
+    .inv-select-btn {
+        width: 100%; /* important */
+        box-sizing: border-box;
+    }
+
+    .inv-select-menu {
+        left: 0;
+        top: calc(100% + 6px);
+        width: 100%; /* will match wrapper width */
+        min-width: 100px !important; /* 🔥 kills any old min-width */
+        max-width: 100px;
+        box-sizing: border-box; /* 🔥 prevents width expansion */
+
+        position: absolute;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 6px;
+        display: none;
+        z-index: 50;
+    }
+
+    .inv-select.open .inv-select-menu {
+        display: block;
+    }
+    /* Keep dropdown width stable */
+    .inv-select {
+        display: inline-block;
+    }
+
+    .inv-select-btn {
+        width: 180px; /* ✅ fixed width (choose a value you like) */
+        justify-content: space-between;
+        box-sizing: border-box;
+    }
+
+    .panel-actions .inv-select {
+        width: 180px; /* wrapper controls width */
+    }
+
+    .panel-actions .inv-select-btn,
+    .panel-actions .inv-select-menu {
+        width: 100%;
+    }
+
+    .inv-select-text {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Filter icon button */
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: #fff;
+        color: #111;
+        border: 2px solid var(--border);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color .12s ease, transform .08s ease, box-shadow .12s ease;
+    }
+
+        .icon-btn:hover {
+            background: #111;
+            border: 2px solid #000;
+            color: #fff;
+        }
+
+        .icon-btn:focus {
+            outline: none;
+        }
+
+        .icon-btn.sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+        }
+
+    /* Popover */
+    .panel-actions {
+        position: relative;
+    }
+
+    .filter-pop {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 10px);
+        width: 260px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 12px;
+        display: none;
+        z-index: 100;
+    }
+
+        .filter-pop.open {
+            display: block;
+        }
+
+    .filter-pop-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .filter-pop-title {
+        font-weight: 900;
+        color: var(--text);
+        letter-spacing: .2px;
+    }
+
+    .filter-group {
+        margin-top: 12px;
+    }
+
+    .filter-label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .3px;
+        margin-bottom: 8px;
+    }
+
+    /* Segmented controls (no dropdown) */
+    .seg {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .seg-btn {
+        border: 2px solid var(--border);
+        background: #fff;
+        color: #111;
+        border-radius: 999px;
+        border: 2px solid var(--border);
+        padding: 7px 10px;
+        font-size: 12.5px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background-color .12s ease, transform .08s ease, box-shadow .12s ease;
+    }
+
+        .seg-btn:hover {
+            background: #111;
+            border: 2px solid #000;
+            color: #fff;
+        }
+
+        /* Keep subtle selected state (not dramatic) */
+        .seg-btn.is-on {
+            border: 2px solid var(--border);
+        }
+
+
+    .legend-grid {
+        margin-top: 8px;
+        display: grid;
+        gap: 10px;
+    }
+
+    .legend-row {
+        display: grid;
+        grid-template-columns: 14px 1fr auto;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(0,0,0,.12);
+    }
+
+        .dot.ok {
+            background: var(--ok);
+        }
+
+        .dot.low {
+            background: var(--warn);
+        }
+
+        .dot.reorder {
+            background: var(--danger);
+        }
+
+        .dot.out {
+            background: var(--danger2);
+        }
+
+    .k {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .v {
+        font-size: 13px;
+        font-weight: 900;
+        color: var(--text);
+        padding: 4px 10px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #fff;
+        min-width: 44px;
+        text-align: center;
+    }
+
+    .legend-note {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+    }
 
 </style>
 
-<!-- DASHBOARD HEADER -->
-<div class="invexa-dashboard-header">
-    <h2>Dashboard</h2>
-    <span class="text-muted">Authorized User</span>
-</div>
+<div class="dash-wrap">
 
-<!-- STATS -->
-<div class="invexa-stats">
-    <div class="invexa-stat-card">
-        <p>Total Items</p>
-        <h3>@Model.TotalItems</h3>
-        <small class="text-muted">
-            Active @Model.ActiveItemCount · Inactive @Model.InactiveItemCount
-        </small>
+    <!-- HEADER -->
+    <div class="dash-head">
+        <div>
+            <h2 class="dash-title">Dashboard</h2>
+            <p class="dash-sub">Overview of inventory health and recent activity.</p>
+        </div>
+        <span class="dash-chip">Authorized User</span>
     </div>
 
-    <div class="invexa-stat-card">
-        <p>Low Stock</p>
-        <h3 class="invexa-warning">@Model.LowStockCount</h3>
+    <!-- STATS -->
+    <div class="dash-stats">
+        <div class="stat-card">
+            <p class="stat-label">Total Items</p>
+            <div class="stat-value">@Model.TotalItems</div>
+            <div class="stat-meta">Active @Model.ActiveItemCount · Inactive @Model.InactiveItemCount</div>
+        </div>
+
+        <div class="stat-card">
+            <p class="stat-label">Low Stock</p>
+            <div class="stat-value t-warn">@Model.LowStockCount</div>
+            <div class="stat-meta">Items at/below reorder level</div>
+        </div>
+
+        <div class="stat-card">
+            <p class="stat-label">Out of Stock</p>
+            <div class="stat-value t-danger">@Model.OutOfStockCount</div>
+            <div class="stat-meta">Items with zero quantity</div>
+        </div>
+
+        <div class="stat-card">
+            <p class="stat-label">Reorder Alerts</p>
+            <div class="stat-value t-danger">@Model.ReorderAlertCount</div>
+            <div class="stat-meta">Below reorder point</div>
+        </div>
     </div>
+    <!-- QUICK INSIGHTS (scan in 3 seconds) -->
+    <div class="dash-insights">
+        <div class="insight">
+            <div class="insight-label">Critical Today</div>
+            <div class="insight-value t-danger">@(@Model.OutOfStockCount + @Model.ReorderAlertCount)</div>
+            <div class="insight-meta">Out of stock + reorder</div>
+        </div>
 
-    <div class="invexa-stat-card">
-        <p>Out of Stock</p>
-        <h3 class="invexa-danger">@Model.OutOfStockCount</h3>
-    </div>
+        <div class="insight">
+            <div class="insight-label">Stock Health</div>
+            <div class="insight-value">@Model.OkStockCount OK</div>
+            <div class="insight-meta">@Model.LowStockCount Low · @Model.ReorderAlertCount Reorder</div>
+        </div>
 
-    <div class="invexa-stat-card">
-        <p>Reorder Alerts</p>
-        <h3 class="invexa-danger">@Model.ReorderAlertCount</h3>
-    </div>
-</div>
-
-<!-- MAIN CONTENT -->
-<div class="invexa-content-row">
-
-    <!-- LEFT PANEL -->
-    <div class="invexa-panel">
-        <h5>Recent Inventory Activity</h5>
-
-        <table class="invexa-table">
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.RecentInventories)
-                {
-                    bool isInactive = item.ItemStatus == "Inactive";
-
-                    <tr class="@(isInactive ? "text-muted" : "")">
-                        <td>
-                            @item.ItemName
-                            @if (isInactive)
-                            {
-                                <span class="badge bg-secondary ms-2">INACTIVE</span>
-                            }
-                        </td>
-                        <td>@item.Quantity</td>
-                        <td class="@(item.Status == "OK"
-                                                    ? "invexa-ok"
-                                                    : item.Status == "Low"
-                                                        ? "invexa-warning"
-                                                        : "invexa-danger")">
-                        @item.Status
-                    </td>
-                </tr>
-                                }
-
-            </tbody>
-        </table>
-    </div>
-
-    <!-- RIGHT PANEL -->
-    <div class="invexa-panel text-center">
-        <h5>Stock Overview</h5>
-
-        <canvas id="stockChart" width="220" height="220"></canvas>
-
-        <div class="mt-3">
-            <p class="mb-1">OK: <strong>@Model.OkStockCount</strong></p>
-            <p class="mb-1">Low: <strong class="invexa-warning">@Model.LowStockCount</strong></p>
-            <p class="mb-1">Reorder: <strong class="invexa-danger">@Model.ReorderAlertCount</strong></p>
-            <p class="mb-3">Out: <strong class="invexa-danger">@Model.OutOfStockCount</strong></p>
-
-            <small class="text-muted">
-                Active items only · Inactive excluded
-            </small>
+        <div class="insight">
+            <div class="insight-label">Active Ratio</div>
+            <div class="insight-value">
+                @(
+                                Model.TotalItems == 0
+                                ? "—"
+                                : $"{Math.Round((Model.ActiveItemCount * 100.0) / Model.TotalItems)}%"
+                                )
+            </div>
+            <div class="insight-meta">Active vs total items</div>
         </div>
     </div>
 
+    <!-- MAIN -->
+    <div class="dash-grid">
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- LEFT: RECENT ACTIVITY -->
+        <div class="panel">
+            <div class="panel-head">
+                <h5 class="panel-title">Stock List</h5>
 
-    <script>
-        const ctx = document.getElementById('stockChart');
+            </div>
 
-        new Chart(ctx, {
-            type: 'doughnut',
+
+            <div class="sys-table-wrap">
+                <table class="sys-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th style="width:140px;">Quantity</th>
+                            <th style="width:140px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.RecentInventories)
+                        {
+                            bool isInactive = item.ItemStatus == "Inactive";
+                            var statusClass = item.Status == "OK"
+                            ? "t-ok"
+                            : item.Status == "Low"
+                            ? "t-warn"
+                            : "t-danger";
+
+                            <tr class="@(isInactive ? "inactive-row" : "")">
+                                <td>
+                                    <strong>@item.ItemName</strong>
+                                    @if (isInactive)
+                                    {
+                                        <span class="badge-soft ms-2">INACTIVE</span>
+                                    }
+                                </td>
+                                <td>@item.Quantity</td>
+                                <td class="@statusClass"><strong>@item.Status</strong></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- RIGHT: STOCK OVERVIEW -->
+        <div class="panel stock-card">
+            <div class="panel-head">
+                <h5 class="panel-title">Stock Overview</h5>
+
+                <div class="panel-actions">
+                    <!-- Filter icon button -->
+                    <button type="button" class="icon-btn" id="btnStockFilters" aria-expanded="false" aria-label="Filters">
+                        <i class="bi bi-sliders"></i>
+                    </button>
+
+                    <!-- Popover -->
+                    <div class="filter-pop" id="stockFilterPop">
+                        <div class="filter-pop-head">
+                            <div class="filter-pop-title">Filters</div>
+                            <button type="button" class="icon-btn sm" id="btnCloseFilters" aria-label="Close">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+
+                        <div class="filter-group">
+                            <div class="filter-label">Range</div>
+                            <div class="seg">
+                                <button type="button" class="seg-btn is-on" data-range="current">Current</button>
+                                <button type="button" class="seg-btn" data-range="7d">7D</button>
+                                <button type="button" class="seg-btn" data-range="30d">30D</button>
+                                <button type="button" class="seg-btn" data-range="90d">90D</button>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <div class="filter-label">Chart</div>
+                            <div class="seg">
+                                <button type="button" class="seg-btn is-on" data-type="doughnut">Doughnut</button>
+                                <button type="button" class="seg-btn" data-type="bar">Bar</button>
+                            </div>
+                        </div>
+
+                        <!-- Hidden values (keeps your JS simple) -->
+                        <input type="hidden" id="chartRange" value="current" />
+                        <input type="hidden" id="chartType" value="doughnut" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-box">
+                <canvas id="stockChart" width="220" height="220"></canvas>
+            </div>
+            <div class="legend-grid">
+                <div class="legend-row">
+                    <span class="dot ok"></span>
+                    <span class="k">OK</span>
+                    <span class="v">@Model.OkStockCount</span>
+                </div>
+
+                <div class="legend-row">
+                    <span class="dot low"></span>
+                    <span class="k">Low</span>
+                    <span class="v">@Model.LowStockCount</span>
+                </div>
+
+                <div class="legend-row">
+                    <span class="dot reorder"></span>
+                    <span class="k">Reorder</span>
+                    <span class="v">@Model.ReorderAlertCount</span>
+                </div>
+
+                <div class="legend-row">
+                    <span class="dot out"></span>
+                    <span class="k">Out</span>
+                    <span class="v">@Model.OutOfStockCount</span>
+                </div>
+            </div>
+
+            <div class="legend-note">
+                Active items only · Inactive excluded
+            </div>
+
+        </div>
+
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const chartEl = document.getElementById('stockChart');
+
+    const labels = ['OK', 'Low', 'Reorder', 'Out'];
+    const values = [
+        @Model.OkStockCount,
+        @Model.LowStockCount,
+        @Model.ReorderAlertCount,
+        @Model.OutOfStockCount
+    ];
+
+    const baseDataset = {
+        label: 'Stock Status',
+        data: values,
+        backgroundColor: ['#22c55e', '#f59e0b', '#ef4444', '#7f1d1d'],
+        borderWidth: 0
+    };
+
+    let stockChart = new Chart(chartEl, {
+        type: 'doughnut',
+        data: { labels, datasets: [baseDataset] },
+        options: {
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+            }
+        }
+    });
+
+    const typeSelect = document.getElementById('chartType');
+    const rangeSelect = document.getElementById('chartRange');
+
+    function rebuildChart(newType) {
+        stockChart.destroy();
+
+        const isBar = newType === 'bar';
+
+        stockChart = new Chart(chartEl, {
+            type: newType,
             data: {
-                labels: ['OK', 'Low', 'Reorder', 'Out'],
+                labels,
                 datasets: [{
-                    data: [
-                        @Model.OkStockCount,
-                        @Model.LowStockCount,
-                        @Model.ReorderAlertCount,
-                        @Model.OutOfStockCount
-                    ],
-                    backgroundColor: [
-                        '#22c55e', // OK - green
-                        '#f59e0b', // Low - amber
-                        '#ef4444', // Reorder - red
-                        '#7f1d1d'  // Out - dark red
-                    ],
-                    borderWidth: 0
+                    ...baseDataset,
+                    borderRadius: isBar ? 8 : 0
                 }]
             },
             options: {
-                cutout: '70%',
+                responsive: true,
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 12,
-                            padding: 15
-                        }
-                    }
-                }
+                    legend: { position: isBar ? 'bottom' : 'bottom', labels: { boxWidth: 12, padding: 15 } }
+                },
+                scales: isBar ? {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                } : {}
             }
         });
-    </script>
+    }
+
+    typeSelect?.addEventListener('change', () => {
+        rebuildChart(typeSelect.value);
+    });
+
+    rangeSelect?.addEventListener('change', () => {
+        // ✅ UI is ready.
+        // To make this real, you’ll need historical data (snapshots or transaction logs).
+        // For now, we keep current values and just show the selected range in console.
+        console.log("Selected range:", rangeSelect.value);
+    });
+
+        // --- INVEXA CUSTOM SELECT ---
+    function closeAllInvSelects(except = null){
+        document.querySelectorAll('.inv-select.open').forEach(el => {
+            if (el !== except) {
+                el.classList.remove('open');
+                el.querySelector('.inv-select-btn')?.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        const wrap = e.target.closest('.inv-select');
+        if (!wrap) closeAllInvSelects();
+    });
+
+    document.querySelectorAll('.inv-select').forEach(wrap => {
+        const btn = wrap.querySelector('.inv-select-btn');
+        const txt = wrap.querySelector('.inv-select-text');
+        const hidden = wrap.querySelector('input[type="hidden"]');
+
+        btn.addEventListener('click', () => {
+            const isOpen = wrap.classList.toggle('open');
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            if (isOpen) closeAllInvSelects(wrap);
+        });
+
+        wrap.querySelectorAll('.inv-select-opt').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const val = opt.dataset.value;
+                const label = opt.textContent.trim();
+
+                // UI update
+                wrap.querySelectorAll('.inv-select-opt').forEach(x => x.classList.remove('is-active'));
+                opt.classList.add('is-active');
+                txt.textContent = label;
+
+                // hidden value update
+                hidden.value = val;
+
+                // close
+                wrap.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+
+                // trigger chart update if exists
+                if (typeof rebuildChart === "function") {
+                    const typeVal = document.getElementById('chartType')?.value || 'doughnut';
+                    rebuildChart(typeVal);
+                }
+                // rangeVal is ready for future real data filtering
+                console.log("range:", document.getElementById('chartRange')?.value);
+            });
+        });
+    });
+
+        function syncInvSelectMenuWidth(wrap){
+      const btn = wrap.querySelector('.inv-select-btn');
+      const menu = wrap.querySelector('.inv-select-menu');
+      if(!btn || !menu) return;
+      menu.style.width = btn.offsetWidth + 'px'; // ✅ exact same width
+    }
+
+    document.querySelectorAll('.inv-select').forEach(wrap => {
+      syncInvSelectMenuWidth(wrap);
+
+      // re-sync when opening (in case layout changed)
+      wrap.querySelector('.inv-select-btn')?.addEventListener('click', () => {
+        syncInvSelectMenuWidth(wrap);
+      });
+    });
+
+    // re-sync on resize
+    window.addEventListener('resize', () => {
+      document.querySelectorAll('.inv-select').forEach(syncInvSelectMenuWidth);
+    });
+
+        // --- FILTER POPOVER TOGGLE ---
+    const btnStockFilters = document.getElementById('btnStockFilters');
+    const pop = document.getElementById('stockFilterPop');
+    const btnCloseFilters = document.getElementById('btnCloseFilters');
+
+    function closePop() {
+        pop?.classList.remove('open');
+        btnStockFilters?.setAttribute('aria-expanded', 'false');
+    }
+
+    btnStockFilters?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = pop.classList.toggle('open');
+        btnStockFilters.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    btnCloseFilters?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closePop();
+    });
+
+    document.addEventListener('click', () => closePop());
+
+    pop?.addEventListener('click', (e) => e.stopPropagation());
+
+
+    // --- APPLY FILTERS ---
+    const rangeHidden = document.getElementById('chartRange');
+    const typeHidden  = document.getElementById('chartType');
+
+    function setSegState(container, activeBtn){
+        container.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('is-on'));
+        activeBtn.classList.add('is-on');
+    }
+
+    document.querySelectorAll('[data-range]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            rangeHidden.value = btn.dataset.range;
+            setSegState(btn.closest('.seg'), btn);
+
+            // ✅ close filter popover
+            closePop();
+
+            // future: load historical dataset
+            console.log('range:', rangeHidden.value);
+        });
+    });
+
+
+    document.querySelectorAll('[data-type]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            typeHidden.value = btn.dataset.type;
+            setSegState(btn.closest('.seg'), btn);
+
+            if (typeof rebuildChart === 'function') {
+                rebuildChart(typeHidden.value);
+            }
+
+            // ✅ close filter popover
+            closePop();
+        });
+    });
+
+</script>
+

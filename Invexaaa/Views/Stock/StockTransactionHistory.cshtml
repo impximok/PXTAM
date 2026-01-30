@@ -915,17 +915,20 @@
                             <th class="col-item">Item</th>
                             <th class="col-batch">Batch</th>
                             <th class="col-type">Type</th>
-                            <th class="col-qty">Quantity</th>
+                            <th class="col-qty">Qty</th>
+                            <th>Unit Cost</th>
+                            <th>Supplier / Customer</th>
                             <th class="col-remark">Remark</th>
                             <th class="col-user">User</th>
                         </tr>
                     </thead>
 
+
                     <tbody>
                         @if (Model == null || !Model.Any())
                         {
                             <tr>
-                                <td colspan="7">
+                                <td colspan="9">
                                     <div class="empty-state">No stock transactions recorded.</div>
                                 </td>
                             </tr>
@@ -940,7 +943,9 @@
                                     data-qty="@h.TransactionQuantity"
                                     data-user="@h.UserName"
                                     data-remark="@h.TransactionRemark"
+                                    data-party="@(h.TransactionType == "IN" ? h.SupplierName : h.CustomerName)"
                                     data-date="@h.TransactionDate.ToString("O")">
+
 
                                     <td class="muted ellipsis">@h.TransactionDate.ToString("dd MMM yyyy, HH:mm")</td>
                                     <td class="ellipsis"><span class="item-name">@h.ItemName</span></td>
@@ -951,8 +956,30 @@
                                         </span>
                                     </td>
                                     <td class="qty">@h.TransactionQuantity</td>
-                                    <td class="muted ellipsis" title="@h.TransactionRemark">@h.TransactionRemark</td>
+
+                                    <td class="muted">
+                                        @h.UnitCost.ToString("0.0000")
+                                    </td>
+
+                                    <td class="ellipsis">
+                                        @if (h.TransactionType == "IN")
+                                        {
+                                            <span class="type-pill type-in">Supplier</span>
+                                            <span class="muted">@h.SupplierName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="type-pill type-out">Customer</span>
+                                            <span class="muted">@h.CustomerName</span>
+                                        }
+                                    </td>
+
+                                    <td class="muted ellipsis" title="@h.TransactionRemark">
+                                        @h.TransactionRemark
+                                    </td>
+
                                     <td class="muted ellipsis">@h.UserName</td>
+
                                 </tr>
                             }
                         }
@@ -1284,9 +1311,18 @@
           const batch = (tr.dataset.batch || "").toLowerCase();
           const remark = (tr.dataset.remark || "").toLowerCase();
           const user = (tr.dataset.user || "").toLowerCase();
+          const party = (tr.dataset.party || "").toLowerCase();
+
           const t = (tr.dataset.type || "");
 
-          const matchText = !keyword || item.includes(keyword) || batch.includes(keyword) || remark.includes(keyword) || user.includes(keyword);
+            const matchText =
+    !keyword ||
+    item.includes(keyword) ||
+    batch.includes(keyword) ||
+    remark.includes(keyword) ||
+    user.includes(keyword) ||
+    party.includes(keyword);
+
           const matchType = !type || t === type;
 
           return matchText && matchType;

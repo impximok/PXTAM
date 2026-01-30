@@ -6,36 +6,358 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4" style="max-width:600px;">
-    <h4>Send Feedback</h4>
-    <p class="text-muted">
-        Share your feedback or suggestions to help improve the Invexa system.
-    </p>
+<div class="feedback-page">
+    <div class="feedback-card">
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["Success"]
-        </div>
+        <!-- HEADER -->
+        <header class="feedback-header">
+            <h1 class="feedback-title">Send Feedback</h1>
+            <p class="feedback-subtitle">
+                Share your feedback or suggestions to help improve the Invexa system.
+            </p>
+        </header>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert monocrome-alert success text-center">
+                @TempData["Success"]
+            </div>
+        }
+
+        <form asp-action="CreateFeedback" method="post" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div class="field">
+                <label class="field-label required">Subject</label>
+                <input asp-for="Subject" class="text-input" placeholder="e.g., Suggestion for stock page" />
+                <span asp-validation-for="Subject" class="field-error"></span>
+            </div>
+
+            <div class="field">
+                <label class="field-label required">Message</label>
+                <textarea asp-for="Message"
+                          class="text-area"
+                          rows="6"
+                          placeholder="Write your feedback clearly..."></textarea>
+                <span asp-validation-for="Message" class="field-error"></span>
+            </div>
+
+            <div class="actions">
+                <a asp-controller="Dashboard"
+                   asp-action="Index"
+                   class="btn-ghost">
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn-primary" id="sendBtn">
+                    <span class="btn-text">Send Feedback</span>
+                    <span class="btn-spinner hidden"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+          const form = document.querySelector('form');
+          const btn = document.getElementById('sendBtn');
+          if (!form || !btn) return;
+
+          form.addEventListener('submit', () => {
+            btn.classList.add('is-loading');
+            btn.querySelector('.btn-text').textContent = 'Sending…';
+            btn.querySelector('.btn-spinner').classList.remove('hidden');
+            btn.disabled = true;
+          });
+        })();
+    </script>
+}
+
+<style>
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --border-default: #d1d5db;
+        --border-focus: #000;
+        --border-error: #dc2626;
+        --soft: #f9fafb;
+        --radius: 18px;
+        --radius-sm: 14px;
+        --shadow: 0 8px 24px rgba(16,24,40,.06);
     }
 
-    <form asp-action="CreateFeedback" method="post">
-        <div class="mb-3">
-            <label class="form-label">Subject</label>
-            <input asp-for="Subject" class="form-control" />
-            <span asp-validation-for="Subject" class="text-danger"></span>
-        </div>
+    /* Page */
+    .feedback-page {
+        width: 100%;
+        background: #fff !important;
+        min-height: calc(100vh - 64px);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 10px 14px 44px;
+    }
 
-        <div class="mb-3">
-            <label class="form-label">Message</label>
-            <textarea asp-for="Message"
-                      rows="5"
-                      class="form-control"></textarea>
-            <span asp-validation-for="Message" class="text-danger"></span>
-        </div>
+    .feedback-card {
+        width: 100%;
+        max-width: 860px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px 32px 24px;
+        box-shadow: var(--shadow);
+    }
 
-        <button class="btn btn-dark btn-sm">
-            Send Feedback
-        </button>
-    </form>
-</div>
+    @@media (max-width: 480px) {
+        .feedback-card {
+            padding: 22px 18px;
+        }
+    }
+
+    /* Header */
+    .feedback-header {
+        margin-bottom: 18px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+    }
+
+    .feedback-title {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 6px;
+        color: var(--text);
+    }
+
+    .feedback-subtitle {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+    }
+
+    /* Alerts (green premium) */
+    .monocrome-alert {
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        color: #111827;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        margin: 14px 0 18px;
+        box-shadow: 0 6px 18px rgba(16,24,40,.05);
+    }
+
+        .monocrome-alert.success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #065f46;
+            font-weight: 600;
+            box-shadow: 0 6px 18px rgba(16,185,129,.08);
+        }
+
+    /* Form */
+    .field {
+        margin-bottom: 18px;
+    }
+
+    .field-label {
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text);
+        font-size: 14px;
+    }
+
+        /* Required * */
+        .field-label.required::after {
+            content: "*";
+            color: var(--border-error);
+            font-weight: 900;
+            margin-left: 2px;
+        }
+
+    .text-input,
+    .text-area {
+        width: 100%;
+        border-radius: 14px;
+        border: 2px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        font-size: 15px;
+        box-shadow: 0 6px 18px rgba(16,24,40,.05);
+        transition: border .15s ease, box-shadow .15s ease;
+    }
+
+    .text-input {
+        height: 48px;
+        padding: 12px 16px;
+    }
+
+    .text-area {
+        padding: 12px 16px;
+        resize: vertical;
+        min-height: 140px;
+        line-height: 1.4;
+    }
+
+        /* Focus */
+        .text-input:focus,
+        .text-area:focus {
+            outline: none;
+            border-color: var(--border-focus);
+        }
+
+        /* MVC validation red border always wins */
+        .text-input.input-validation-error,
+        .text-input.input-validation-error:focus,
+        .text-area.input-validation-error,
+        .text-area.input-validation-error:focus {
+            border-color: var(--border-error) !important;
+        }
+
+    .field-error {
+        display: block;
+        margin-top: 4px;
+        color: #dc2626;
+        font-size: 13px;
+    }
+
+    /* Buttons */
+    .btn-primary,
+    .btn-ghost {
+        height: 46px;
+        padding: 12px 18px;
+        border-radius: 999px;
+        font-weight: 900;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, transform 120ms ease;
+        border: 2px solid #000;
+    }
+
+    .btn-primary {
+        background: #000;
+        color: #fff;
+    }
+
+        .btn-primary:hover {
+            background: #fff;
+            color: #000;
+        }
+
+    .btn-ghost {
+        background: #fff;
+        color: #000;
+    }
+
+        .btn-ghost:hover {
+            background: #000;
+            color: #fff;
+        }
+
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+    }
+
+    @@media (max-width: 480px) {
+        .actions {
+            flex-direction: column-reverse;
+            align-items: stretch;
+        }
+
+        .btn-primary, .btn-ghost {
+            width: 100%;
+        }
+    }
+
+    /* Loading (Sending…) */
+    .btn-primary.is-loading {
+        pointer-events: none;
+        opacity: .92;
+    }
+
+    .btn-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    /* ===============================
+           FORCE FULL PAGE WHITE (FINAL)
+           =============================== */
+
+    /* Root */
+    html, body {
+        background: #ffffff !important;
+    }
+
+    /* Common admin / layout wrappers */
+    main,
+    #main-wrapper,
+    .wrapper,
+    .main-wrapper,
+    .main-content,
+    .content,
+    .content-body,
+    .page-wrapper,
+    .page-content,
+    .app,
+    .app-content,
+    .app-wrapper,
+    .container,
+    .container-fluid {
+        background: #ffffff !important;
+    }
+
+    /* Bootstrap / theme utility backgrounds */
+    .bg-light,
+    .bg-body,
+    .bg-body-secondary,
+    .bg-body-tertiary,
+    .bg-gray,
+    .bg-grey {
+        background-color: #ffffff !important;
+    }
+
+    /* Direct children of body (some templates apply bg here) */
+    body > div,
+    body > main,
+    body > section {
+        background-color: #ffffff !important;
+    }
+
+    /* Prevent scrollbar layout jump */
+    html {
+        scrollbar-gutter: stable;
+    }
+
+</style>

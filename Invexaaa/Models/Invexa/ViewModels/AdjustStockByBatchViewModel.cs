@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Invexaaa.Models.Invexa;
 
 namespace Invexaaa.Models.ViewModels
 {
@@ -13,11 +14,35 @@ namespace Invexaaa.Models.ViewModels
 
         public int CurrentInventoryQuantity { get; set; }
 
+        // =========================
+        // MULTI-UOM INPUT
+        // =========================
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than zero.")]
+        public int InputQuantity { get; set; }
+
+        [Required(ErrorMessage = "Please select a unit.")]
+        public int UnitConversionID { get; set; }
+
+        public int BaseQuantity { get; set; }
+
+        // =========================
+        // CUSTOMER (OPTIONAL)
+        // =========================
+        public int? CustomerID { get; set; }
+        public string? CustomerNameSnapshot { get; set; }
+
+        // =========================
+        // ADJUSTMENT
+        // =========================
         [Required(ErrorMessage = "Adjustment reason is required.")]
-        [StringLength(255, ErrorMessage = "Reason cannot exceed 255 characters.")]
+        [StringLength(255)]
         public string AdjustmentReason { get; set; } = "";
 
-        public List<AdjustStockBatchRowViewModel> Batches { get; set; }
-            = new();
+        // =========================
+        // UI DATA
+        // =========================
+        public List<ItemUnitConversion> AvailableUnits { get; set; } = new();
+        public List<AdjustStockBatchRowViewModel> Batches { get; set; } = new();
     }
 }

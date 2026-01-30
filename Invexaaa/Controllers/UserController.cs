@@ -456,17 +456,18 @@ If you did not request this, please ignore this email.",
             if (user == null)
                 return RedirectToAction("Login");
 
-            // remove readonly email validation
-            ModelState.Remove(nameof(vm.Email));
 
+            // validate email exists / format via DataAnnotations
             if (!ModelState.IsValid)
             {
                 vm.ProfileImageUrl = user.UserProfileImageUrl;
                 return View(vm);
             }
 
-            // update name
+            // update
             user.UserFullName = vm.Name.Trim();
+            user.UserEmail = vm.Email.Trim().ToLower(); // if you allow edit
+
 
             /* ===== IMAGE PRIORITY =====
                1. Camera / cropped image

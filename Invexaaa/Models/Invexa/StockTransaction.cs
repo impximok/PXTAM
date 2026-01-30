@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Invexaaa.Models.Invexa.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -30,6 +31,12 @@ namespace Invexaaa.Models.Invexa
         // Required for IN, optional (but allowed) for OUT
         [Range(0.01, double.MaxValue, ErrorMessage = "Unit cost must be greater than 0.")]
         public decimal UnitCost { get; set; }
+        // ======================
+        // COSTING AUDIT
+        // ======================
+        [Required]
+        public CostingMethod CostingMethodUsed { get; set; }
+
 
         [Required(ErrorMessage = "Transaction date is required.")]
         public DateTime TransactionDate { get; set; } = DateTime.Now;

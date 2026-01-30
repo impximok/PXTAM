@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Invexaaa.Models.Invexa.Enums;
+using System;
 using System.Collections.Generic;
 
 namespace Invexaaa.Models.ViewModels
@@ -22,6 +23,8 @@ namespace Invexaaa.Models.ViewModels
         public DateTime CreatedDate { get; set; }
         public string? ImageUrl { get; set; }
         public string? ItemBarcode { get; set; }
+
+        public CostingMethod CostingMethod { get; set; }
 
 
         public int CurrentBalance { get; set; }

@@ -16,9 +16,40 @@ namespace Invexaaa.Models.ViewModels
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0")]
         public int Quantity { get; set; }
 
+        // =========================
+        // COSTING & SUPPLIER (STOCK IN)
+        // =========================
+        [Required(ErrorMessage = "Unit cost is required")]
+        [Range(0.01, double.MaxValue)]
+        public decimal UnitCost { get; set; }
+
+        public int? SupplierID { get; set; }
+
+        [MaxLength(100)]
+        public string? SupplierNameSnapshot { get; set; }
+
+        [Range(0, 365)]
+        public int LeadTimeDays { get; set; }
+
+
         [Required(ErrorMessage = "Expiry date is required")]
         [DataType(DataType.Date)]
         public DateTime? ExpiryDate { get; set; }
+
+        [Required]
+        public int InputQuantity { get; set; }
+
+        [Required]
+        public int SelectedUnitId { get; set; }
+
+        // calculated (not user input)
+        public int BaseQuantity { get; set; }
+        public int UnitConversionID { get; set; }
+
+        public List<ItemUnitConversion>? AvailableUnits { get; set; }
+
+
+
 
         // =========================
         // LIVE PREVIEW (BEFORE SAVE)
