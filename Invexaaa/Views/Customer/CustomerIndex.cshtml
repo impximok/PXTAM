@@ -1,8 +1,8 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-@model IEnumerable<Invexaaa.Models.Invexa.Supplier>
+@model IEnumerable<Invexaaa.Models.Invexa.Customer>
 
 @{
-    ViewData["Title"] = "Maintain Supplier";
+    ViewData["Title"] = "Maintain Customer";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -839,8 +839,8 @@
     }
 
     /* ===============================
-                   Subtle vertical column separators
-                ================================ */
+                       Subtle vertical column separators
+                    ================================ */
 
     /* Header column separators */
     .sys-table thead th {
@@ -866,8 +866,8 @@
 
     <div class="page-head">
         <div>
-            <h1 class="title">Maintain Supplier</h1>
-            <p class="subtitle">Search, filter and manage suppliers.</p>
+            <h1 class="title">Maintain Customer</h1>
+            <p class="subtitle">Search, filter and manage customers.</p>
         </div>
 
         <div style="display:flex; gap:10px; align-items:center;">
@@ -898,13 +898,14 @@
                 </label>
             </form>
 
-            <!-- Add Supplier -->
-            <a asp-action="Create"
+            <!-- Add Customer -->
+            <a asp-controller="Customer"
+               asp-action="Create"
                class="icon-btn"
-               title="Add Supplier"
-               aria-label="Add Supplier">
+               title="Add Customer">
                 <i class="bi bi-plus-lg"></i>
             </a>
+
 
         </div>
 
@@ -914,7 +915,7 @@
 
         <div>
             <div class="label">Search</div>
-            <input id="q" type="text" class="control" placeholder="Supplier name / phone" />
+            <input id="q" type="text" class="control" placeholder="Customer name / phone" />
         </div>
 
         <div>
@@ -922,14 +923,14 @@
                 <div class="label">Status</div>
 
                 <!-- real select (hidden but used for value) -->
-                <select class="real-select" id="SupplierStatus" name="status">
+                <select class="real-select" id="CustomerStatus" name="status">
                     <option value="">All</option>
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                 </select>
 
                 <!-- custom select -->
-                <div class="cs2" data-select="SupplierStatus">
+                <div class="cs2" data-select="CustomerStatus">
                     <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
                         <span class="cs2-value">All</span>
                         <span class="cs2-caret"></span>
@@ -950,15 +951,13 @@
                 <div class="label">Sort</div>
 
                 <!-- real select -->
-                <select class="real-select" id="SupplierSort" name="sort">
+                <select class="real-select" id="CustomerSort" name="sort">
                     <option value="az">Name (A–Z)</option>
                     <option value="za">Name (Z–A)</option>
-                    <option value="lt_asc">Lead Time (Low–High)</option>
-                    <option value="lt_desc">Lead Time (High–Low)</option>
                 </select>
 
                 <!-- custom dropdown -->
-                <div class="cs2" data-select="SupplierSort">
+                <div class="cs2" data-select="CustomerSort">
                     <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
                         <span class="cs2-value">Name (A–Z)</span>
                         <span class="cs2-caret"></span>
@@ -967,8 +966,7 @@
                     <div class="cs2-menu" role="listbox">
                         <button type="button" class="cs2-item" data-value="az">Name (A–Z)</button>
                         <button type="button" class="cs2-item" data-value="za">Name (Z–A)</button>
-                        <button type="button" class="cs2-item" data-value="lt_asc">Lead Time (Low–High)</button>
-                        <button type="button" class="cs2-item" data-value="lt_desc">Lead Time (High–Low)</button>
+
                     </div>
                 </div>
             </div>
@@ -1006,13 +1004,16 @@
 
         <div class="ix-dialog" role="dialog" aria-modal="true" aria-labelledby="bulkTitle">
             <div class="ix-head">
-                <h3 id="bulkTitle" class="ix-title">Delete selected suppliers?</h3>
+                <h3 id="bulkTitle" class="ix-title">
+                    Delete selected customers?
+                </h3>
             </div>
 
             <p class="ix-desc">
                 You are about to permanently delete
                 <span class="ix-strong" id="bulkModalCount">0</span>
-                suppliers.
+                customers.
+
                 This action cannot be undone.
             </p>
 
@@ -1036,11 +1037,9 @@
                             <input id="chk-all" class="chk" type="checkbox" />
                         </th>
                         <th style="width:100px">ID</th>
-                        <th style="min-width:160px">Name</th>
-                        <th style="min-width:160px">Contact</th>
+                        <th style="min-width:160px">Name</th>                
                         <th style="min-width:160px">Phone</th>
                         <th style="min-width:180px">Email</th>
-                        <th style="width:180px">Lead Time</th>
                         <th style="width:160px">Status</th>
                         <th style="width:170px">Actions</th>
                     </tr>
@@ -1057,26 +1056,24 @@
                     }
                     else
                     {
-                        @foreach (var s in Model)
+                        @foreach (var c in Model)
                         {
-                            <tr data-name="@s.SupplierName"
-                                data-status="@s.SupplierStatus"
-                                data-phone="@s.SupplierPhone"
-                                data-id="@s.SupplierID"
-                                data-lead="@s.SupplierLeadTimeDays">
-                                <td>
-                                    <input class="chk chk-row" type="checkbox" value="@s.SupplierID" />
+                            <tr data-name="@c.CustomerName"
+                                data-status="@c.CustomerStatus"
+                                data-phone="@c.CustomerPhone"
+                                data-id="@c.CustomerID">
 
+                                <td>
+                                    <input class="chk chk-row" type="checkbox" value="@c.CustomerID" />
                                 </td>
 
-                                <td>@s.SupplierID</td>
-                                <td>@s.SupplierName</td>
-                                <td>@s.SupplierContactPerson</td>
-                                <td>@s.SupplierPhone</td>
-                                <td>@s.SupplierEmail</td>
-                                <td>@s.SupplierLeadTimeDays</td>
+                                <td>@c.CustomerID</td>
+                                <td>@c.CustomerName</td>
+                                <td>@c.CustomerPhone</td>
+                                <td>@c.CustomerEmail</td>
+
                                 <td>
-                                    @if (s.SupplierStatus == "Active")
+                                    @if (c.CustomerStatus == "Active")
                                     {
                                         <span class="pill active">Active</span>
                                     }
@@ -1085,23 +1082,24 @@
                                         <span class="pill inactive">Inactive</span>
                                     }
                                 </td>
+
                                 <td>
                                     <div class="row-actions">
 
                                         <a asp-action="Edit"
-                                           asp-route-id="@s.SupplierID"
-                                           class="mini-btn"
-                                           title="Edit">
+                                           asp-route-id="@c.CustomerID"
+                                           class="mini-btn">
                                             <i class="bi bi-pencil"></i>
                                         </a>
 
                                         <form asp-action="ToggleStatus"
-                                              asp-route-id="@s.SupplierID"
+                                              asp-route-id="@c.CustomerID"
                                               method="post"
                                               class="d-inline">
+
                                             @Html.AntiForgeryToken()
 
-                                            @if (s.SupplierStatus == "Active")
+                                            @if (c.CustomerStatus == "Active")
                                             {
                                                 <button type="submit" class="mini-btn mini-warn" title="Deactivate">
                                                     <i class="bi bi-slash-circle"></i>
@@ -1113,13 +1111,15 @@
                                                     <i class="bi bi-check-circle"></i>
                                                 </button>
                                             }
+
                                         </form>
 
                                         <form asp-action="Delete"
-                                              asp-route-id="@s.SupplierID"
+                                              asp-route-id="@c.CustomerID"
                                               method="post"
                                               class="d-inline delete-form"
-                                              data-name="@s.SupplierName">
+                                              data-name="@c.CustomerName">
+
                                             @Html.AntiForgeryToken()
                                             <button type="submit" class="mini-btn mini-danger" title="Delete">
                                                 <i class="bi bi-trash"></i>
@@ -1175,11 +1175,11 @@
 
         <div class="ix-dialog" role="dialog" aria-modal="true" aria-labelledby="ixTitle">
             <div class="ix-head">
-                <h3 id="ixTitle" class="ix-title">Delete Supplier?</h3>
+                <h3 id="ixTitle" class="ix-title">Delete Customer?</h3>
             </div>
 
             <p class="ix-desc">
-                This will permanently delete <span class="ix-strong" id="deleteName">this supplier</span>.
+                This will permanently delete <span class="ix-strong" id="deleteName">this customer</span>.
                 This action cannot be undone.
             </p>
 
@@ -1199,8 +1199,9 @@
          Refs (filters)
       ================================ */
       const q = document.getElementById('q');
-      const statusSelect = document.getElementById('SupplierStatus');
-      const sortSelect = document.getElementById('SupplierSort');
+          const statusSelect = document.getElementById('CustomerStatus');
+    const sortSelect   = document.getElementById('CustomerSort');
+
       const btnFilter = document.getElementById('btnFilter');
       const btnReset  = document.getElementById('btnReset');
 
@@ -1502,7 +1503,7 @@
 
         if (rows.length === 0) {
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td colspan="9"><div class="empty-state">No suppliers found.</div></td>`;
+              tr.innerHTML = `<td colspan="9"><div class="empty-state">No customers found.</div></td>`;
           tbody.appendChild(tr);
 
           // ✅ no checkboxes visible in empty state
@@ -1564,10 +1565,6 @@
             if (an > bn) return sort === "az" ? 1 : -1;
             return 0;
           }
-
-          const al = parseInt(a.dataset.lead || "0", 10);
-          const bl = parseInt(b.dataset.lead || "0", 10);
-          return sort === "lt_asc" ? (al - bl) : (bl - al);
         });
 
         if (resetToFirstPage) page = 1;
@@ -1670,7 +1667,8 @@
       function openDeleteModal(form) {
         pendingDeleteForm = form;
 
-        const name = form.dataset.name || "this supplier";
+        const name = form.dataset.name || "this customer";
+
         if (deleteNameEl) deleteNameEl.textContent = `"${name}"`;
 
         deleteModal?.classList.add('open');

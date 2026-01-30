@@ -1408,6 +1408,21 @@
         margin-bottom: 20px;
     }
 
+    .photo-circle {
+        width: 190px;
+        aspect-ratio: 1 / 1; /* ✅ FORCE perfect square */
+        height: auto; /* ✅ remove height mismatch */
+        overflow: hidden;
+        border-radius: 12px; /* optional – keep your system look */
+    }
+
+        .photo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* ✅ EXACT same behavior as editor crop */
+            display: block;
+        }
+
 </style>
 
 <div class="page-wrap">
@@ -1567,7 +1582,7 @@
                     <span asp-validation-for="Item.CategoryID" class="text-danger"></span>
                 </div>
 
-                
+
             </div>
 
 
@@ -2168,7 +2183,7 @@
 
                   function syncAll() {
                     syncDd('.dd[data-name="Item.CategoryID"]');
-                    
+
                   }
 
                   // initial: clean (grey)

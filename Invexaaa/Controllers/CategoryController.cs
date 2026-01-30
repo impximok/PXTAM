@@ -42,6 +42,15 @@ namespace Invexaaa.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Category category, string submitAction)
         {
+
+            // ✅ Force CostingMethod selection (block default / empty)
+            // Adjust "FIFO" if FIFO is your enum default/0
+            if (!Enum.IsDefined(typeof(CostingMethod), category.CostingMethod)
+                || category.CostingMethod == CostingMethod.FIFO) // treat FIFO as "not selected"
+            {
+                ModelState.AddModelError(nameof(Category.CostingMethod), "Please select a costing method.");
+            }
+
             if (!ModelState.IsValid)
                 return View("CreateCategory", category);
 

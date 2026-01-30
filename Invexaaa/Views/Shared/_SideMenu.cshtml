@@ -272,6 +272,14 @@
         <span class="invexa-side-text">Maintain Supplier</span>
     </a>
 
+    <a asp-controller="Customer"
+       asp-action="Index"
+       class="invexa-side-link @(currentController == "Customer" ? "active" : "")">
+        <i class="bi bi-people"></i>
+        <span class="invexa-side-text">Maintain Customer</span>
+    </a>
+
+
     <!-- ===== MAINTAIN STOCK (PARENT) ===== -->
     <a asp-controller="Stock" asp-action="StockIndex"
        class="invexa-side-link stock-parent @(currentController == "Stock" ? "active" : "")">

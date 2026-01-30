@@ -13,6 +13,7 @@ namespace Invexaaa.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<Customer> Customers { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<StockBatch> StockBatches { get; set; }

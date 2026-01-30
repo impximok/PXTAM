@@ -10,6 +10,8 @@
     string stVal = Context.Request.Query["status"];
 }
 
+
+
 <style>
     :root {
         --bg: #ffffff;
@@ -138,7 +140,7 @@
         background: transparent !important;
         color: #000 !important;
         white-space: nowrap;
-        height: 46px;
+        height: 44px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -241,8 +243,8 @@
         border-radius: 10px;
         cursor: pointer;
         margin: 2px 0;
-        font-weight: 700;
-        font-size: 13px;
+        font-weight: 500;
+        font-size: 14px;
     }
 
         .cs2-item:hover {
@@ -389,8 +391,8 @@
         }
 
     /* ===============================
-           Paging bar (INVEXA style like Stock Tx)
-        =============================== */
+               Paging bar (INVEXA style like Stock Tx)
+            =============================== */
     .pager {
         display: flex;
         align-items: center;
@@ -560,8 +562,11 @@
 
 <div class="page-wrap">
 
+
     <!-- Header -->
     <div class="page-head">
+
+
         <div>
             <h1 class="title">Manage Items</h1>
             <p class="subtitle">Search, filter and manage items.</p>
@@ -859,12 +864,7 @@
 
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <script>
-        alert("@TempData["Success"]");
-    </script>
-}
+
 
 <script>
     (() => {
