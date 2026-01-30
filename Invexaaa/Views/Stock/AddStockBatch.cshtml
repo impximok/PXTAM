@@ -812,6 +812,8 @@
                 }
 
                 <div class="form-grid">
+
+                    <!-- Quantity -->
                     <div class="field">
                         <div class="inv-label">
                             Quantity to Add <span class="req">*</span>
@@ -825,6 +827,35 @@
                         <span asp-validation-for="Quantity" class="text-danger"></span>
                     </div>
 
+                    <!-- Unit -->
+                    <div class="field">
+                        <div class="inv-label">
+                            Unit <span class="req">*</span>
+                            <span class="hint">Auto-converted to base unit</span>
+                        </div>
+
+                        <select asp-for="UnitConversionID"
+                                class="form-control inv-input"
+                                required>
+                            <option value="">-- Select Unit --</option>
+
+                            @if (Model.AvailableUnits != null)
+                            {
+                                foreach (var u in Model.AvailableUnits)
+                                {
+                                    <option value="@u.ItemUnitConversionID">
+                                        @u.UnitName
+                                        @(u.IsBaseUnit ? "(Base)" : $"(×{u.BaseUnitMultiplier})")
+                                    </option>
+                                }
+                            }
+                        </select>
+
+                        <span asp-validation-for="UnitConversionID" class="text-danger"></span>
+                    </div>
+
+
+                    <!-- Expiry -->
                     <div class="field">
                         <div class="inv-label">
                             Expiry Date <span class="req">*</span>
@@ -836,7 +867,50 @@
                                min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
                         <span asp-validation-for="ExpiryDate" class="text-danger"></span>
                     </div>
+
+                    <!-- Unit Cost -->
+                    <div class="field">
+                        <div class="inv-label">
+                            Unit Cost <span class="req">*</span>
+                            <span class="hint">Used for FIFO / Average costing</span>
+                        </div>
+
+                        <input asp-for="UnitCost"
+                               type="number"
+                               step="0.0001"
+                               min="0"
+                               class="form-control inv-input"
+                               placeholder="e.g. 5.25" />
+                        <span asp-validation-for="UnitCost" class="text-danger"></span>
+                    </div>
+
+                    <!-- Supplier (snapshot) -->
+                    <div class="field">
+                        <div class="inv-label">
+                            Supplier <span class="hint">(optional)</span>
+                        </div>
+
+                        <input asp-for="SupplierNameSnapshot"
+                               class="form-control inv-input"
+                               placeholder="e.g. ABC Trading Sdn Bhd" />
+                    </div>
+
+                    <!-- Lead Time -->
+                    <div class="field">
+                        <div class="inv-label">
+                            Lead Time (days)
+                            <span class="hint">For forecasting</span>
+                        </div>
+
+                        <input asp-for="LeadTimeDays"
+                               type="number"
+                               min="0"
+                               class="form-control inv-input"
+                               placeholder="e.g. 7" />
+                    </div>
+
                 </div>
+
 
                 <div class="actions">
                     <button type="submit" class="pill-btn">Confirm</button>
@@ -959,6 +1033,8 @@
 
     <script>
         const qtyInput = document.querySelector('[name="Quantity"]');
+        const unitSelect = document.querySelector('[name="UnitConversionID"]');
+
         const expiryInput = document.querySelector('[name="ExpiryDate"]');
 
         function formatExpiry(dateStr) {
@@ -977,7 +1053,19 @@
                 const qtyEl = row.querySelector('.preview-qty');
                 const expEl = row.querySelector('.preview-expiry');
 
-                if (qtyEl) qtyEl.innerText = qty ? qty : '–';
+                        const unitText = unitSelect?.selectedOptions[0]?.text || '';
+                const multiplierMatch = unitText.match(/×(\d+)/);
+        const multiplier = multiplierMatch ? parseInt(multiplierMatch[1]) : 1;
+
+        const baseQty = qty ? qty * multiplier : null;
+
+        if (qtyEl) {
+            qtyEl.innerText = qty
+                ? `${qty} ${unitText}${baseQty > qty ? ` → ${baseQty} base units` : ''}`
+                : '–';
+        }
+
+
 
                 if (expEl) {
                     if (expiryNice) {
@@ -994,5 +1082,7 @@
         updatePreview();
         qtyInput?.addEventListener('input', updatePreview);
         expiryInput?.addEventListener('change', updatePreview);
+        unitSelect?.addEventListener('change', updatePreview);
+
     </script>
 }

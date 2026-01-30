@@ -23,6 +23,8 @@ namespace Invexaaa.Data
         public DbSet<DemandForecast> DemandForecasts { get; set; }
         public DbSet<SalesHeader> SalesHeaders { get; set; }
         public DbSet<SalesDetail> SalesDetails { get; set; }
+        public DbSet<ItemUnitConversion> ItemUnitConversions { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,14 +52,40 @@ namespace Invexaaa.Data
     .Property(i => i.RowVersion)
     .IsRowVersion();
 
-            modelBuilder.Entity<StockBatch>()
-                .Property(b => b.RowVersion)
-                .IsRowVersion();
+            modelBuilder.Entity<StockBatch>(entity =>
+            {
+                entity.Property(e => e.TransactionUnitCost)
+                      .HasPrecision(18, 4);
+
+                entity.Property(e => e.RowVersion)
+                      .IsRowVersion();
+            });
+
             modelBuilder.Entity<StockTransaction>(entity =>
             {
                 entity.Property(e => e.UnitCost)
                       .HasPrecision(18, 4);
             });
+
+            modelBuilder.Entity<Inventory>(entity =>
+            {
+                entity.Property(e => e.AverageUnitCost)
+                      .HasPrecision(18, 4);
+
+                entity.Property(e => e.TotalStockValue)
+                      .HasPrecision(18, 4);
+            });
+
+            // ======================
+            // MULTI-UOM : BASE UNIT
+            // ======================
+            modelBuilder.Entity<Item>(entity =>
+            {
+                entity.Property(i => i.BaseUnitName)
+                      .HasMaxLength(50)
+                      .IsRequired();
+            });
+
 
         }
     }

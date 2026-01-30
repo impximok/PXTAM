@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Invexaaa.Models.Invexa.Enums;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Invexaaa.Models.Invexa
@@ -63,5 +64,21 @@ namespace Invexaaa.Models.Invexa
         public string ItemStatus { get; set; } = "Active";
 
         public DateTime ItemCreatedDate { get; set; } = DateTime.Now;
+
+        // ======================
+        // COSTING CONFIG
+        // ======================
+        [Required]
+        public CostingMethod CostingMethod { get; set; } = CostingMethod.FIFO;
+
+        // ======================
+        // MULTI-UOM (BASE UNIT)
+        // ======================
+        [Required]
+        [MaxLength(50)]
+        public string BaseUnitName { get; set; } = "unit";
+
+
+
     }
 }

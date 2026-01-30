@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Invexaaa.Models.Invexa
@@ -21,5 +22,25 @@ namespace Invexaaa.Models.Invexa
         // ✅ OPTIMISTIC CONCURRENCY TOKEN
         [Timestamp]
         public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
+        // ======================
+        // COSTING (WAC)
+        // ======================
+        [Range(0, double.MaxValue)]
+        public decimal AverageUnitCost { get; set; }
+
+        // ======================
+        // COSTING (FIXED / STANDARD)
+        // ======================
+        [Range(0, double.MaxValue)]
+        public decimal StandardUnitCost { get; set; }
+
+
+        [Range(0, double.MaxValue)]
+        public decimal TotalStockValue { get; set; }
+
+        public DateTime? LastCostUpdated { get; set; }
+
+
     }
 }

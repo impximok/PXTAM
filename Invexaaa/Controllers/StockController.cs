@@ -1,10 +1,14 @@
-﻿using Invexaaa.Data;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Invexaaa.Data;
 using Invexaaa.Models.Invexa;
+using Invexaaa.Models.Invexa.Enums;
 using Invexaaa.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Linq;
 using System.Security.Claims;
+
 
 namespace Invexaaa.Controllers
 {
@@ -112,6 +116,12 @@ namespace Invexaaa.Controllers
                 Batches = batches
             };
 
+            vm.AvailableUnits = _context.ItemUnitConversions
+    .Where(u => u.ItemID == vm.ItemID)
+    .OrderByDescending(u => u.IsBaseUnit)
+    .ToList();
+
+
             return View(vm);
         }
 
@@ -127,7 +137,7 @@ namespace Invexaaa.Controllers
                 return RedirectToAction("ItemDetail", "Item", new { id = vm.ItemID });
             }
 
-            // ✅ If invalid, re-load batches so the page can render properly
+            // 🔁 Reload units + batches on validation failure
             if (!ModelState.IsValid)
             {
                 vm.Batches = _context.StockBatches
@@ -142,6 +152,17 @@ namespace Invexaaa.Controllers
                     })
                     .ToList();
 
+                vm.AvailableUnits = _context.ItemUnitConversions
+                    .Where(u => u.ItemID == vm.ItemID)
+                    .OrderByDescending(u => u.IsBaseUnit)
+                    .ToList();
+
+                return View(vm);
+            }
+
+            if (string.IsNullOrWhiteSpace(vm.AdjustmentReason))
+            {
+                ModelState.AddModelError("", "Adjustment reason is required.");
                 return View(vm);
             }
 
@@ -152,7 +173,6 @@ namespace Invexaaa.Controllers
             try
             {
                 var inventory = _context.Inventories.First(i => i.InventoryID == vm.InventoryID);
-
                 int netInventoryChange = 0;
 
                 var adjustment = new StockAdjustment
@@ -168,15 +188,14 @@ namespace Invexaaa.Controllers
 
                 foreach (var row in vm.Batches)
                 {
-                    if (row.AdjustQuantity == 0) continue;
+                    if (row.InputQuantity == 0)
+                        continue;
 
-                    var batch = _context.StockBatches.First(b => b.BatchID == row.BatchID);
-
-                    if (batch.BatchQuantity + row.AdjustQuantity < 0)
+                    // 🔒 Unit required
+                    if (row.UnitConversionID <= 0)
                     {
-                        ModelState.AddModelError("", $"Batch {batch.BatchNumber} cannot go below zero.");
+                        ModelState.AddModelError("", $"Please select a unit for batch {row.BatchNumber}.");
 
-                        // reload batches for view
                         vm.Batches = _context.StockBatches
                             .Where(b => b.ItemID == vm.ItemID)
                             .OrderBy(b => b.BatchExpiryDate)
@@ -189,20 +208,63 @@ namespace Invexaaa.Controllers
                             })
                             .ToList();
 
+                        vm.AvailableUnits = _context.ItemUnitConversions
+                            .Where(u => u.ItemID == vm.ItemID)
+                            .OrderByDescending(u => u.IsBaseUnit)
+                            .ToList();
+
                         return View(vm);
                     }
 
+                    var batch = _context.StockBatches.First(b => b.BatchID == row.BatchID);
                     var before = batch.BatchQuantity;
-                    batch.BatchQuantity += row.AdjustQuantity;
-                    netInventoryChange += row.AdjustQuantity;
+
+                    int baseQty = ConvertToBaseUnit(
+                        vm.ItemID,
+                        row.InputQuantity,
+                        row.UnitConversionID
+                    );
+
+                    row.BaseQuantity = baseQty;
+
+                    // 🔒 Prevent negative batch
+                    if (batch.BatchQuantity + baseQty < 0)
+                    {
+                        ModelState.AddModelError("", $"Batch {batch.BatchNumber} cannot go below zero.");
+
+                        vm.Batches = _context.StockBatches
+                            .Where(b => b.ItemID == vm.ItemID)
+                            .OrderBy(b => b.BatchExpiryDate)
+                            .Select(b => new AdjustStockBatchRowViewModel
+                            {
+                                BatchID = b.BatchID,
+                                BatchNumber = b.BatchNumber,
+                                BatchExpiryDate = b.BatchExpiryDate,
+                                AvailableQuantity = b.BatchQuantity
+                            })
+                            .ToList();
+
+                        vm.AvailableUnits = _context.ItemUnitConversions
+                            .Where(u => u.ItemID == vm.ItemID)
+                            .OrderByDescending(u => u.IsBaseUnit)
+                            .ToList();
+
+                        return View(vm);
+                    }
+
+                    batch.BatchQuantity += baseQty;
+                    netInventoryChange += baseQty;
+
+                    var item = _context.Items.First(i => i.ItemID == vm.ItemID);
 
                     _context.StockTransactions.Add(new StockTransaction
                     {
                         UserID = userId,
                         ItemID = vm.ItemID,
                         BatchID = batch.BatchID,
-                        TransactionType = row.AdjustQuantity > 0 ? "IN" : "OUT",
-                        TransactionQuantity = Math.Abs(row.AdjustQuantity),
+                        TransactionType = baseQty > 0 ? "IN" : "OUT",
+                        TransactionQuantity = Math.Abs(baseQty),
+                        CostingMethodUsed = item.CostingMethod,
                         TransactionRemark = vm.AdjustmentReason
                     });
 
@@ -213,26 +275,13 @@ namespace Invexaaa.Controllers
                         BatchID = batch.BatchID,
                         QuantityBefore = before,
                         QuantityAfter = batch.BatchQuantity,
-                        QuantityDifference = row.AdjustQuantity
+                        QuantityDifference = baseQty
                     });
                 }
 
                 if (netInventoryChange == 0)
                 {
                     ModelState.AddModelError("", "No adjustments were entered.");
-
-                    vm.Batches = _context.StockBatches
-                        .Where(b => b.ItemID == vm.ItemID)
-                        .OrderBy(b => b.BatchExpiryDate)
-                        .Select(b => new AdjustStockBatchRowViewModel
-                        {
-                            BatchID = b.BatchID,
-                            BatchNumber = b.BatchNumber,
-                            BatchExpiryDate = b.BatchExpiryDate,
-                            AvailableQuantity = b.BatchQuantity
-                        })
-                        .ToList();
-
                     return View(vm);
                 }
 
@@ -246,9 +295,7 @@ namespace Invexaaa.Controllers
             }
             catch
             {
-                if (tx.GetDbTransaction().Connection != null)
-                    tx.Rollback();
-
+                tx.Rollback();
                 throw;
             }
         }
@@ -275,23 +322,70 @@ namespace Invexaaa.Controllers
                      ItemName = item.ItemName
                  }).ToList();
 
+            // 🔥 GET ITEM ID FROM FIRST INVENTORY
+            var firstInventoryId = ids.First();
+
+            var itemId = _context.Inventories
+                .Where(i => i.InventoryID == firstInventoryId)
+                .Select(i => i.ItemID)
+                .First();
+
+            // 🔥 LOAD UNIT CONVERSIONS
+            var units = _context.ItemUnitConversions
+                .Where(u => u.ItemID == itemId)
+                .OrderByDescending(u => u.IsBaseUnit)
+                .ToList();
+
             return View(new AddStockBatchViewModel
             {
                 InventoryIds = ids,
-                PreviewItems = previewItems
+                PreviewItems = previewItems,
+                AvailableUnits = units
             });
         }
 
 
 
-        // ============================
-        // ADD STOCK (POST)
-        // ============================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddStockBatch(AddStockBatchViewModel vm)
         {
             vm.PreviewItems = BuildAddStockPreview(vm.InventoryIds);
+            // 🔁 RELOAD UNIT CONVERSIONS (IMPORTANT)
+            var firstInventoryId = vm.InventoryIds.First();
+
+            var itemId = _context.Inventories
+                .Where(i => i.InventoryID == firstInventoryId)
+                .Select(i => i.ItemID)
+                .First();
+
+            vm.AvailableUnits = _context.ItemUnitConversions
+                .Where(u => u.ItemID == itemId)
+                .OrderByDescending(u => u.IsBaseUnit)
+                .ThenBy(u => u.UnitName)
+                .ToList();
+
+            // 🔒 Validate ALL inventory IDs before processing (no partial success)
+            foreach (var inventoryId in vm.InventoryIds)
+            {
+                var invData =
+                    await (from inventory in _context.Inventories
+                           join itm in _context.Items on inventory.ItemID equals itm.ItemID
+                           where inventory.InventoryID == inventoryId
+                           select new { inventory, itm })
+                    .FirstOrDefaultAsync();
+
+                if (invData == null || invData.itm.ItemStatus != "Active")
+                {
+                    ModelState.AddModelError(
+                        "",
+                        "One or more selected items are inactive or no longer exist."
+                    );
+                    return View(vm);
+                }
+            }
+
 
             if (!ModelState.IsValid)
                 return View(vm);
@@ -302,97 +396,148 @@ namespace Invexaaa.Controllers
 
             try
             {
-                int successCount = 0;
-                int inactiveCount = 0;
-
                 foreach (var inventoryId in vm.InventoryIds)
                 {
                     var invData =
-     await (from inventory in _context.Inventories
-            join item in _context.Items on inventory.ItemID equals item.ItemID
-            where inventory.InventoryID == inventoryId
-            select new
-            {
-                Inventory = inventory,
-                ItemName = item.ItemName
-            }).FirstOrDefaultAsync();
+    await (from inventory in _context.Inventories
+           join itm in _context.Items on inventory.ItemID equals itm.ItemID
+           where inventory.InventoryID == inventoryId
+           select new
+           {
+               Inventory = inventory,
+               Item = itm
+           }).FirstOrDefaultAsync();
 
 
-                    if (invData == null) continue;
+                    if (invData == null)
+                        continue;
 
                     var inv = invData.Inventory;
-                    var itemName = invData.ItemName;
+                    var item = invData.Item;
 
-                    // 🔒 BLOCK inactive items
-                    if (IsItemInactive(inv.ItemID))
-                    {
-                        inactiveCount++;
-                        continue;
-                    }
+                    // =========================
+                    // 1️⃣ CONVERT INPUT → BASE UNIT (MUST BE FIRST)
+                    // =========================
+                    int inQty = ConvertToBaseUnit(
+                        item.ItemID,
+                        vm.InputQuantity,
+                        vm.UnitConversionID
+                    );
 
+                    // =========================
+                    // 2️⃣ CREATE STOCK BATCH (BASE UNIT ONLY)
+                    // =========================
                     var batch = new StockBatch
                     {
-                        ItemID = inv.ItemID,
-                        BatchNumber = $"BATCH-{DateTime.Now:yyyyMMdd}-{Guid.NewGuid():N}".Substring(0, 20),
-                        BatchQuantity = vm.Quantity,
-                        BatchExpiryDate = vm.ExpiryDate!.Value
-                    };
+                        ItemID = item.ItemID,
+                        BatchNumber = $"BATCH-{DateTime.Now:yyyyMMdd}-{Guid.NewGuid():N}"
+                                        .Take(20)
+                                        .Aggregate("", (a, c) => a + c),
 
+                        BatchQuantity = inQty, // ✅ base unit only
+                        BatchExpiryDate = vm.ExpiryDate!.Value,
+
+                        TransactionUnitCost = vm.UnitCost,
+                        SupplierNameSnapshot = vm.SupplierNameSnapshot,
+                        LeadTimeDays = vm.LeadTimeDays
+                    };
 
                     _context.StockBatches.Add(batch);
 
-                    inv.InventoryTotalQuantity += vm.Quantity;
-                    inv.InventoryLastUpdated = DateTime.Now;
+                    // =========================
+                    // 2️⃣ COSTING LOGIC
+                    // =========================
+                    int oldQty = inv.InventoryTotalQuantity;
+                    decimal oldAvg = inv.AverageUnitCost;
 
+         
+                    decimal inCost = vm.UnitCost;
+
+                    int newQty = oldQty + inQty;
+
+                    switch (item.CostingMethod)
+                    {
+                        case CostingMethod.WeightedAverage:
+                            if (newQty > 0)
+                            {
+                                decimal oldValue = oldQty * oldAvg;
+                                decimal newValue = inQty * inCost;
+
+                                inv.AverageUnitCost = (oldValue + newValue) / newQty;
+                            }
+                            break;
+
+                        case CostingMethod.Fixed:
+                            // Fixed / standard cost NEVER changes on stock in
+                            // Cost is defined at inventory level
+                            break;
+
+
+                        case CostingMethod.FIFO:
+                            // Do NOT update inventory cost here
+                            // FIFO valuation is batch-driven
+                            break;
+
+                    }
+
+
+                    inv.InventoryTotalQuantity = newQty;
+
+                    if (item.CostingMethod == CostingMethod.WeightedAverage)
+                    {
+                        inv.TotalStockValue = inv.AverageUnitCost * newQty;
+                    }
+                    else if (item.CostingMethod == CostingMethod.Fixed)
+                    {
+                        inv.TotalStockValue = inv.StandardUnitCost * newQty;
+                    }
+
+                    // FIFO: total value is derived from batches later (do NOT overwrite)
+
+                    inv.InventoryLastUpdated = DateTime.Now;
+                    inv.LastCostUpdated = DateTime.Now;
+
+
+                    // =========================
+                    // 3️⃣ STOCK TRANSACTION (IN)
+                    // =========================
                     _context.StockTransactions.Add(new StockTransaction
                     {
                         UserID = userId,
-                        ItemID = inv.ItemID,
+                        ItemID = item.ItemID,
+                        BatchID = batch.BatchID,
                         TransactionType = "IN",
-                        TransactionQuantity = vm.Quantity,
+                        TransactionQuantity = inQty,
+                        UnitCost = inCost,
+                        CostingMethodUsed = item.CostingMethod,
                         TransactionRemark = "Stock received"
                     });
 
-                    // ✅ AFTER-SAVE SUMMARY
+
+                    // =========================
+                    // SUMMARY
+                    // =========================
                     vm.SummaryRows.Add(new AddStockBatchSummaryRow
                     {
-                        ItemName = itemName,
-                        QuantityAdded = vm.Quantity,
+                        ItemName = item.ItemName,
+                        QuantityAdded = inQty,
                         ExpiryDate = vm.ExpiryDate.Value
                     });
-                    successCount++;
                 }
-
-                if (successCount == 0)
-                {
-                    ModelState.AddModelError("", inactiveCount > 0
-                        ? "All selected items are inactive. No stock was added."
-                        : "No stock was added. Please retry.");
-
-                    await transaction.RollbackAsync();
-                    return View(vm);
-                }
-
-                if (inactiveCount > 0)
-                {
-                    TempData["Error"] = $"{inactiveCount} inactive item(s) were skipped.";
-                }
-
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 vm.ShowSummary = true;
-
                 return View(vm);
             }
-            catch (DbUpdateConcurrencyException)
+            catch
             {
                 await transaction.RollbackAsync();
-                ModelState.AddModelError("", "Stock was updated by another user. Please retry.");
-                return View(vm);
+                throw;
             }
         }
+
 
         [HttpGet]
         public IActionResult MinusStockBatchBulk(string inventoryIds)
@@ -414,21 +559,63 @@ namespace Invexaaa.Controllers
                     AvailableQuantity = inv.InventoryTotalQuantity
                 };
 
+            // 🔥 LOAD ITEM + UNITS (Multi-UOM)
+            var firstInventoryId = ids.First();
+
+            var itemId = _context.Inventories
+                .Where(i => i.InventoryID == firstInventoryId)
+                .Select(i => i.ItemID)
+                .First();
+
+            var units = _context.ItemUnitConversions
+                .Where(u => u.ItemID == itemId)
+                .OrderByDescending(u => u.IsBaseUnit)
+                .ToList();
+
             return View(new BulkMinusStockViewModel
             {
                 InventoryIds = ids,
-                PreviewItems = preview.ToList()
+                PreviewItems = preview.ToList(),
+                AvailableUnits = units
             });
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult MinusStockBatchBulk(BulkMinusStockViewModel vm)
         {
+            if (vm.InventoryIds == null || !vm.InventoryIds.Any())
+            {
+                return RedirectToAction(nameof(StockIndex));
+            }
+
             vm.PreviewItems = BuildMinusPreview(vm.InventoryIds);
+
+            var firstInventoryId = vm.InventoryIds.First();
+
+            var itemId = _context.Inventories
+                .Where(i => i.InventoryID == firstInventoryId)
+                .Select(i => i.ItemID)
+                .First();
+
+            vm.AvailableUnits = _context.ItemUnitConversions
+                .Where(u => u.ItemID == itemId)
+                .OrderByDescending(u => u.IsBaseUnit)
+                .ToList();
 
             if (!ModelState.IsValid)
                 return View(vm);
+            // 🔒 Unit must be selected
+            if (vm.UnitConversionID <= 0)
+            {
+                ModelState.AddModelError(
+                    nameof(vm.UnitConversionID),
+                    "Please select a unit."
+                );
+                return View(vm);
+            }
+
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -443,37 +630,91 @@ namespace Invexaaa.Controllers
                     if (IsItemInactive(inv.ItemID))
                         continue;
 
-                    if (vm.QuantityToDeduct > inv.InventoryTotalQuantity)
-                        continue;
+                    int originalDeductQty = ConvertToBaseUnit(
+     inv.ItemID,
+     vm.InputQuantity,
+     vm.UnitConversionID
+ );
+                    vm.BaseQuantity = originalDeductQty;
 
-                    int remaining = vm.QuantityToDeduct;
+                    int remaining = originalDeductQty;
 
+
+                    if (remaining > inv.InventoryTotalQuantity)
+                    {
+                        ModelState.AddModelError(
+                            "",
+                            $"Insufficient stock for item ID {inv.ItemID}."
+                        );
+                        return View(vm);
+                    }
+
+
+
+                    
+
+                    // 🔥 FIFO: oldest batch first
                     var batches = _context.StockBatches
                         .Where(b => b.ItemID == inv.ItemID && b.BatchQuantity > 0)
                         .OrderBy(b => b.BatchExpiryDate)
+                        .ThenBy(b => b.BatchID)
                         .ToList();
+
+                    var item = _context.Items.First(i => i.ItemID == inv.ItemID);
+
+                    decimal outUnitCost = item.CostingMethod switch
+                    {
+                        CostingMethod.WeightedAverage => inv.AverageUnitCost,
+                        CostingMethod.Fixed => inv.StandardUnitCost,
+
+                        _ => 0m // FIFO handled per batch
+                    };
 
                     foreach (var batch in batches)
                     {
-                        if (remaining <= 0) break;
+                        if (remaining <= 0)
+                            break;
 
-                        var deduct = Math.Min(batch.BatchQuantity, remaining);
-                        batch.BatchQuantity -= deduct;
-                        remaining -= deduct;
+                        int deductQty = Math.Min(batch.BatchQuantity, remaining);
 
+                        batch.BatchQuantity -= deductQty;
+                        remaining -= deductQty;
+
+                        // ✅ STOCK TRANSACTION (OUT)
                         _context.StockTransactions.Add(new StockTransaction
                         {
                             UserID = userId,
                             ItemID = inv.ItemID,
                             BatchID = batch.BatchID,
                             TransactionType = "OUT",
-                            TransactionQuantity = deduct,
+                            TransactionQuantity = deductQty,
+                            UnitCost = item.CostingMethod == CostingMethod.FIFO
+        ? batch.TransactionUnitCost
+        : outUnitCost,
+                            CostingMethodUsed = item.CostingMethod,
+                            CustomerID = vm.CustomerID,
+                            CustomerNameSnapshot = vm.CustomerNameSnapshot,
                             TransactionRemark = vm.Reason
                         });
+
                     }
 
-                    inv.InventoryTotalQuantity -= vm.QuantityToDeduct;
+                    inv.InventoryTotalQuantity -= originalDeductQty;
+
+
+                    if (item.CostingMethod == CostingMethod.WeightedAverage)
+                    {
+                        inv.TotalStockValue = inv.InventoryTotalQuantity * inv.AverageUnitCost;
+                    }
+                    else if (item.CostingMethod == CostingMethod.Fixed)
+                    {
+                        inv.TotalStockValue = inv.InventoryTotalQuantity * inv.StandardUnitCost;
+                    }
+
+                    // FIFO: do NOT recalc here
+
                     inv.InventoryLastUpdated = DateTime.Now;
+
                 }
 
                 _context.SaveChanges();
@@ -490,6 +731,7 @@ namespace Invexaaa.Controllers
                 throw;
             }
         }
+
 
 
 
@@ -537,13 +779,25 @@ namespace Invexaaa.Controllers
                     TransactionDate = t.TransactionDate,
                     ItemName = i.ItemName,
                     BatchNumber = batch != null ? batch.BatchNumber : "-",
+
                     TransactionType = t.TransactionType,
                     TransactionQuantity = t.TransactionQuantity,
+                    UnitCost = t.UnitCost,
+
+                    SupplierName =
+        t.TransactionType == "IN"
+            ? batch.SupplierNameSnapshot
+            : null,
+
+                    CustomerName =
+        t.TransactionType == "OUT"
+            ? t.CustomerNameSnapshot
+            : null,
+
                     TransactionRemark = t.TransactionRemark,
                     UserName = u.UserFullName
-
-
                 };
+
 
             return View(history.ToList());
         }
@@ -612,5 +866,29 @@ namespace Invexaaa.Controllers
                         AvailableQuantity = inv.InventoryTotalQuantity
                     }).ToList();
         }
+        // =====================================================
+        // MULTI-UOM – CONVERT INPUT UNIT → BASE UNIT
+        // =====================================================
+        private int ConvertToBaseUnit(int itemId, int inputQty, int unitConversionId)
+        {
+            if (inputQty <= 0)
+                throw new InvalidOperationException("Quantity must be greater than zero.");
+
+            var conversion = _context.ItemUnitConversions
+                .FirstOrDefault(u =>
+                    u.ItemUnitConversionID == unitConversionId &&
+                    u.ItemID == itemId);
+
+            if (conversion == null)
+                throw new InvalidOperationException("Invalid unit conversion selected.");
+
+            checked
+            {
+                // Example:
+                // 2 cartons × 24 = 48 pcs
+                return inputQty * conversion.BaseUnitMultiplier;
+            }
+        }
+
     }
 }

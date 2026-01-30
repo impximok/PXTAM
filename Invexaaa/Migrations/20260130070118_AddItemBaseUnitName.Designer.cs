@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Invexaaa.Migrations
 {
     [DbContext(typeof(InvexaDbContext))]
-    [Migration("20260129012746_AddCostingMethodColumnProperly")]
-    partial class AddCostingMethodColumnProperly
+    [Migration("20260130070118_AddItemBaseUnitName")]
+    partial class AddItemBaseUnitName
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,6 +55,44 @@ namespace Invexaaa.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("Invexaaa.Models.Invexa.Customer", b =>
+                {
+                    b.Property<int>("CustomerID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CustomerID"));
+
+                    b.Property<string>("CustomerAddress")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("CustomerCreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomerEmail")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CustomerPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CustomerStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("CustomerID");
+
+                    b.ToTable("Customers");
+                });
+
             modelBuilder.Entity("Invexaaa.Models.Invexa.DemandForecast", b =>
                 {
                     b.Property<int>("ForecastID")
@@ -93,6 +131,10 @@ namespace Invexaaa.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InventoryID"));
 
+                    b.Property<decimal>("AverageUnitCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
                     b.Property<DateTime>("InventoryLastUpdated")
                         .HasColumnType("datetime2");
 
@@ -102,11 +144,21 @@ namespace Invexaaa.Migrations
                     b.Property<int>("ItemID")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("LastCostUpdated")
+                        .HasColumnType("datetime2");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
+
+                    b.Property<decimal>("StandardUnitCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalStockValue")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.HasKey("InventoryID");
 
@@ -125,7 +177,15 @@ namespace Invexaaa.Migrations
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
+                    b.Property<string>("BaseUnitName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<int>("CategoryID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CostingMethod")
                         .HasColumnType("int");
 
                     b.Property<string>("ItemBarcode")
@@ -175,12 +235,36 @@ namespace Invexaaa.Migrations
                     b.Property<int>("SafetyStock")
                         .HasColumnType("int");
 
-                    b.Property<int>("SupplierID")
-                        .HasColumnType("int");
-
                     b.HasKey("ItemID");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("Invexaaa.Models.Invexa.ItemUnitConversion", b =>
+                {
+                    b.Property<int>("ItemUnitConversionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ItemUnitConversionID"));
+
+                    b.Property<int>("BaseUnitMultiplier")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsBaseUnit")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ItemID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UnitName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("ItemUnitConversionID");
+
+                    b.ToTable("ItemUnitConversions");
                 });
 
             modelBuilder.Entity("Invexaaa.Models.Invexa.SalesDetail", b =>
@@ -327,11 +411,25 @@ namespace Invexaaa.Migrations
                     b.Property<int>("ItemID")
                         .HasColumnType("int");
 
+                    b.Property<int>("LeadTimeDays")
+                        .HasColumnType("int");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
+
+                    b.Property<int?>("SupplierID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SupplierNameSnapshot")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("TransactionUnitCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.HasKey("BatchID");
 
@@ -348,6 +446,16 @@ namespace Invexaaa.Migrations
 
                     b.Property<int?>("BatchID")
                         .HasColumnType("int");
+
+                    b.Property<int>("CostingMethodUsed")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CustomerID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CustomerNameSnapshot")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("ItemID")
                         .HasColumnType("int");
@@ -366,6 +474,10 @@ namespace Invexaaa.Migrations
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("UserID")
                         .HasColumnType("int");

@@ -1023,7 +1023,11 @@
                             <th style="width:22%;">Batch</th>
                             <th style="width:22%;">Expiry</th>
                             <th style="width:22%;">Available</th>
-                            <th style="width:22%;">Adjust (+ / −)</th>
+                            <th style="width:18%;">Adjust (+ / −)</th>
+                            <th style="width:16%;">Unit</th>
+                            <th style="width:20%;">Base Qty</th>
+
+
                         </tr>
                     </thead>
                     <tbody>
@@ -1040,24 +1044,50 @@
                                     }
 
                                     <input type="hidden" asp-for="Batches[i].BatchID" />
+                                    <input type="hidden" asp-for="Batches[i].BatchNumber" />
+
                                 </td>
                                 <td class="expiry-text">
                                     @Model.Batches[i].BatchExpiryDate.ToString("dd MMM yyyy")
                                 </td>
                                 <td>@Model.Batches[i].AvailableQuantity</td>
                                 <td>
-                                    <input asp-for="Batches[i].AdjustQuantity"
+                                    <input asp-for="Batches[i].InputQuantity"
                                            type="number"
                                            class="form-control delta-input adjust-input"
                                            placeholder="0"
                                            disabled="@isInactive" />
+
                                 </td>
+                                <td>
+                                    <select asp-for="Batches[i].UnitConversionID"
+                                            class="form-select"
+                                            disabled="@isInactive">
+                                        <option value="">-- Unit --</option>
+                                        @foreach (var unit in Model.AvailableUnits)
+                                        {
+                                            <option value="@unit.ItemUnitConversionID"
+                                                    data-multiplier="@unit.BaseUnitMultiplier">
+                                                @unit.UnitName
+                                            </option>
+
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <span class="base-preview"
+                                          data-index="@i">
+                                        0 @Model.ItemUnitOfMeasure
+                                    </span>
+                                </td>
+
+
                             </tr>
                         }
                         @if (Model.Batches == null || Model.Batches.Count == 0)
                         {
                             <tr class="empty-row">
-                                <td colspan="4">
+                                <td colspan="6">
                                     <div class="empty-state">
                                         <div class="big">No batches found</div>
                                         <div class="small">There are no batch records for this item yet.</div>
@@ -1117,37 +1147,69 @@
 
 @section Scripts {
     <script>
-        const inputs = document.querySelectorAll(".adjust-input");
-        const deltaEl = document.getElementById("deltaValue");
-        const badge = document.getElementById("deltaBadge");
+        function updateRow(rowIndex) {
+            const qtyInput = document.querySelector(
+                `input[name="Batches[${rowIndex}].InputQuantity"]`
+            );
+            const unitSelect = document.querySelector(
+                `select[name="Batches[${rowIndex}].UnitConversionID"]`
+            );
+            const preview = document.querySelector(
+                `.base-preview[data-index="${rowIndex}"]`
+            );
 
-        function updateDelta() {
-            let total = 0;
-        inputs.forEach(i => {
-            const v = Number(i.value);
-            total += isNaN(v) ? 0 : v;
-        });
+            if (!qtyInput || !unitSelect || !preview) return 0;
 
-                // Auto-focus first enabled adjustment input (UX boost)
-        const firstAdjustInput = document.querySelector(
-            '.adjust-input:not([disabled])'
-        );
+            const qty = Number(qtyInput.value);
+            const selected = unitSelect.options[unitSelect.selectedIndex];
+            const multiplier = Number(selected?.dataset.multiplier);
 
-        if (firstAdjustInput) {
-            firstAdjustInput.focus();
+            if (!qty || !multiplier) {
+                preview.textContent = `0 @Model.ItemUnitOfMeasure`;
+                return 0;
+            }
+
+            const baseQty = qty * multiplier;
+            preview.textContent = `${baseQty} @Model.ItemUnitOfMeasure`;
+            return baseQty;
         }
 
+        function updateTotal() {
+            let total = 0;
 
-            deltaEl.textContent = total;
+            document.querySelectorAll(".base-preview").forEach(span => {
+                const val = Number(span.textContent.split(" ")[0]) || 0;
+
+                total += val;
+            });
+
+            const badge = document.getElementById("deltaBadge");
+            const value = document.getElementById("deltaValue");
+
+            value.textContent = total;
 
             badge.classList.remove("delta-positive", "delta-negative");
             if (total > 0) badge.classList.add("delta-positive");
             else if (total < 0) badge.classList.add("delta-negative");
         }
 
-        inputs.forEach(i => i.addEventListener("input", updateDelta));
-        updateDelta();
+        document.querySelectorAll(".adjust-input").forEach((input, idx) => {
+            input.addEventListener("input", () => {
+                updateRow(idx);
+                updateTotal();
+            });
+        });
+
+        document.querySelectorAll('select[name$=".UnitConversionID"]').forEach((select, idx) => {
+            select.addEventListener("change", () => {
+                updateRow(idx);
+                updateTotal();
+            });
+        });
+
+        updateTotal();
     </script>
+
 
     <partial name="_ValidationScriptsPartial" />
 }

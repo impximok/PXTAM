@@ -5,235 +5,691 @@
 @{
     ViewData["Title"] = "Reports & Analytics";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string ReportLabel(string rt) => string.IsNullOrEmpty(rt) ? "-- Select Report --" :
+        rt == "DemandForecast" ? "Demand Forecast" :
+        rt == "Stock" ? "Stock Summary" :
+        rt == "StockCharts" ? "Stock Charts" :
+        rt == "Expiry" ? "Expiry & Wastage" :
+        "-- Select Report --";
 }
 
 <style>
+    /* ===============================
+               INVEXA · BLACK & WHITE SYSTEM
+               =============================== */
     :root {
-        --black: #111;
-        --gray-900: #1f2937;
-        --gray-700: #374151;
-        --gray-500: #6b7280;
-        --gray-300: #d1d5db;
-        --gray-200: #e5e7eb;
-        --gray-100: #f9fafb;
-        --white: #ffffff;
+        --bg: #ffffff;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --soft: #f6f7f9;
+        --shadow: 0 10px 24px rgba(0,0,0,.06);
+        --radius: 18px;
+        --btn-h: 44px;
+        --focus: 0 0 0 4px rgba(17,17,17,.08);
     }
 
-    body {
-        background-color: var(--gray-100);
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: var(--bg) !important;
+        color: var(--text);
+    }
+
+    .page-wrap {
+        width: 100%;
+        padding: 10px 18px 28px;
     }
 
     /* ===== Header ===== */
-    .page-header {
+    .page-head {
         display: flex;
+        align-items: flex-end;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 28px;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
     }
 
-        .page-header h2 {
-            font-weight: 600;
-            letter-spacing: -0.3px;
-        }
+    .title {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 850;
+        letter-spacing: -.6px;
+        line-height: 1.1;
+    }
+
+    .subtitle {
+        margin: 6px 0 0;
+        font-size: 14px;
+        color: var(--muted);
+    }
+
+    .top-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
 
     /* ===== Cards ===== */
-    .filter-form,
-    .report-section {
-        background: var(--white);
-        border: 1px solid var(--gray-200);
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 28px;
+    .card-shell {
+        background: var(--card);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
     }
 
-        /* ===== Inputs ===== */
-        .filter-form label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--gray-500);
-            margin-bottom: 6px;
-            display: block;
-        }
+    .card-pad {
+        padding: 18px;
+    }
 
-        .filter-form input,
-        .filter-form select {
-            width: 100%;
-            padding: 11px 14px;
-            border-radius: 12px;
-            border: 1px solid var(--gray-300);
-            background: var(--white);
-            font-size: 14px;
-        }
+    .card-title {
+        margin: 0 0 10px;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -.1px;
+    }
 
-            .filter-form input:focus,
-            .filter-form select:focus {
-                outline: none;
-                border-color: var(--black);
-            }
-
-    /* ===== Buttons ===== */
-    .btn-minimal {
-        padding: 10px 16px;
-        border-radius: 12px;
+    .card-desc {
+        margin: 0 0 14px;
         font-size: 14px;
-        font-weight: 500;
-        transition: all 0.15s ease;
+        color: var(--muted);
     }
 
-    .btn-black {
-        background: var(--black);
-        color: var(--white);
-        border: 1px solid var(--black);
+    /* ===== Filter Layout ===== */
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1.2fr auto;
+        gap: 12px;
+        align-items: end;
     }
 
-        .btn-black:hover {
-            background: #000;
-            color: var(--white);
+    .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #000;
+        margin: 0 0 6px;
+        letter-spacing: .2px;
+    }
+
+    .control {
+        width: 100%;
+        height: var(--btn-h);
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 2px solid var(--border);
+        background: #fff;
+        font-size: 14px;
+        outline: none;
+        transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+        .control:focus {
+            border-color: #111;
         }
 
-    .btn-outline-black {
-        background: transparent;
-        color: var(--black);
-        border: 1px solid var(--black);
+    /* ===== Buttons (pill system) ===== */
+    .pill-btn {
+        height: var(--btn-h);
+        border-radius: 999px !important;
+        padding: 0 16px !important;
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        border: 2px solid #111 !important;
+        background: transparent !important;
+        color: #111 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background-color 220ms ease, color 220ms ease, transform 120ms ease;
+        user-select: none;
+        white-space: nowrap;
+        cursor: pointer;
     }
 
-        .btn-outline-black:hover {
-            background: var(--black);
-            color: var(--white);
+        .pill-btn:hover {
+            background: #111 !important;
+            color: #fff !important;
         }
+
+        .pill-btn.solid {
+            background: #111 !important;
+            color: #fff !important;
+        }
+
+            .pill-btn.solid:hover {
+                background: #fff !important;
+                color: #000 !important;
+            }
 
     /* ===== KPI ===== */
     .kpi-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 18px;
-        margin-bottom: 28px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 12px;
     }
 
-    .kpi-card {
-        border: 1px solid var(--gray-200);
+    .kpi {
+        border: 2px solid var(--border);
         border-radius: 16px;
-        padding: 18px;
-        background: var(--white);
+        padding: 14px 14px 12px;
+        background: #fff;
     }
 
-        .kpi-card div {
+        .kpi .k {
             font-size: 12px;
-            color: var(--gray-500);
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .2px;
         }
 
-        .kpi-card strong {
+        .kpi .v {
+            margin-top: 6px;
             font-size: 22px;
-            font-weight: 600;
-            color: var(--gray-900);
+            font-weight: 900;
+            letter-spacing: -.3px;
+            color: var(--text);
+            line-height: 1.1;
         }
 
-    /* ===== Tables ===== */
-    table {
+    /* ===== Tables (system) ===== */
+    .table-shell {
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    table.sys-table {
+        width: 100%;
+        border-collapse: collapse;
         font-size: 14px;
     }
 
-    thead th {
-        background: var(--gray-100);
-        font-weight: 600;
-        border-bottom: 2px solid var(--gray-200);
+    .sys-table thead th {
+        background: var(--soft);
+        border-bottom: 2px solid var(--border);
+        font-weight: 900;
+        padding: 12px 12px;
+        letter-spacing: .18px;
+        font-size: 13px;
+        color: #111;
+        white-space: nowrap;
+    }
+
+    .sys-table tbody td {
+        padding: 12px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+        color: var(--text);
+    }
+
+    .sys-table tbody tr:hover {
+        background: #fafafa;
     }
 
     .inactive-row {
         background: #f3f4f6;
-        color: #6b7280;
     }
 
-    /* ===== Alerts ===== */
-    .alert {
-        border-radius: 14px;
+        .inactive-row td {
+            color: #6b7280;
+        }
+
+    /* ===== Alerts (system) ===== */
+    .sys-alert {
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 12px 14px;
+        background: #fff;
+        color: var(--text);
+        margin: 12px 0 14px;
         font-size: 13px;
+    }
+
+        .sys-alert small {
+            color: var(--muted);
+        }
+
+    /* ===== Charts ===== */
+    .chart-box {
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 12px;
+        background: #fff;
+    }
+
+        .chart-box canvas {
+            width: 100% !important;
+            height: 320px !important;
+            display: block;
+        }
+
+        .chart-box.sm canvas {
+            height: 260px !important;
+        }
+
+    /* ===== INVEXA Custom Select ===== */
+    .inv-select {
+        position: relative;
+        width: 100%;
+        z-index: 30;
+    }
+
+    .inv-select__btn {
+        width: 100%;
+        height: var(--btn-h);
+        border-radius: 14px;
+        border: 2px solid var(--border);
+        background: #fff;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: border-color .18s ease, box-shadow .18s ease, transform .12s ease;
+    }
+
+        .inv-select__btn:hover {
+            border-color: #cfd3da;
+        }
+
+        .inv-select__btn:focus {
+            outline: none;
+            border-color: #111;
+        }
+
+    .inv-select__text {
+        color: #111827;
+    }
+
+    .inv-select__chev {
+        color: #111;
+        font-weight: 900;
+    }
+
+    .inv-select__panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        padding: 6px;
+        display: none;
+        z-index: 9999;
+        max-height: 260px;
+        overflow: auto;
+    }
+
+    .inv-select.open .inv-select__panel {
+        display: block;
+    }
+
+    .inv-opt {
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-size: 14px;
+        cursor: pointer;
+        color: #111827;
+        user-select: none;
+    }
+
+        .inv-opt:hover {
+            background: #f3f4f6;
+        }
+
+
+    /* ===== Responsive ===== */
+    @@media (max-width: 992px) {
+        .filter-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 560px) {
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     /* ===== Print ===== */
     @@media print {
         body {
-            background: white;
+            background: #fff !important;
         }
 
         .no-print {
             display: none !important;
         }
 
-        .filter-form,
-        .report-section {
-            border: none;
-            padding: 0;
+        .page-wrap {
+            padding: 0 !important;
         }
+
+        .card-shell {
+            box-shadow: none !important;
+        }
+
+        .card-shell, .table-shell {
+            border: 0 !important;
+        }
+
+        .chart-box {
+            border: 0 !important;
+            padding: 0 !important;
+        }
+
+            .chart-box canvas {
+                height: 260px !important;
+            }
     }
+
+    /* Allow dropdown panel to overflow outside filter card */
+    .filter-card {
+        overflow: visible !important;
+    }
+
+    .page-head {
+        align-items: center; /* was flex-end */
+    }
+
+    .title {
+        font-size: 30px; /* slightly tighter */
+        letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+        font-size: 13px;
+    }
+
+    .filter-card .card-pad {
+        padding: 22px;
+    }
+
+    .filter-grid {
+        gap: 16px; /* more breathing room */
+    }
+
+    .field label {
+        font-size: 13px;
+        font-weight: 550;
+    }
+
+    .control {
+        border-width: 2px;
+        font-weight: 500;
+    }
+
+        .control::placeholder {
+            color: #9ca3af;
+        }
+
+    .inv-select__btn {
+        border-width: 2px;
+        font-weight: 500;
+    }
+
+    .pill-btn.solid {
+        min-width: 120px;
+        font-weight: 900;
+        letter-spacing: .2px;
+    }
+    /* Chart block polish */
+    .chart-box {
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 14px;
+        background: #fff;
+    }
+
+        .chart-box .chart-title {
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: .2px;
+            text-transform: uppercase;
+            color: #111;
+            margin: 0 0 10px;
+        }
+
+        .chart-box .chart-sub {
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0 0 12px;
+        }
+
+        /* Better chart height */
+        .chart-box canvas {
+            width: 100% !important;
+            height: 320px !important;
+            display: block;
+        }
+
+        .chart-box.sm canvas {
+            height: 260px !important;
+        }
+    /* ===== Forecast Table polish ===== */
+    .sys-table thead th {
+        padding: 14px 14px;
+    }
+
+    .sys-table tbody td {
+        padding: 14px 14px;
+    }
+
+    /* numeric alignment */
+    .sys-table td.num, .sys-table th.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* item cell stronger */
+    .td-item {
+        font-weight: 800;
+        letter-spacing: -.2px;
+    }
+
+    /* status badge */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 2px solid var(--border);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: .2px;
+        text-transform: uppercase;
+    }
+
+        .status-pill.is-on {
+            background: #111;
+            border-color: #111;
+            color: #fff;
+        }
+
+        .status-pill.is-off {
+            background: #f3f4f6;
+            border-color: #e5e7eb;
+            color: #6b7280;
+        }
+
+    /* period muted */
+    .td-period {
+        color: var(--muted);
+    }
+
+    /* nicer row hover */
+    .sys-table tbody tr:hover {
+        background: #f7f7f7;
+    }
+
+    html, body, main {
+        background: #fff;
+    }
+
+    /* ===== Subtle vertical column separators ===== */
+    .sys-table th:not(:last-child),
+    .sys-table td:not(:last-child) {
+        border-right: 1px solid var(--border);
+    }
+
+    /* Soften the look a bit more */
+    .sys-table th,
+    .sys-table td {
+        border-right-color: #eef0f3; /* slightly lighter than main border */
+    }
+
+    /* ===== Chart external tooltip (Invexa) ===== */
+    .inv-tooltip {
+        position: fixed;
+        z-index: 99999;
+        pointer-events: none;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 10px 24px rgba(0,0,0,.08);
+        padding: 10px 12px;
+        min-width: 160px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+        .inv-tooltip.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .inv-tooltip .tt-title {
+            font-weight: 900;
+            font-size: 13px;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .inv-tooltip .tt-row {
+            font-size: 13px;
+            color: #111827;
+            margin: 2px 0;
+        }
+
+        .inv-tooltip .tt-sub {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Optional pinned hint */
+        .inv-tooltip .tt-pin {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #6b7280;
+            opacity: .9;
+        }
+
 </style>
 
-
-<div class="container-fluid">
+<div class="container-fluid page-wrap">
 
     <!-- ================= HEADER ================= -->
-    <div class="page-header">
+    <div class="page-head">
         <div>
-            <h2 class="fw-semibold">Reports & Analytics</h2>
-            <p class="text-muted mb-0">Operational insights & decision support</p>
+            <h2 class="title">Reports & Analytics</h2>
+            <p class="subtitle">Operational insights & decision support</p>
         </div>
 
-        <div class="no-print d-flex gap-2">
-            <button onclick="window.print()" class="btn btn-minimal btn-outline-black">
-                Print
-            </button>
-
+        <div class="top-actions no-print">
+            <button type="button" onclick="window.print()" class="pill-btn">Print</button>
 
             @if (!string.IsNullOrEmpty(Model.ReportType))
             {
-                <form asp-action="ExportPdf" method="post">
+                <form asp-action="ExportPdf" method="post" class="m-0">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="reportType" value="@Model.ReportType" />
                     <input type="hidden" name="startDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
                     <input type="hidden" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
-                    <button class="btn btn-minimal btn-black">
-                        Export PDF
-                    </button>
-
+                    <button type="submit" class="pill-btn solid">Export PDF</button>
                 </form>
             }
         </div>
     </div>
 
     <!-- ================= FILTER ================= -->
-    <form asp-action="Overview" method="post" class="filter-form no-print">
+    <form asp-action="Overview" method="post" class="card-shell filter-card no-print">
+
         @Html.AntiForgeryToken()
 
-        <div class="row">
-            <div class="col-md-4">
-                <label>Start Date</label>
-                <input type="date" name="startDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
-            </div>
-            <div class="col-md-4">
-                <label>End Date</label>
-                <input type="date" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+        <div class="card-pad">
+            <div class="card-title">Generate Report</div>
+            <div class="card-desc">Pick a date range and report type, then generate.</div>
+
+            <div class="filter-grid">
+                <div class="field">
+                    <label>Start Date</label>
+                    <input class="control" type="date" name="startDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="field">
+                    <label>End Date</label>
+                    <input class="control" type="date" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="field">
+                    <label>Report Type</label>
+
+                    <!-- Hidden real value that posts to backend -->
+                    <input type="hidden" name="reportType" id="reportType" value="@Model.ReportType" />
+
+                    <div class="inv-select" id="reportTypeSelect">
+                        <button type="button" class="inv-select__btn" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="inv-select__text" id="reportTypeText">@ReportLabel(Model.ReportType)</span>
+                            <span class="inv-select__chev">▾</span>
+                        </button>
+
+                        <div class="inv-select__panel" role="listbox">
+                            <div class="inv-opt" data-value="" aria-selected="@(string.IsNullOrEmpty(Model.ReportType) ? "true" : "false")">-- Select Report --</div>
+                            <div class="inv-opt" data-value="DemandForecast" aria-selected="@(Model.ReportType == "DemandForecast" ? "true" : "false")">Demand Forecast</div>
+                            <div class="inv-opt" data-value="Stock" aria-selected="@(Model.ReportType == "Stock" ? "true" : "false")">Stock Summary</div>
+                            <div class="inv-opt" data-value="StockCharts" aria-selected="@(Model.ReportType == "StockCharts" ? "true" : "false")">Stock Charts</div>
+                            <div class="inv-opt" data-value="Expiry" aria-selected="@(Model.ReportType == "Expiry" ? "true" : "false")">Expiry & Wastage</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <button type="submit" class="pill-btn solid" style="width:100%;">Generate</button>
+                </div>
             </div>
         </div>
-
-        <label class="mt-3">Report Type</label>
-        <select name="reportType" required>
-            <option value="">-- Select Report --</option>
-            <option value="DemandForecast" selected="@(Model.ReportType == "DemandForecast")">Demand Forecast</option>
-            <option value="Stock" selected="@(Model.ReportType == "Stock")">Stock Summary</option>
-            <option value="StockCharts" selected="@(Model.ReportType == "StockCharts")">Stock Charts</option>
-            <option value="Expiry" selected="@(Model.ReportType == "Expiry")">Expiry & Wastage</option>
-        </select>
-
-        <button class="btn btn-minimal btn-black mt-3">
-            Generate Report
-        </button>
-
     </form>
 
     <!-- ================= DEMAND FORECAST ================= -->
     @if (Model.ReportType == "DemandForecast")
     {
-        <div class="alert alert-secondary">
+        <div class="sys-alert">
             <small>
                 Forecasts are based on <b>historical stock-out transactions</b> and represent
                 <b>operational inventory demand</b> (non-sales).
@@ -242,51 +698,84 @@
 
         @if (Model.DemandForecastReport == null || !Model.DemandForecastReport.Any())
         {
-            <div class="alert alert-warning">No stock-out activity found.</div>
+            <div class="sys-alert">
+                <b>No stock-out activity found.</b>
+                <div class="text-muted">Try expanding the date range.</div>
+            </div>
         }
         else
         {
-            <div class="report-section">
-                <h4>Demand Forecast Insights</h4>
-                <canvas id="dailyDemandChart" class="mb-4"></canvas>
+            <div class="card-shell">
+                <div class="card-pad">
+                    <div class="card-title">Demand Forecast Insights</div>
+                    <div class="card-desc">Daily demand, forecast quantity, and reorder suggestion.</div>
 
-                <div class="row">
-                    <div class="col-md-8">
-                        <canvas id="forecastQtyChart"></canvas>
+                    <div class="chart-box sm mb-3">
+                        <div class="chart-title">Average Daily Demand</div>
+                        <div class="chart-sub">Based on historical stock-out activity.</div>
+                        <canvas id="dailyDemandChart"></canvas>
                     </div>
-                    <div class="col-md-4">
-                        <canvas id="reorderChart"></canvas>
+
+                    <div class="row g-3">
+                        <div class="col-lg-8">
+                            <div class="chart-box">
+                                <div class="chart-title">Forecast Quantity</div>
+                                <div class="chart-sub">Projected demand for the selected period.</div>
+                                <canvas id="forecastQtyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="chart-box">
+                                <div class="chart-title">Reorder Suggestion</div>
+                                <div class="chart-sub">Compare forecast vs recommended reorder.</div>
+                                <canvas id="reorderChart"></canvas>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </div>
 
-            <div class="report-section">
-                <h4>Detailed Forecast Breakdown</h4>
-                <table class="table table-bordered mt-3">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Status</th>
-                            <th>Period</th>
-                            <th>Avg Daily Demand</th>
-                            <th>Forecast Qty</th>
-                            <th>Recommended Reorder</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var d in Model.DemandForecastReport)
-                        {
-                            <tr class="@(d.ItemStatus == "Inactive" ? "inactive-row" : "")">
-                                <td>@d.ItemName</td>
-                                <td>@d.ItemStatus</td>
-                                <td>@d.Period</td>
-                                <td>@d.AverageDailyDemand</td>
-                                <td>@d.ForecastQty</td>
-                                <td>@d.RecommendedReorder</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="card-shell" style="margin-top: 14px;">
+                <div class="card-pad">
+                    <div class="card-title">Detailed Forecast Breakdown</div>
+                    <div class="card-desc">Inactive items are shown in a muted row style.</div>
+
+                    <div class="table-shell">
+                        <table class="sys-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 32%;">Item</th>
+                                    <th style="width: 12%;">Status</th>
+                                    <th style="width: 18%;">Period</th>
+                                    <th style="width: 14%;">Avg Daily</th>
+                                    <th style="width: 12%;">Forecast</th>
+                                    <th style="width: 12%;">Reorder</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var d in Model.DemandForecastReport)
+                                {
+                                    <tr class="@(d.ItemStatus == "Inactive" ? "inactive-row" : "")">
+                                        <td class="td-item">@d.ItemName</td>
+                                        <td>
+                                            <span class="status-pill @(d.ItemStatus == "Inactive" ? "is-off" : "is-on")">
+                                                @d.ItemStatus
+                                            </span>
+                                        </td>
+                                        <td class="td-period">@d.Period</td>
+                                        <td>@d.AverageDailyDemand.ToString("N2")</td>
+                                        <td>@d.ForecastQty.ToString("N0")</td>
+                                        <td>@d.RecommendedReorder.ToString("N0")</td>
+
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                </div>
             </div>
         }
     }
@@ -295,70 +784,92 @@
     @if (Model.ReportType == "Stock" && Model.StockSummary != null)
     {
         <div class="kpi-grid">
-            <div class="kpi-card"><div>Total Quantity</div><strong>@Model.TotalQuantityAll</strong></div>
-            <div class="kpi-card"><div>Active Quantity</div><strong>@Model.TotalQuantityActive</strong></div>
-            <div class="kpi-card"><div>Inactive Items</div><strong>@Model.InactiveItemCount</strong></div>
-            <div class="kpi-card"><div>Inventory Value</div><strong>RM @Model.InventoryValueActive.ToString("N2")</strong></div>
+            <div class="kpi"><div class="k">Total Quantity</div><div class="v">@Model.TotalQuantityAll</div></div>
+            <div class="kpi"><div class="k">Active Quantity</div><div class="v">@Model.TotalQuantityActive</div></div>
+            <div class="kpi"><div class="k">Inactive Items</div><div class="v">@Model.InactiveItemCount</div></div>
+            <div class="kpi"><div class="k">Inventory Value</div><div class="v">RM @Model.InventoryValueActive.ToString("N2")</div></div>
         </div>
 
-        <div class="report-section">
-            <h4>Stock Summary</h4>
-            <table class="table table-bordered">
-                <thead>
-                    <tr><th>Item</th><th>Status</th><th>Quantity</th></tr>
-                </thead>
-                <tbody>
-                    @foreach (var i in Model.StockSummary)
-                    {
-                        <tr class="@(i.ItemStatus == "Inactive" ? "inactive-row" : "")">
-                            <td>@i.ItemName</td>
-                            <td>@i.ItemStatus</td>
-                            <td>@i.Quantity</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="card-shell" style="margin-top:14px;">
+            <div class="card-pad">
+                <div class="card-title">Stock Summary</div>
+
+                <div class="table-shell">
+                    <table class="sys-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th style="width:140px;">Status</th>
+                                <th style="width:140px;">Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var i in Model.StockSummary)
+                            {
+                                <tr class="@(i.ItemStatus == "Inactive" ? "inactive-row" : "")">
+                                    <td>@i.ItemName</td>
+                                    <td>@i.ItemStatus</td>
+                                    <td>@i.Quantity</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
         </div>
     }
 
     <!-- ================= STOCK CHARTS ================= -->
     @if (Model.ReportType == "StockCharts")
     {
-        <div class="report-section">
-            <h4>Stock Charts</h4>
-            <p class="text-muted">@Model.ChartNote</p>
-            <canvas id="stockChart"></canvas>
+        <div class="card-shell" style="margin-top:14px;">
+            <div class="card-pad">
+                <div class="card-title">Stock Charts</div>
+                <div class="card-desc">@Model.ChartNote</div>
+
+                <div class="chart-box">
+                    <canvas id="stockChart"></canvas>
+                </div>
+            </div>
         </div>
     }
 
     <!-- ================= EXPIRY & WASTAGE ================= -->
     @if (Model.ReportType == "Expiry" && Model.ExpiryReport != null)
     {
-        <div class="report-section">
-            <h4>Expiry & Wastage</h4>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Batch</th>
-                        <th>Item</th>
-                        <th>Status</th>
-                        <th>Quantity</th>
-                        <th>Expiry Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var e in Model.ExpiryReport)
-                    {
-                        <tr class="@(e.ItemStatus == "Inactive" ? "inactive-row" : "")">
-                            <td>@e.BatchNumber</td>
-                            <td>@e.ItemName</td>
-                            <td>@e.ItemStatus</td>
-                            <td>@e.Quantity</td>
-                            <td>@e.ExpiryDate.ToString("yyyy-MM-dd")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="card-shell" style="margin-top:14px;">
+            <div class="card-pad">
+                <div class="card-title">Expiry & Wastage</div>
+                <div class="card-desc">Expiry date is shown in YYYY-MM-DD format for consistency.</div>
+
+                <div class="table-shell">
+                    <table class="sys-table">
+                        <thead>
+                            <tr>
+                                <th style="width:18%;">Batch</th>
+                                <th>Item</th>
+                                <th style="width:12%;">Status</th>
+                                <th style="width:12%;">Quantity</th>
+                                <th style="width:18%;">Expiry Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var e in Model.ExpiryReport)
+                            {
+                                <tr class="@(e.ItemStatus == "Inactive" ? "inactive-row" : "")">
+                                    <td>@e.BatchNumber</td>
+                                    <td>@e.ItemName</td>
+                                    <td>@e.ItemStatus</td>
+                                    <td>@e.Quantity</td>
+                                    <td>@e.ExpiryDate.ToString("yyyy-MM-dd")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
         </div>
     }
 
@@ -366,36 +877,271 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-@if (Model.ReportType == "DemandForecast" && Model.DemandForecastReport != null)
+@if (Model.ReportType == "DemandForecast" && Model.DemandForecastReport != null && Model.DemandForecastReport.Any())
 {
     <script>
-        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.ItemName)));
-        const daily = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.AverageDailyDemand)));
-        const forecast = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.ForecastQty)));
-        const reorder = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.RecommendedReorder)));
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                                    Model.DemandForecastReport.Select(x => (x.ItemName.Length > 12 ? x.ItemName.Substring(0, 12) + "…" : x.ItemName))
+                    ));
 
-        new Chart(document.getElementById('dailyDemandChart'), {
-            type: 'bar',
-            data: { labels, datasets: [{ label: 'Avg Daily Demand', data: daily }] },
-            options: { responsive: true }
-        });
+    const daily = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.AverageDailyDemand)));
+    const forecast = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.ForecastQty)));
+    const reorder = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.RecommendedReorder)));
 
-        new Chart(document.getElementById('forecastQtyChart'), {
-            type: 'bar',
-            data: { labels, datasets: [{ label: 'Forecast Qty', data: forecast }] },
-            options: { responsive: true }
-        });
+        // Safe max calc (prevents weird scaling)
+        function maxOf(arr) {
+          const nums = (arr || []).map(x => Number(x) || 0);
+          return Math.max(0, ...nums);
+        }
 
-        new Chart(document.getElementById('reorderChart'), {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [
-                    { label: 'Forecast', data: forecast },
-                    { label: 'Recommended Reorder', data: reorder }
-                ]
+        function niceMax(maxVal) {
+          if (maxVal <= 0) return 10;
+          const pow = Math.pow(10, Math.floor(Math.log10(maxVal)));
+          return Math.ceil(maxVal / pow) * pow;
+        }
+
+        const maxDaily = niceMax(maxOf(daily));
+        const maxForecast = niceMax(maxOf(forecast));
+        const maxReorder = niceMax(Math.max(maxOf(forecast), maxOf(reorder)));
+
+                // ===== External tooltip (follows cursor + fade + pin on click) =====
+        const tooltipState = new WeakMap(); // chart -> { pinned: bool, lastModel: any }
+
+        function getOrCreateTooltipEl(chart) {
+          let el = chart.canvas._invTooltip;
+          if (!el) {
+            el = document.createElement('div');
+            el.className = 'inv-tooltip';
+            document.body.appendChild(el);
+            chart.canvas._invTooltip = el;
+          }
+          return el;
+        }
+
+        function externalTooltipHandler(context) {
+          const { chart, tooltip } = context;
+          const el = getOrCreateTooltipEl(chart);
+
+          const st = tooltipState.get(chart) || { pinned: false, lastModel: null };
+          tooltipState.set(chart, st);
+
+          // If no tooltip shown and not pinned -> hide
+          if (tooltip.opacity === 0 && !st.pinned) {
+            el.classList.remove('show');
+            return;
+          }
+
+          // Update content when we have data (or keep last when pinned)
+          if (tooltip.opacity !== 0) {
+            st.lastModel = tooltip;
+          }
+          const model = st.lastModel;
+          if (!model) return;
+
+          const title = (model.title && model.title[0]) ? model.title[0] : '';
+          const bodyLines = (model.body || []).map(b => b.lines).flat();
+
+          // Build HTML (clean, no color boxes)
+          let html = `<div class="tt-title">${title}</div>`;
+          bodyLines.forEach(line => {
+            html += `<div class="tt-row">${line}</div>`;
+          });
+
+          // Optional extra hint
+          const hasReorder = bodyLines.some(l => l.toLowerCase().includes('recommended reorder'));
+          if (hasReorder) {
+            html += `<div class="tt-sub">Suggested restock quantity</div>`;
+          }
+
+          html += `<div class="tt-pin">${st.pinned ? 'Pinned (click chart to unpin)' : 'Click bar to pin'}</div>`;
+
+          el.innerHTML = html;
+
+          // Position under mouse cursor
+          const e = chart._lastEvent;
+          if (e) {
+            const offset = 14; // distance from cursor
+            el.style.left = (e.x + offset) + 'px';
+            el.style.top  = (e.y + offset) + 'px';
+          }
+
+          el.classList.add('show');
+        }
+
+        // Track last mouse position so tooltip can follow cursor
+        function attachCursorTracker(chart) {
+          const canvas = chart.canvas;
+
+          // Chart.js sends a "native" event wrapper; we’ll store screen coords in chart._lastEvent
+          canvas.addEventListener('mousemove', (ev) => {
+            chart._lastEvent = { x: ev.clientX, y: ev.clientY };
+          });
+
+          // Pin toggle on click (click a bar -> pin / unpin)
+          canvas.addEventListener('click', () => {
+            const st = tooltipState.get(chart) || { pinned: false, lastModel: null };
+            // Only allow pin if tooltip currently has content
+            if (st.lastModel) {
+              st.pinned = !st.pinned;
+              tooltipState.set(chart, st);
+              // Force redraw so external handler runs
+              chart.update();
+            }
+          });
+        }
+
+        const baseOptions = (yMax) => ({
+        responsive: true,
+        maintainAspectRatio: false,
+
+                interaction: {
+          mode: 'index',
+          intersect: false
+        },
+
+        plugins: {
+          legend: {
+            labels: {
+              boxWidth: 14,
+              boxHeight: 10,
+              font: { size: 12, weight: '600' }
+            }
+          },
+          tooltip: {
+            backgroundColor: '#ffffff',
+            titleColor: '#111827',
+            bodyColor: '#111827',
+            borderColor: '#e5e7eb',
+            position: 'nearest',
+            borderWidth: 1,
+            cornerRadius: 10,
+            padding: 12,
+            titleFont: { size: 13, weight: '800' },
+            bodyFont: { size: 13, weight: '500' },
+            displayColors: false,
+            callbacks: {
+              title: (items) => items[0].label,
+              label: (ctx) => {
+                const value = Number(ctx.parsed.y || 0).toLocaleString();
+                return `${ctx.dataset.label}: ${value}`;
+              },
+              afterLabel: (ctx) => {
+                return ctx.dataset.label === 'Recommended Reorder'
+                  ? 'Suggested restock quantity'
+                  : '';
+              }
+            }
+          }
+        },
+                  scales: {
+            x: {
+              ticks: { maxRotation: 0, autoSkip: true },
+              grid: { display: false }
             },
-            options: { responsive: true }
+            y: {
+              beginAtZero: true,
+              suggestedMax: yMax,
+              ticks: { callback: (v) => Number(v).toLocaleString() },
+              grid: { color: "rgba(0,0,0,0.06)" }
+            }
+          }
+        });
+
+
+
+        // ✅ 1) Avg Daily Demand
+        new Chart(document.getElementById('dailyDemandChart'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Avg Daily Demand',
+              data: daily,
+              borderRadius: 10
+            }]
+          },
+          options: baseOptions(maxDaily)
+        });
+
+        // ✅ 2) Forecast Qty
+        new Chart(document.getElementById('forecastQtyChart'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Forecast Qty',
+              data: forecast,
+              borderRadius: 10
+            }]
+          },
+          options: baseOptions(maxForecast)
+        });
+
+        // ✅ 3) Reorder Compare
+        new Chart(document.getElementById('reorderChart'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              { label: 'Forecast', data: forecast, borderRadius: 10 },
+              { label: 'Recommended Reorder', data: reorder, borderRadius: 10 }
+            ]
+          },
+          options: baseOptions(maxReorder)
         });
     </script>
 }
+
+<script>
+    (function () {
+      const root = document.getElementById("reportTypeSelect");
+      if (!root) return;
+
+      const btn = root.querySelector(".inv-select__btn");
+      const hidden = document.getElementById("reportType");
+      const text = document.getElementById("reportTypeText");
+      const opts = [...root.querySelectorAll(".inv-opt")];
+
+      function close() {
+        root.classList.remove("open");
+        btn.setAttribute("aria-expanded", "false");
+      }
+
+      function open() {
+        root.classList.add("open");
+        btn.setAttribute("aria-expanded", "true");
+      }
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        root.classList.contains("open") ? close() : open();
+      });
+
+      opts.forEach(opt => {
+        opt.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const val = opt.dataset.value ?? "";
+          const label = opt.textContent.trim();
+
+          hidden.value = val;
+          text.textContent = label;
+
+          opts.forEach(o => o.setAttribute("aria-selected", "false"));
+          opt.setAttribute("aria-selected", "true");
+
+          close();
+        });
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!root.contains(e.target)) close();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") close();
+      });
+    })();
+</script>

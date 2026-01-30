@@ -4,6 +4,7 @@ using Invexaaa.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Invexaaa.Migrations
 {
     [DbContext(typeof(InvexaDbContext))]
-    partial class InvexaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260130021928_StockCostingFoundation")]
+    partial class StockCostingFoundation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -150,9 +153,6 @@ namespace Invexaaa.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
-                    b.Property<decimal>("StandardUnitCost")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("TotalStockValue")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
@@ -173,11 +173,6 @@ namespace Invexaaa.Migrations
                     b.Property<decimal>("AverageDailyDemand")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
-
-                    b.Property<string>("BaseUnitName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("CategoryID")
                         .HasColumnType("int");
@@ -235,33 +230,6 @@ namespace Invexaaa.Migrations
                     b.HasKey("ItemID");
 
                     b.ToTable("Items");
-                });
-
-            modelBuilder.Entity("Invexaaa.Models.Invexa.ItemUnitConversion", b =>
-                {
-                    b.Property<int>("ItemUnitConversionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ItemUnitConversionID"));
-
-                    b.Property<int>("BaseUnitMultiplier")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsBaseUnit")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ItemID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UnitName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("ItemUnitConversionID");
-
-                    b.ToTable("ItemUnitConversions");
                 });
 
             modelBuilder.Entity("Invexaaa.Models.Invexa.SalesDetail", b =>
@@ -442,9 +410,6 @@ namespace Invexaaa.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionID"));
 
                     b.Property<int?>("BatchID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CostingMethodUsed")
                         .HasColumnType("int");
 
                     b.Property<int?>("CustomerID")

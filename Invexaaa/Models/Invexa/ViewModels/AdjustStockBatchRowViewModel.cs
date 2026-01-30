@@ -10,6 +10,14 @@ namespace Invexaaa.Models.ViewModels
         public int AvailableQuantity { get; set; }
 
         // Can be + or -
-        public int AdjustQuantity { get; set; }
+        public int InputQuantity { get; set; }
+
+        public int UnitConversionID { get; set; }
+
+        // calculated (not user input)
+        public int BaseQuantity { get; set; }
+        public List<ItemUnitConversion> AvailableUnits { get; set; } = new();
+
+
     }
 }

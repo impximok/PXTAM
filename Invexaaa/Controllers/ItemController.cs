@@ -133,7 +133,7 @@ namespace Invexaaa.Controllers
          ItemName = i.ItemName,
          CategoryName = c.CategoryName,
 
-
+         CostingMethod = i.CostingMethod,
          UnitOfMeasure = i.ItemUnitOfMeasure,
          BuyPrice = i.ItemBuyPrice,
          SellPrice = i.ItemSellPrice,
@@ -200,7 +200,10 @@ namespace Invexaaa.Controllers
         {
             if (!ModelState.IsValid)
             {
-                vm.Categories = _context.Categories.ToList();
+                vm.Categories = _context.Categories
+    .Where(c => c.CategoryStatus == "Active")
+    .ToList();
+
 
                 return View("CreateItem", vm);
             }
@@ -275,6 +278,23 @@ namespace Invexaaa.Controllers
             // Generate new barcode
             vm.Item.ItemBarcode = $"INVX-{nextNumber:D6}";
 
+            // 🔒 APPLY CATEGORY COSTING METHOD TO ITEM (CRITICAL)
+            var category = _context.Categories
+     .FirstOrDefault(c => c.CategoryID == vm.Item.CategoryID);
+
+            if (category == null)
+            {
+                ModelState.AddModelError("Item.CategoryID", "Invalid category selected.");
+                vm.Categories = _context.Categories
+    .Where(c => c.CategoryStatus == "Active")
+    .ToList();
+
+                return View("CreateItem", vm);
+            }
+
+            vm.Item.CostingMethod = category.CostingMethod;
+
+
 
             // =====================================================
             // SAVE ITEM
@@ -334,11 +354,48 @@ namespace Invexaaa.Controllers
             var item = _context.Items.Find(model.Item.ItemID);
             if (item == null) return NotFound();
 
+            var oldCategoryId = item.CategoryID;
+
+            // 🔒 BLOCK CATEGORY CHANGE IF STOCK EXISTS
+            var inventoryQty = _context.Inventories
+                .Where(i => i.ItemID == item.ItemID)
+                .Select(i => i.InventoryTotalQuantity)
+                .FirstOrDefault();
+
+            if (inventoryQty > 0 && item.CategoryID != model.Item.CategoryID)
+            {
+                ModelState.AddModelError("",
+                    "Cannot change category because costing method is locked once stock exists.");
+
+                model.Categories = _context.Categories.ToList();
+                return View(model);
+            }
+
+            if (item == null) return NotFound();
+
             // ✅ Update fields
             item.ItemName = model.Item.ItemName;
             item.ItemDescription = model.Item.ItemDescription;
             item.ItemUnitOfMeasure = model.Item.ItemUnitOfMeasure;
             item.CategoryID = model.Item.CategoryID;
+
+            // 🔒 RE-APPLY COSTING METHOD IF CATEGORY CHANGED AND NO STOCK EXISTS
+            if (inventoryQty == 0 && oldCategoryId != model.Item.CategoryID)
+            {
+                var newCategory = _context.Categories
+                    .FirstOrDefault(c => c.CategoryID == model.Item.CategoryID);
+
+                if (newCategory == null)
+                {
+                    ModelState.AddModelError("Item.CategoryID", "Invalid category selected.");
+                    model.Categories = _context.Categories.ToList();
+                    return View(model);
+                }
+
+                item.CostingMethod = newCategory.CostingMethod;
+            }
+
+
 
             item.ItemBuyPrice = model.Item.ItemBuyPrice;
             item.ItemSellPrice = model.Item.ItemSellPrice;
@@ -662,7 +719,9 @@ namespace Invexaaa.Controllers
                         ItemSellPrice = decimal.TryParse(cols[4], out var sell) ? sell : 0,
                         ItemStatus = string.IsNullOrWhiteSpace(cols[5]) ? "Active" : cols[5].Trim(),
                         ItemCreatedDate = DateTime.Now,
-                        ItemImageUrl = "/images/items/item-default.png"
+                        ItemImageUrl = "/images/items/item-default.png",
+                        CostingMethod = category.CostingMethod
+
                     });
                 }
             }
@@ -716,7 +775,9 @@ namespace Invexaaa.Controllers
                         ItemStatus = string.IsNullOrWhiteSpace(sheet.Cells[row, 8].Text)
                             ? "Active"
                             : sheet.Cells[row, 8].Text.Trim(),
-                        ItemCreatedDate = DateTime.Now
+                        ItemCreatedDate = DateTime.Now,
+                        CostingMethod = category.CostingMethod
+
                     });
                 }
             }

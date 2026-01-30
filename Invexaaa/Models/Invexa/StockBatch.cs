@@ -29,5 +29,22 @@ namespace Invexaaa.Models.Invexa
         [Timestamp]
         public byte[] RowVersion { get; set; } = Array.Empty<byte>();
 
+        [Range(0.01, double.MaxValue, ErrorMessage = "Unit cost must be greater than 0.")]
+        public decimal TransactionUnitCost { get; set; }
+
+        // ======================
+        // SUPPLIER (IN ONLY)
+        // ======================
+        public int? SupplierID { get; set; }
+
+        [MaxLength(100)]
+        public string? SupplierNameSnapshot { get; set; }
+
+
+
+        [Range(0, 365)]
+        public int LeadTimeDays { get; set; }
+
+
     }
 }
