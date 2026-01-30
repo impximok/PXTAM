@@ -779,19 +779,105 @@
 
     /* animation */
     @@keyframes toast-in {
-        from
+        from {
+            opacity: 0;
+            transform: translate(-50%, -8px);
+        }
 
-    {
+        to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+    }
+
+    /* ===== File Upload Icon Button (System) ===== */
+    .icon-btn--file {
+        position: relative;
+        overflow: hidden; /* ✅ ensures hidden input never breaks layout */
+    }
+
+        /* hide file input completely */
+        .icon-btn--file .icon-file {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* make it feel same as other icon buttons */
+        .icon-btn--file i {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+    /* optional: slightly tighter so it matches your other icons perfectly */
+    .icon-btn {
+        height: 44px; /* ✅ lock height */
+        padding: 10px 14px !important;
+    }
+
+
+    /* ===== Text Pills (Import/Export/Add) ===== */
+    .pill-action {
+        height: 44px;
+        border-radius: 999px !important;
+        padding: 0 18px !important;
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        border: 2px solid #000 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
+    }
+
+    /* solid (Export) */
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .pill-solid:hover,
+        .pill-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    /* outline (Import/Add) */
+    .pill-outline {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+        .pill-outline:hover,
+        .pill-outline:focus-visible {
+            background: #000 !important;
+            color: #fff !important;
+            outline: none;
+        }
+
+    /* ===== File input overlay (Import) ===== */
+    .pill-file {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pill-file-input {
+        position: absolute;
+        inset: 0;
         opacity: 0;
-        transform: translate(-50%, -8px);
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
     }
 
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-
-    }
 </style>
 
 <div class="page-wrap">
@@ -820,7 +906,7 @@
 
 
     <div class="page-head">
-        
+
 
         <div>
             <h1 class="title">Maintain Category</h1>
@@ -829,41 +915,34 @@
 
         <div style="display:flex; gap:10px; align-items:center;">
 
-            <!-- Download Template -->
-            <!-- Export REAL database data -->
+            <!-- Export -->
             <a asp-controller="Category"
                asp-action="Export"
-               class="icon-btn"
-               title="Export Categories"
-               aria-label="Export Categories">
-                <i class="bi bi-download"></i>
+               class="pill-action pill-solid"
+               title="Export Categories">
+                Export
             </a>
 
-
-
-            <!-- Import Excel / CSV -->
+            <!-- Import -->
             <form asp-action="Import"
                   asp-controller="Category"
                   method="post"
                   enctype="multipart/form-data"
                   style="margin:0"
                   onsubmit="handleImportSubmit(this)">
+
                 @Html.AntiForgeryToken()
 
-                <label class="icon-btn"
-                       title="Import Excel"
-                       aria-label="Import Excel"
-                       data-tooltip="Import Excel"
-                       style="cursor:pointer">
-                    <i class="bi bi-upload"></i>
-
-                    <input type="file"
+                <label class="pill-action pill-outline pill-file" title="Import Excel / CSV">
+                    Import
+                    <input class="pill-file-input"
+                           type="file"
                            name="file"
                            accept=".xlsx,.csv"
                            onchange="this.form.submit()" />
-
                 </label>
             </form>
+
 
             <!-- Add Category -->
             <a asp-action="Create"
@@ -1429,7 +1508,7 @@
         if (e.key === 'Escape' && bulkModal?.classList.contains('open')) closeBulkModal();
       });
 
-     
+
 
       /* ===============================
          8) Init

@@ -1,5 +1,5 @@
-﻿@model IEnumerable<Invexaaa.Models.ViewModels.ExpiryTrackingViewModel>
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<Invexaaa.Models.ViewModels.ExpiryTrackingViewModel>
 
 @{
     ViewData["Title"] = "Expiry Tracking";
@@ -7,131 +7,1110 @@
 }
 
 <style>
-    .expiry-safe {
-        background: #e6f7ec;
-        color: #15803d;
-        padding: 4px 10px;
+    :root {
+        --bg: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 18px;
+        --table-edge-pad: 18px;
+    }
+
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
+
+    .page-wrap {
+        width: 100%;
+        padding: 10px 18px 24px;
+    }
+
+    .page-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 12px;
+    }
+
+    .title {
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .hint-pill {
+        display: inline-flex;
+        align-items: center;
+        height: 38px;
+        padding: 0 14px;
         border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
     }
 
-    .expiry-warning {
-        background: #fff7ed;
-        color: #b45309;
-        padding: 4px 10px;
+    /* Filters (system) */
+    .filters {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr auto;
+        gap: 10px 12px;
+        align-items: end;
+        padding: 18px 0 18px;
+        border-bottom: 1.5px solid #e5e7eb;
+        margin-bottom: 18px;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #111;
+        margin-bottom: 6px;
+        font-size: 13px;
+    }
+
+    .control {
+        width: 100%;
+        border: 2px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 11px 14px !important;
+        height: 46px;
+        font-size: 15px !important;
+        background: #fff !important;
+        color: var(--text) !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+        .control:focus {
+            border-color: #000 !important;
+        }
+
+    .filter-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+        align-self: flex-end;
+        margin-bottom: 2px;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 8px 14px !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        border: 2px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        white-space: nowrap;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 220ms ease, color 220ms ease;
+    }
+
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .pill-solid:hover, .pill-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .pill-outline:hover, .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        outline: none;
+    }
+
+    /* Custom Select (cs2) */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 11px 40px 11px 14px;
+        height: 46px;
+        background: #fff;
+        color: #111;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cs2-value {
+        flex: 1;
+        text-align: left;
+        font-weight: 500;
+    }
+
+    .cs2-btn:focus, .cs2.open .cs2-btn {
+        border-color: #000 !important;
+        outline: none;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 2147483647;
+        display: none;
+        box-shadow: 0 16px 45px rgba(0,0,0,.14);
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #111;
+        padding: 12px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+        .cs2-item:hover {
+            background: #f2f2f2;
+        }
+
+    /* Table shell (system) */
+    .table-shell {
+        border: 2px solid #e5e7eb;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: #fff;
+    }
+
+    table.sys-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .sys-table thead th {
+        font-size: 13.5px;
+        font-weight: 800;
+        color: #111;
+        padding: 16px 14px;
+        background: #f6f7f9;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+    .sys-table tbody td {
+        font-size: 13.5px;
+        font-weight: 500;
+        color: var(--text);
+        padding: 16px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+    }
+
+        .sys-table thead th:first-child,
+        .sys-table tbody td:first-child {
+            padding-left: var(--table-edge-pad);
+        }
+
+    .sys-table tbody tr:nth-child(even) {
+        background: #fcfcfd;
+    }
+
+    .sys-table tbody tr:hover {
+        background: #f7f7f9;
+    }
+
+    .sys-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    /* Subtle vertical separators */
+    .sys-table thead th {
+        border-right: 1px solid #eceef2;
+    }
+
+        .sys-table thead th:last-child {
+            border-right: none;
+        }
+
+    .sys-table tbody td {
+        border-right: 1px solid #f0f2f5;
+    }
+
+        .sys-table tbody td:last-child {
+            border-right: none;
+        }
+
+    .item-name {
+        font-weight: 900;
+        color: #111;
+        line-height: 1.25;
+    }
+
+    /* Pills */
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #111;
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+        line-height: 1;
     }
 
-    .expiry-danger {
-        background: #fee2e2;
-        color: #b91c1c;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    /* 🔒 Inactive rows */
-    .inactive-row {
-        opacity: 0.55;
-        filter: grayscale(100%);
-    }
-
-    .inactive-badge {
-        background: #e5e7eb;
+    .pill-soft {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
         color: #374151;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 12px;
         font-weight: 600;
+        font-size: 12.5px;
+        padding: 6px 12px;
+        border-radius: 10px; /* like your sample batch pill */
+    }
+
+    .pill-inactive {
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        color: #9ca3af;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: .02em;
+    }
+
+    /* Expiry status styles */
+    .pill-safe {
+        border-color: #16a34a;
+        color: #166534;
+        background: rgba(22,163,74,.10);
+    }
+
+    .pill-warn {
+        border-color: #f59e0b;
+        color: #92400e;
+        background: rgba(245,158,11,.10);
+    }
+
+    .pill-danger {
+        border-color: #dc2626;
+        color: #991b1b;
+        background: rgba(220,38,38,.10);
+    }
+
+    .inactive-row {
+        opacity: .58;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    /* Action buttons (same system vibe) */
+    .action-btn {
+        border-radius: 999px !important;
+        padding: 8px 14px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        border: 2px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        white-space: nowrap;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 220ms ease, color 220ms ease;
+        text-decoration: none !important;
+        min-width: 190px;
+    }
+
+        .action-btn:hover, .action-btn:focus-visible {
+            background: #000 !important;
+            color: #fff !important;
+            outline: none;
+        }
+
+        .action-btn[disabled],
+        .action-btn.disabled {
+            opacity: .35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    /* ===== table footer + pager (same system) ===== */
+    .table-footer {
+        border-top: 1px solid #e5e7eb;
+        padding: 12px 14px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .pager-left {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .pager-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .pager-range {
+        display: inline-flex;
+        align-items: center;
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: #333;
+        background: #fff;
+        font-size: 13px;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .pager-label {
+        font-size: 13px;
+        font-weight: 900;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    .pager-btn {
+        height: 38px;
+        min-width: 58px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #fff;
+        color: #000;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color .18s ease, color .18s ease, opacity .18s ease;
+    }
+
+        .pager-btn:hover, .pager-btn:focus-visible {
+            background: #000;
+            color: #fff;
+            outline: none;
+        }
+
+        .pager-btn.is-active {
+            min-width: 38px;
+            background: #000;
+            color: #fff;
+        }
+
+        .pager-btn[disabled] {
+            opacity: .35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    .pager-dots {
+        font-weight: 900;
+        color: #6b7280;
+        padding: 0 4px;
+    }
+
+    /* footer rows-per-page */
+    .pager-cs2 .cs2-value {
+        font-weight: 800 !important;
+    }
+
+    .pager-cs2 .cs2-item {
+        font-size: 16px !important;
+        font-weight: 500 !important;
+        text-align: center !important;
+    }
+
+    .pager-cs2 .cs2-btn {
+        height: 38px;
+        min-width: 80px;
+        max-width: 80px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 0 44px 0 14px;
+    }
+
+    /* dropdown menu font not heavy */
+    .cs2-menu, .cs2-menu * {
+        font-weight: 500 !important;
+    }
+
+    .cs2-btn, .cs2-btn .cs2-value {
+        font-weight: 600 !important;
+    }
+
+    @@media (max-width:980px) {
+        .filters {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width:700px) {
+        .table-footer {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .pager-right {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width:600px) {
+        .filters {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-actions {
+            width: 100%;
+        }
+
+        .pill-btn {
+            width: 100%;
+        }
     }
 </style>
 
-<div class="container-fluid">
+<div class="page-wrap">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-semibold">Expiry Tracking</h3>
-        <span class="text-muted small">
-            Batch-level expiry monitoring
-        </span>
+    <div class="page-head">
+        <div>
+            <h1 class="title">Expiry Tracking</h1>
+            <p class="subtitle">Search, filter and monitor batch-level expiry by date and status.</p>
+        </div>
+        <span class="hint-pill">Batch Monitor · Read Only</span>
     </div>
 
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-secondary small">
-                    <tr>
-                        <th>Item</th>
-                        <th>Category</th>
-                        <th>Batch</th>
-                        <th>Expiry Date</th>
-                        <th>Quantity</th>
-                        <th>Status</th>
-                        <th style="width:140px">Action</th>
-                    </tr>
-                </thead>
+    <!-- FILTERS -->
+    <div class="filters">
+        <div>
+            <div class="label">Search</div>
+            <input id="q" type="text" class="control" placeholder="Item / category / batch" />
+        </div>
 
-                <tbody>
-                    @foreach (var row in Model)
-                    {
-                        bool isInactive = row.ItemStatus == "Inactive";
+        <div>
+            <div class="label">Status</div>
 
-                        string statusClass =
-                        row.ExpiryStatus == "Expired" ? "expiry-danger" :
-                        row.ExpiryStatus == "Near Expiry" ? "expiry-warning" :
-                        "expiry-safe";
+            <select class="real-select" id="statusSel">
+                <option value="">All</option>
+                <option value="Safe">Safe</option>
+                <option value="Near Expiry">Near Expiry</option>
+                <option value="Expired">Expired</option>
+            </select>
 
-                        <tr class="@(isInactive ? "inactive-row" : "")">
-                            <td class="fw-semibold">
-                                @row.ItemName
-                                @if (isInactive)
-                                {
-                                    <div class="mt-1">
-                                        <span class="inactive-badge">INACTIVE</span>
-                                    </div>
-                                }
-                            </td>
+            <div class="cs2" data-select="statusSel">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">All</span>
+                    <span class="cs2-caret"></span>
+                </button>
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="">All</button>
+                    <button type="button" class="cs2-item" data-value="Safe">Safe</button>
+                    <button type="button" class="cs2-item" data-value="Near Expiry">Near Expiry</button>
+                    <button type="button" class="cs2-item" data-value="Expired">Expired</button>
+                </div>
+            </div>
+        </div>
 
-                            <td>@row.CategoryName</td>
+        <div>
+            <div class="label">Sort</div>
 
-                            <td>@row.BatchNumber</td>
+            <select class="real-select" id="sortSel">
+                <option value="exp_asc">Expiry (Soonest)</option>
+                <option value="exp_desc">Expiry (Latest)</option>
+                <option value="item_az">Item (A–Z)</option>
+                <option value="item_za">Item (Z–A)</option>
+                <option value="qty_desc">Quantity (High–Low)</option>
+                <option value="qty_asc">Quantity (Low–High)</option>
+            </select>
 
-                            <td>@row.ExpiryDate.ToString("dd/MM/yyyy")</td>
+            <div class="cs2" data-select="sortSel">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">Expiry (Soonest)</span>
+                    <span class="cs2-caret"></span>
+                </button>
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="exp_asc">Expiry (Soonest)</button>
+                    <button type="button" class="cs2-item" data-value="exp_desc">Expiry (Latest)</button>
+                    <button type="button" class="cs2-item" data-value="item_az">Item (A–Z)</button>
+                    <button type="button" class="cs2-item" data-value="item_za">Item (Z–A)</button>
+                    <button type="button" class="cs2-item" data-value="qty_desc">Quantity (High–Low)</button>
+                    <button type="button" class="cs2-item" data-value="qty_asc">Quantity (Low–High)</button>
+                </div>
+            </div>
+        </div>
 
-                            <td>@row.Quantity</td>
-
-                            <td>
-                                <span class="@statusClass">
-                                    @row.ExpiryStatus
-                                </span>
-                            </td>
-
-                            <td>
-                                @if (isInactive)
-                                {
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Locked
-                                    </button>
-                                }
-                                else
-                                {
-                                    <a asp-controller="Stock"
-                                       asp-action="EditExpiry"
-                                       asp-route-batchId="@row.BatchID"
-                                       class="btn btn-sm btn-outline-primary">
-                                        Edit
-                                    </a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-
-            </table>
+        <div class="filter-actions">
+            <button id="btnFilter" class="pill-btn pill-solid" type="button">Filter</button>
+            <button id="btnReset" class="pill-btn pill-outline" type="button">Reset</button>
         </div>
     </div>
 
+    <!-- TABLE -->
+    <div class="table-shell">
+        <div class="table-responsive">
+            <table class="sys-table">
+                <thead>
+                    <tr>
+                        <th style="min-width:220px;">Item</th>
+                        <th style="min-width:180px;">Category</th>
+                        <th style="min-width:180px;">Batch</th>
+                        <th style="width:160px;">Expiry Date</th>
+                        <th style="width:100px;">Quantity</th>
+                        <th style="width:130px;">Status</th>
+                        <th style="width:210px;">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tbody">
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">No expiry records found.</div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var row in Model)
+                        {
+                            bool isInactive = row.ItemStatus == "Inactive";
+
+                            string statusClass =
+                            row.ExpiryStatus == "Expired" ? "pill-danger" :
+                            row.ExpiryStatus == "Near Expiry" ? "pill-warn" :
+                            "pill-safe";
+
+                            // for sorting yyyy-MM-dd
+                            var isoDate = row.ExpiryDate.ToString("yyyy-MM-dd");
+
+                            <tr class="@(isInactive ? "inactive-row" : "")"
+                                data-item="@row.ItemName"
+                                data-category="@row.CategoryName"
+                                data-batch="@row.BatchNumber"
+                                data-status="@row.ExpiryStatus"
+                                data-exp="@isoDate"
+                                data-qty="@row.Quantity"
+                                data-inactive="@(isInactive ? "1" : "0")">
+
+                                <td>
+                                    <div class="item-name">@row.ItemName</div>
+                                    @if (isInactive)
+                                    {
+                                        <div style="margin-top:6px;">
+                                            <span class="pill pill-inactive">INACTIVE</span>
+                                        </div>
+                                    }
+                                </td>
+
+                                <td>@row.CategoryName</td>
+
+                                <td><span class="pill pill-soft">@row.BatchNumber</span></td>
+
+                                <td>@row.ExpiryDate.ToString("dd/MM/yyyy")</td>
+
+                                <td>@row.Quantity</td>
+
+                                <td><span class="pill @statusClass">@row.ExpiryStatus</span></td>
+
+                                <td>
+                                    @if (isInactive)
+                                    {
+                                        <button class="action-btn disabled" type="button" disabled>Locked</button>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Stock"
+                                           asp-action="EditExpiry"
+                                           asp-route-batchId="@row.BatchID"
+                                           class="action-btn">
+                                            Edit
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div class="table-footer" id="pagerBar">
+            <div class="pager-left">
+                <span class="pager-range" id="pagerInfo">Showing 0–0 of 0</span>
+
+                <span class="pager-label">Rows per page</span>
+
+                <select class="real-select" id="pageSize">
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                </select>
+
+                <div class="cs2 pager-cs2" data-select="pageSize">
+                    <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="cs2-value">50</span>
+                        <span class="cs2-caret"></span>
+                    </button>
+                    <div class="cs2-menu" role="listbox">
+                        <button type="button" class="cs2-item" data-value="25">25</button>
+                        <button type="button" class="cs2-item" data-value="50">50</button>
+                        <button type="button" class="cs2-item" data-value="100">100</button>
+                        <button type="button" class="cs2-item" data-value="200">200</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pager-right" id="pagerBtns"></div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        (() => {
+          /* ===============================
+             CS2 (menu on body, no clipping)
+          =============================== */
+          function setupCS2(cs) {
+            const selectId = cs.dataset.select;
+            const real = document.getElementById(selectId);
+            if (!real) return;
+
+            const btn = cs.querySelector(".cs2-btn");
+            const valueEl = cs.querySelector(".cs2-value");
+            const items = Array.from(cs.querySelectorAll(".cs2-item"));
+            const menu = cs.querySelector(".cs2-menu");
+            if (!btn || !menu) return;
+
+            const originalParent = menu.parentElement;
+            const originalNext = menu.nextSibling;
+
+            const setActive = (val) => {
+              const found = items.find(i => String(i.dataset.value) === String(val));
+              if (valueEl) valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "");
+            };
+
+            const measureHeight = () => {
+              const prevDisplay = menu.style.display;
+              const prevVis = menu.style.visibility;
+              menu.style.display = "block";
+              menu.style.visibility = "hidden";
+              const h = menu.scrollHeight || 240;
+              menu.style.visibility = prevVis;
+              menu.style.display = prevDisplay;
+              return h;
+            };
+
+            const placeMenuOnBody = () => {
+              document.body.appendChild(menu);
+              menu.style.position = "fixed";
+              menu.style.zIndex = "2147483647";
+            };
+
+            const returnMenuHome = () => {
+              if (originalParent) {
+                if (originalNext) originalParent.insertBefore(menu, originalNext);
+                else originalParent.appendChild(menu);
+              }
+            };
+
+            const positionMenu = () => {
+              const rect = btn.getBoundingClientRect();
+              const menuH = measureHeight();
+
+              const spaceBelow = window.innerHeight - rect.bottom;
+              const spaceAbove = rect.top;
+              const desired = Math.min(320, menuH);
+
+              const forceUp = cs.classList.contains("pager-cs2");
+              const openUp = forceUp || (spaceBelow < Math.min(220, desired) && spaceAbove > spaceBelow);
+
+              menu.style.left = rect.left + "px";
+              menu.style.width = rect.width + "px";
+              menu.style.right = "auto";
+              menu.style.top = "auto";
+              menu.style.bottom = "auto";
+              menu.style.maxHeight = "";
+
+              if (openUp) menu.style.bottom = (window.innerHeight - rect.top + 8) + "px";
+              else menu.style.top = (rect.bottom + 8) + "px";
+            };
+
+            const open = () => {
+              document.querySelectorAll(".cs2.open").forEach(other => {
+                if (other !== cs) {
+                  other.classList.remove("open");
+                  other.querySelector(".cs2-btn")?.setAttribute("aria-expanded", "false");
+                }
+              });
+
+              cs.classList.add("open");
+              btn.setAttribute("aria-expanded", "true");
+
+              placeMenuOnBody();
+              menu.style.display = "block";
+              positionMenu();
+            };
+
+            const close = () => {
+              cs.classList.remove("open");
+              btn.setAttribute("aria-expanded", "false");
+
+              menu.style.display = "none";
+              menu.style.position = "";
+              menu.style.left = "";
+              menu.style.top = "";
+              menu.style.bottom = "";
+              menu.style.width = "";
+              menu.style.maxHeight = "";
+              menu.style.right = "";
+              menu.style.zIndex = "";
+
+              returnMenuHome();
+            };
+
+            setActive(real.value);
+
+            btn.addEventListener("click", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              cs.classList.contains("open") ? close() : open();
+            });
+
+            items.forEach(i => {
+              i.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                real.value = i.dataset.value ?? "";
+                real.dispatchEvent(new Event("change", { bubbles: true }));
+                setActive(real.value);
+                close();
+              });
+            });
+
+            document.addEventListener("click", (e) => {
+              if (!e.target.closest(".cs2") && cs.classList.contains("open")) close();
+            });
+
+            document.addEventListener("keydown", (e) => {
+              if (e.key === "Escape" && cs.classList.contains("open")) close();
+            });
+
+            window.addEventListener("scroll", () => {
+              if (cs.classList.contains("open")) positionMenu();
+            }, true);
+
+            window.addEventListener("resize", () => {
+              if (cs.classList.contains("open")) positionMenu();
+            });
+          }
+
+          document.querySelectorAll(".cs2[data-select]").forEach(setupCS2);
+
+          /* ===============================
+             Filter + Pagination
+             ✅ hides pager in empty state
+          =============================== */
+          const tbody = document.getElementById("tbody");
+
+          // only rows that came from model loop (ignore server empty row)
+          const allRows = Array.from(tbody.querySelectorAll("tr"))
+            .filter(r => r.dataset && r.dataset.item);
+
+          const qEl = document.getElementById("q");
+          const statusSel = document.getElementById("statusSel");
+          const sortSel = document.getElementById("sortSel");
+          const btnFilter = document.getElementById("btnFilter");
+          const btnReset = document.getElementById("btnReset");
+
+          const pagerBar = document.getElementById("pagerBar");
+          const pagerInfo = document.getElementById("pagerInfo");
+          const pagerBtns = document.getElementById("pagerBtns");
+          const pageSizeEl = document.getElementById("pageSize");
+
+          let filteredRows = [...allRows];
+          let pageSize = parseInt(pageSizeEl?.value || "50", 10);
+          let page = 1;
+
+          const makeDots = () => {
+            const s = document.createElement("span");
+            s.className = "pager-dots";
+            s.textContent = "…";
+            return s;
+          };
+
+          function clampPage() {
+            const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+            page = Math.min(Math.max(page, 1), totalPages);
+            return totalPages;
+          }
+
+          function renderRows(rows) {
+            tbody.innerHTML = "";
+
+            if (rows.length === 0) {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td colspan="7"><div class="empty-state">No expiry records found.</div></td>`;
+              tbody.appendChild(tr);
+              return;
+            }
+
+            rows.forEach(r => tbody.appendChild(r));
+          }
+
+          function renderPager(totalPages) {
+            if (!pagerBar) return;
+
+            const total = filteredRows.length;
+
+            // ✅ hide pagination in empty state
+            if (total === 0) {
+              pagerBar.style.display = "none";
+              if (pagerInfo) pagerInfo.textContent = "Showing 0–0 of 0";
+              if (pagerBtns) pagerBtns.innerHTML = "";
+              return;
+            }
+
+            pagerBar.style.display = "flex";
+
+            const startIdx = (page - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, total);
+            if (pagerInfo) pagerInfo.textContent = `Showing ${startIdx + 1}–${endIdx} of ${total}`;
+
+            if (!pagerBtns) return;
+            pagerBtns.innerHTML = "";
+
+            const makeBtn = (label, onClick, opts = {}) => {
+              const b = document.createElement("button");
+              b.type = "button";
+              b.className = "pager-btn" + (opts.active ? " is-active" : "");
+              b.textContent = label;
+              if (opts.disabled) b.disabled = true;
+              b.addEventListener("click", onClick);
+              return b;
+            };
+
+            pagerBtns.appendChild(makeBtn("Prev", () => { page--; render(); }, { disabled: page === 1 }));
+
+            const windowSize = 5;
+            let start = Math.max(1, page - Math.floor(windowSize / 2));
+            let end = Math.min(totalPages, start + windowSize - 1);
+            start = Math.max(1, end - windowSize + 1);
+
+            if (start > 1) {
+              pagerBtns.appendChild(makeBtn("1", () => { page = 1; render(); }, { active: page === 1 }));
+              if (start > 2) pagerBtns.appendChild(makeDots());
+            }
+
+            for (let p = start; p <= end; p++) {
+              pagerBtns.appendChild(makeBtn(String(p), () => { page = p; render(); }, { active: page === p }));
+            }
+
+            if (end < totalPages) {
+              if (end < totalPages - 1) pagerBtns.appendChild(makeDots());
+              pagerBtns.appendChild(makeBtn(String(totalPages), () => { page = totalPages; render(); }, { active: page === totalPages }));
+            }
+
+            pagerBtns.appendChild(makeBtn("Next", () => { page++; render(); }, { disabled: page === totalPages }));
+          }
+
+          function applySort(rows) {
+            const mode = sortSel?.value || "exp_asc";
+
+            rows.sort((a, b) => {
+              const itemA = (a.dataset.item || "").toLowerCase();
+              const itemB = (b.dataset.item || "").toLowerCase();
+              const expA = (a.dataset.exp || "");
+              const expB = (b.dataset.exp || "");
+              const qtyA = parseFloat(a.dataset.qty || "0") || 0;
+              const qtyB = parseFloat(b.dataset.qty || "0") || 0;
+
+              if (mode === "exp_desc") return expB.localeCompare(expA);
+              if (mode === "exp_asc") return expA.localeCompare(expB);
+              if (mode === "item_az") return itemA.localeCompare(itemB);
+              if (mode === "item_za") return itemB.localeCompare(itemA);
+              if (mode === "qty_desc") return qtyB - qtyA;
+              if (mode === "qty_asc") return qtyA - qtyB;
+
+              return 0;
+            });
+
+            return rows;
+          }
+
+          function applyFilterSort(resetToFirstPage = true) {
+            const keyword = (qEl?.value || "").trim().toLowerCase();
+            const st = statusSel?.value || "";
+
+            filteredRows = allRows.filter(tr => {
+              const item = (tr.dataset.item || "").toLowerCase();
+              const cat = (tr.dataset.category || "").toLowerCase();
+              const batch = (tr.dataset.batch || "").toLowerCase();
+              const status = tr.dataset.status || "";
+
+              const matchText = !keyword || item.includes(keyword) || cat.includes(keyword) || batch.includes(keyword);
+              const matchStatus = !st || status === st;
+
+              return matchText && matchStatus;
+            });
+
+            applySort(filteredRows);
+
+            if (resetToFirstPage) page = 1;
+            render();
+          }
+
+          function render() {
+            const totalPages = clampPage();
+
+            if (filteredRows.length === 0) {
+              renderRows([]);
+              renderPager(totalPages);
+              return;
+            }
+
+            const startIdx = (page - 1) * pageSize;
+            const rows = filteredRows.slice(startIdx, startIdx + pageSize);
+
+            renderRows(rows);
+            renderPager(totalPages);
+          }
+
+          // Events
+          btnFilter?.addEventListener("click", () => applyFilterSort(true));
+
+          qEl?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              applyFilterSort(true);
+            }
+          });
+
+          btnReset?.addEventListener("click", () => {
+            if (qEl) qEl.value = "";
+            if (statusSel) statusSel.value = "";
+            if (sortSel) sortSel.value = "exp_asc";
+
+            filteredRows = [...allRows];
+            page = 1;
+
+            // sync cs2 labels with real selects
+            document.querySelectorAll('.cs2[data-select]').forEach(cs => {
+              const id = cs.dataset.select;
+              const real = document.getElementById(id);
+              const valueEl = cs.querySelector('.cs2-value');
+              const items = Array.from(cs.querySelectorAll('.cs2-item'));
+              const found = items.find(i => String(i.dataset.value) === String(real?.value || ""));
+              if (valueEl) valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "");
+              cs.classList.remove('open');
+              cs.querySelector('.cs2-btn')?.setAttribute('aria-expanded', 'false');
+            });
+
+            render();
+          });
+
+          pageSizeEl?.addEventListener("change", () => {
+            pageSize = parseInt(pageSizeEl.value || "50", 10);
+            page = 1;
+            render();
+          });
+
+          // initial
+          filteredRows = [...allRows];
+          page = 1;
+          render();
+
+        })();
+    </script>
+}

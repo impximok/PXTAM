@@ -1,89 +1,70 @@
 ﻿@model Invexaaa.Models.ViewModels.ItemCardViewModel
 
-
 <div class="itemCard @(Model.ItemStatus == "Inactive" ? "isInactive" : "")">
 
-    <a class="itemCard__link"
-       href="@Url.Action("ItemDetail", "Item", new { id = Model.ItemID })">
+    <!-- ✅ overlay link: makes body clickable, footer still works -->
+    <a class="itemCard__overlayLink"
+       href="@Url.Action("ItemDetail", "Item", new { id = Model.ItemID })"
+       aria-label="Open item detail"></a>
 
+    <div class="itemCard__media">
+        <img src="@(string.IsNullOrWhiteSpace(Model.ItemImageUrl) ? "/images/items/item-default.png" : Model.ItemImageUrl)"
+             onerror="this.onerror=null;this.src='/images/items/item-default.png';"
+             class="itemCard__img"
+             alt="@Model.ItemName" />
 
+        <span class="itemCard__statusPill @(Model.ItemStatus == "Active" ? "isActive" : "isInactive")">
+            @Model.ItemStatus
+        </span>
+    </div>
 
-
-        <div class="itemCard__media">
-            <img src="@(string.IsNullOrWhiteSpace(Model.ItemImageUrl)
-                     ? "/images/items/item-default.png"
-                     : Model.ItemImageUrl)"
-                 onerror="this.onerror=null;this.src='/images/items/item-default.png';"
-                 class="itemCard__img"
-                 alt="@Model.ItemName" />
-
-
-            <span class="itemCard__statusPill @(Model.ItemStatus == "Active" ? "isActive" : "isInactive")">
-                @Model.ItemStatus
-            </span>
+    <div class="itemCard__body">
+        <div class="itemCard__top">
+            <div class="itemCard__title" title="@Model.ItemName">@Model.ItemName</div>
+            <div class="itemCard__code">#@Model.ItemID</div>
         </div>
 
-        <div class="itemCard__body">
-            <div class="itemCard__top">
-                <div class="itemCard__title" title="@Model.ItemName">@Model.ItemName</div>
-                <div class="itemCard__code">#@Model.ItemID</div>
+        <div class="itemCard__meta">
+            <div class="itemCard__metaRow">
+                <span class="label">Category</span>
+                <span class="value">@Model.CategoryName</span>
             </div>
-
-            <div class="itemCard__meta">
-                <div class="itemCard__metaRow">
-                    <span class="label">Category</span>
-                    <span class="value">@Model.CategoryName</span>
-                </div>
-                
-            </div>
-
-            <div class="itemCard__price">
-                RM @Model.ItemSellPrice.ToString("0.00")
-            </div>
-
-            <div class="itemCard__stats">
-                <div class="stat
-    @(Model.CurrentBalance <= 0
-                                                  ? "stat--zero"
-                                                  : (Model.CurrentBalance <= Model.ReorderLevel ? "stat--low" : ""))">
-                    <div class="stat__k">Balance</div>
-                    <div class="stat__v">@Model.CurrentBalance</div>
-                </div>
-
-                <div class="stat">
-                    <div class="stat__k">Reorder</div>
-                    <div class="stat__v">@Model.ReorderLevel</div>
-                </div>
-            </div>
-
-            @if (!string.IsNullOrEmpty(Model.ItemBarcode))
-            {
-                <div class="itemCard__barcode">
-                    <span class="label">Barcode</span>
-                    <span class="value">@Model.ItemBarcode</span>
-                </div>
-            }
         </div>
-    </a>
 
-    <div class="itemCard__footer" onclick="event.stopPropagation();">
+        <div class="itemCard__price">RM @Model.ItemSellPrice.ToString("0.00")</div>
 
+        <div class="itemCard__stats">
+            <div class="stat @(Model.CurrentBalance <= 0 ? "stat--zero" : (Model.CurrentBalance <= Model.ReorderLevel ? "stat--low" : ""))">
+                <div class="stat__k">Balance</div>
+                <div class="stat__v">@Model.CurrentBalance</div>
+            </div>
 
-        <!-- Edit (disabled if inactive) -->
+            <div class="stat">
+                <div class="stat__k">Reorder</div>
+                <div class="stat__v">@Model.ReorderLevel</div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.ItemBarcode))
+        {
+            <div class="itemCard__barcode">
+                <span class="label">Barcode</span>
+                <span class="value">@Model.ItemBarcode</span>
+            </div>
+        }
+    </div>
+
+    <div class="itemCard__footer">
         <a href="/Item/EditItem/@Model.ItemID"
-           class="btn btn-sm itemBtn itemBtn--outline
-          @(Model.ItemStatus == "Inactive" ? "btnDisabled" : "")">
+           class="itemBtn itemBtn--mono @(Model.ItemStatus == "Inactive" ? "btnDisabled" : "")">
             <i class="bi bi-pencil-square"></i>
             <span>Edit</span>
         </a>
 
-
-
-
         @if (Model.ItemStatus == "Active")
         {
             <a href="/Item/DeactivateItem/@Model.ItemID"
-               class="btn btn-sm itemBtn itemBtn--warn">
+               class="itemBtn itemBtn--warn">
                 <i class="bi bi-slash-circle"></i>
                 <span>Deactivate</span>
             </a>
@@ -91,150 +72,158 @@
         else
         {
             <a href="/Item/ActivateItem/@Model.ItemID"
-               class="btn btn-sm itemBtn itemBtn--success">
+               class="itemBtn itemBtn--success">
                 <i class="bi bi-check-circle"></i>
                 <span>Activate</span>
             </a>
         }
-
     </div>
-
-
 </div>
+
 <style>
-    /* ===== Item Card (System Style) ===== */
+    /* ===============================
+           INVEXA · Item Card (System)
+        =============================== */
     .itemCard {
-        border: 2px solid #e6e6e6;
-        border-radius: 16px;
+        position: relative;
+        border: 2px solid #e5e7eb;
+        border-radius: 18px;
         background: #fff;
         overflow: hidden;
-        transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+        transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
     }
 
         .itemCard:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 24px rgba(0,0,0,.06);
-            border-color: #dedede;
+            border-color: #dfe3ea;
         }
 
-    /* Remove default <a> styling */
-    .itemCard__link {
-        display: block;
-        color: inherit;
-        text-decoration: none !important;
-        /* 🔴 FIX: prevent overlay from blocking footer */
+    /* ✅ clickable overlay link */
+    .itemCard__overlayLink {
+        position: absolute;
+        inset: 0;
+        z-index: 1; /* behind footer */
+        text-decoration: none;
+    }
+
+    .itemCard__body, .itemCard__media {
         position: relative;
-        z-index: 1;
+        z-index: 2;
     }
 
-    .itemCard__link {
-        display: block;
-        width: 100%;
-        color: inherit;
-        text-decoration: none !important;
+    .itemCard__footer {
+        position: relative;
+        z-index: 3;
     }
+    /* always clickable */
 
-        .itemCard__link * {
-            text-decoration: none !important;
-        }
-
-    /* Media / image area */
+    /* ===== Media ===== */
     .itemCard__media {
         position: relative;
         background: #fafafa;
-        border-bottom: 1px solid #ededed;
+        border-bottom: 1px solid #eef2f7;
+        padding: 10px;
+        aspect-ratio: 4 / 3;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 10px;
     }
 
     .itemCard__img {
         width: 100%;
         height: 100%;
         object-fit: contain;
-        border-radius: 10px;
+        object-position: center;
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,.04);
+        background: transparent;
     }
 
-    /* Status pill top-right */
-    /* ===== Status Pill (More Obvious) ===== */
+    /* ===== Status pill ===== */
     .itemCard__statusPill {
         position: absolute;
         top: 10px;
         right: 10px;
         padding: 6px 12px;
-        font-size: .75rem;
+        border-radius: 999px;
+        font-size: 12px;
         font-weight: 900;
         letter-spacing: .08em;
-        border-radius: 999px;
-        border: none;
         text-transform: uppercase;
-        box-shadow: 0 2px 6px rgba(0,0,0,.12);
+        border: 1.5px solid transparent;
+        box-shadow: 0 2px 8px rgba(0,0,0,.12);
     }
 
-
         .itemCard__statusPill.isActive {
-            color: #111;
+            background: rgba(22,163,74,.12);
+            border-color: #16a34a;
+            color: #166534;
         }
 
         .itemCard__statusPill.isInactive {
-            color: #6b7280;
-            background: #f7f7f7;
+            background: rgba(107,114,128,.12);
+            border-color: #cbd5e1;
+            color: #334155;
         }
 
-    /* Body */
+    /* ===== Body ===== */
     .itemCard__body {
-        padding: 10px 12px 8px;
+        padding: 12px 14px 10px;
     }
-
 
     .itemCard__top {
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
         gap: 10px;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
 
     .itemCard__title {
-        font-weight: 700;
-        font-size: .98rem;
-        line-height: 1.2;
+        font-weight: 900;
+        font-size: 15px;
+        line-height: 1.25;
         max-width: 70%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        color: #111;
     }
 
     .itemCard__code {
-        font-size: .78rem;
-        color: #777;
-        border: 1px solid #ededed;
+        font-size: 12.5px;
+        color: #64748b;
+        border: 1px solid #e5e7eb;
         border-radius: 999px;
-        padding: 2px 8px;
+        padding: 3px 10px;
+        font-weight: 800;
+        white-space: nowrap;
     }
 
-    /* Meta rows */
+    /* Meta */
     .itemCard__meta {
         display: grid;
-        gap: 6px;
-        margin: 8px 0 10px;
+        gap: 8px;
+        margin: 6px 0 10px;
     }
 
     .itemCard__metaRow {
         display: flex;
         justify-content: space-between;
         gap: 10px;
-        font-size: .85rem;
     }
 
         .itemCard__metaRow .label {
-            color: #7a7a7a;
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 800;
         }
 
         .itemCard__metaRow .value {
             color: #111;
-            font-weight: 600;
+            font-size: 13.5px;
+            font-weight: 700;
             text-align: right;
             max-width: 60%;
             overflow: hidden;
@@ -244,226 +233,40 @@
 
     /* Price */
     .itemCard__price {
-        font-weight: 800;
-        font-size: 1.05rem;
-        margin: 6px 0 10px;
+        font-weight: 900;
+        font-size: 16px;
+        color: #111;
+        margin: 6px 0 12px;
     }
 
     /* Stats */
     .itemCard__stats {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-bottom: 8px;
+        gap: 10px;
+        margin-bottom: 10px;
     }
 
     .stat {
-        border: 1px solid #ededed;
-        padding: 8px;
-        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 10px 10px;
         background: #fff;
     }
 
     .stat__k {
-        font-size: .7rem;
-        color: #7a7a7a;
+        font-size: 12px;
+        color: #6b7280;
+        font-weight: 800;
     }
 
     .stat__v {
-        font-size: .9rem;
-        font-weight: 800;
-        margin-top: 2px;
+        font-size: 14px;
+        font-weight: 900;
+        margin-top: 3px;
     }
 
-    /* Barcode */
-    .itemCard__barcode {
-        border-top: 1px dashed #ededed;
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        padding-top: 8px;
-        font-size: .8rem;
-    }
-
-        .itemCard__barcode .label {
-            color: #7a7a7a;
-        }
-
-        .itemCard__barcode .value {
-            font-weight: 700;
-        }
-
-    /* Footer buttons */
-    .itemCard__footer {
-    display: flex;
-    padding: 10px 12px 12px;
-    gap: 8px;
-    border-top: 1px solid #ededed;
-    background: #fff;
-
-    /* 🔴 FIX: force footer ABOVE clickable card area */
-    position: relative;
-    z-index: 10;
-}
-
-
-    .itemBtn {
-        flex: 1;
-        border-radius: 12px !important;
-        padding: 8px 10px;
-        font-size: .85rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .itemBtn--outline {
-        border: 1px solid #111 !important;
-        color: #111 !important;
-        background: #fff !important;
-    }
-
-        .itemBtn--outline:hover {
-            background: #111 !important;
-            color: #fff !important;
-        }
-
-    .itemBtn--warn {
-        border: 1px solid #e6e6e6 !important;
-        background: #fff7ed !important;
-        color: #9a3412 !important;
-    }
-
-        .itemBtn--warn:hover {
-            background: #ffedd5 !important;
-        }
-
-    /* Inactive state */
-    .itemCard.isInactive {
-        background: #fcfcfc;
-        border-style: dashed;
-    }
-
-        .itemCard.isInactive .itemCard__media {
-            background: #f7f7f7;
-        }
-
-
-
-    .btnDisabled {
-        pointer-events: none;
-        opacity: .55;
-    }
-
-    .itemBtn--success {
-        border: 1px solid #16a34a !important;
-        background: #ecfdf5 !important;
-        color: #166534 !important;
-    }
-
-        .itemBtn--success:hover {
-            background: #d1fae5 !important;
-        }
-    /* Media / image area (SQUARE, no crop) */
-    .itemCard__media {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 4 / 3; /* 🔥 was 1 / 1 */
-        padding: 8px; /* was 12px */
-        background: #fafafa;
-        border-bottom: 1px solid #ededed;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Image (fit fully, never crop) */
-    .itemCard__img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain; /* ✅ never crop */
-        object-position: center;
-        border-radius: 10px;
-        background: transparent;
-    }
-
-    .itemCard__img {
-        max-width: 100%;
-        max-height: 100%;
-    }
-
-    .itemBtn--warn {
-        border: 1px solid #f59e0b !important;
-        background: #fff7ed !important;
-        color: #9a3412 !important;
-        transition: all .15s ease;
-    }
-
-        .itemBtn--warn:hover {
-            background: #f59e0b !important;
-            color: #fff !important;
-            border-color: #f59e0b !important;
-        }
-
-    .itemBtn--success {
-        border: 1px solid #16a34a !important;
-        background: #ecfdf5 !important;
-        color: #166534 !important;
-        transition: all .15s ease;
-    }
-
-        .itemBtn--success:hover {
-            background: #16a34a !important;
-            color: #fff !important;
-            border-color: #16a34a !important;
-        }
-
-    .itemBtn i {
-        transition: transform .15s ease;
-    }
-
-    .itemBtn:hover i {
-        transform: scale(1.05);
-    }
-
-    .itemCard.isInactive .itemCard__img {
-        filter: grayscale(1) opacity(.75);
-    }
-
-    .itemCard.isInactive .itemCard__statusPill {
-        border-style: dashed;
-    }
-
-    .itemCard.isInactive .itemCard__media::after {
-        content: none;
-        position: absolute;
-        left: 10px;
-        bottom: 10px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: rgba(0,0,0,.65);
-        color: #fff;
-        font-size: .72rem;
-        font-weight: 800;
-    }
-
-    .itemCard__metaRow .label {
-        font-size: .78rem;
-    }
-
-    .itemCard__metaRow .value {
-        font-size: .88rem;
-    }
-
-    .itemCard__img {
-        border: 1px solid rgba(0,0,0,.04);
-    }
-
-    /* ===== Stock status cues ===== */
-
-    /* Low stock */
+    /* low/zero cues */
     .stat--low {
         border-color: #f59e0b;
         background: rgba(245,158,11,.10);
@@ -473,7 +276,6 @@
             color: #92400e;
         }
 
-    /* Out of stock */
     .stat--zero {
         border-color: #dc2626;
         background: rgba(220,38,38,.10);
@@ -482,38 +284,224 @@
         .stat--zero .stat__v {
             color: #991b1b;
         }
-    /* ===== Inactive visual treatment ===== */
 
-    /* Dim + grayscale image */
-    .itemCard.isInactive .itemCard__img {
-        filter: grayscale(1) opacity(.7);
+    /* Barcode */
+    .itemCard__barcode {
+        border-top: 1px dashed #e5e7eb;
+        padding-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
     }
 
-    /* Make status pill clearer */
-    .itemCard.isInactive .itemCard__statusPill {
-        background: #f3f4f6;
-        border-style: dashed;
+        .itemCard__barcode .label {
+            color: #6b7280;
+            font-size: 12.5px;
+            font-weight: 800;
+        }
+
+        .itemCard__barcode .value {
+            font-size: 13px;
+            font-weight: 800;
+            color: #111;
+        }
+
+    /* ===== Footer ===== */
+    .itemCard__footer {
+        display: flex;
+        gap: 10px;
+        padding: 12px 14px 14px;
+        border-top: 1px solid #eef2f7;
+        background: #fff;
     }
 
-    .itemCard__statusPill.isActive {
-        background: rgba(22,163,74,.14);
-        color: #166534;
-        border: 1.5px solid #16a34a;
+    .itemBtn {
+        flex: 1;
+        height: 40px;
+        border-radius: 999px !important;
+        border: 2px solid #000 !important;
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none !important;
+        transition: background-color 180ms ease, color 180ms ease, transform 160ms ease;
     }
 
-    .itemCard__statusPill.isInactive {
-        background: rgba(107,114,128,.12);
-        color: #374151;
-        border: 1.5px #6b7280;
+        .itemBtn:hover {
+            transform: translateY(-1px);
+            background: #000 !important;
+            color: #fff !important;
+        }
+
+        .itemBtn i {
+            transition: transform .15s ease;
+        }
+
+        .itemBtn:hover i {
+            transform: scale(1.05);
+        }
+
+    /* variants */
+    .itemBtn--mono {
     }
-    /* Card click area should NOT steal clicks from footer */
-    .itemCard__link {
+
+    .itemBtn--warn {
+        border-color: #f59e0b !important;
+        background: rgba(245,158,11,.10) !important;
+        color: #92400e !important;
+    }
+
+        .itemBtn--warn:hover {
+            background: #f59e0b !important;
+            color: #fff !important;
+        }
+
+    .itemBtn--success {
+        border-color: #16a34a !important;
+        background: rgba(22,163,74,.10) !important;
+        color: #166534 !important;
+    }
+
+        .itemBtn--success:hover {
+            background: #16a34a !important;
+            color: #fff !important;
+        }
+
+    /* Disabled edit */
+    .btnDisabled {
+        opacity: .40;
         pointer-events: none;
     }
 
-        /* Re-enable clicks for the actual card content */
-        .itemCard__link > * {
-            pointer-events: auto;
+
+    .itemCard.isInactive .itemCard__img {
+        filter: grayscale(1) opacity(.78);
+    }
+
+    /* ===== Media frame (fixed, predictable) ===== */
+    /* ===== Media frame (clean white, no grey) ===== */
+    .itemCard__media {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        /* ⬇⬆ MORE SPACE TOP & BOTTOM */
+        padding: 28px 20px; /* top/bottom | left/right */
+
+        background: #ffffff;
+        border-bottom: 1px solid #eef2f7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+    /* ===== Image: fully visible, no crop ===== */
+    .itemCard__img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        object-position: center;
+        border-radius: 10px;
+        background: transparent;
+    }
+
+    /* ===== Image (never crop, always fully visible) ===== */
+    .itemCard__img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain; /* ✅ key */
+        object-position: center;
+        border-radius: 12px;
+        background: transparent;
+    }
+
+    .itemCard__img {
+        border: 2px solid #e5e7eb;
+    }
+
+    .itemCard__media {
+        position: relative; /* ✅ anchor for pill */
+    }
+
+    /* ===============================
+           Status Pill · System Final
+        =============================== */
+    .itemCard__statusPill {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        z-index: 6;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 11.5px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        background: #ffffff;
+        border: 1.5px solid #e5e7eb;
+        box-shadow: 0 4px 10px rgba(0,0,0,.12), 0 1px 0 rgba(255,255,255,.6) inset;
+        user-select: none;
+        pointer-events: none;
+    }
+
+        .itemCard__statusPill.isActive {
+            background: #ecfdf5; /* soft green */
+            border-color: #16a34a;
+            color: #166534;
         }
+
+        .itemCard__statusPill.isInactive {
+            background: #f8fafc; /* very light grey */
+            border-color: #cbd5e1;
+            color: #475569;
+        }
+
+        .itemCard__statusPill.isInactive {
+            opacity: 0.85;
+        }
+
+    .itemCard__media {
+        position: relative; /* already correct */
+    }
+    /* overlay MUST be above body/media so clicks go into it */
+    .itemCard__overlayLink {
+        position: absolute;
+        inset: 0;
+        z-index: 2; /* ✅ was 1 */
+        text-decoration: none;
+    }
+
+    /* body + media should be BELOW overlay */
+    .itemCard__body,
+    .itemCard__media {
+        position: relative;
+        z-index: 1; /* ✅ was 2 */
+    }
+
+    /* footer stays ABOVE overlay so buttons still clickable */
+    .itemCard__footer {
+        position: relative;
+        z-index: 3; /* ✅ keep highest */
+    }
+    /* Grey out only media + body for inactive */
+    .itemCard.isInactive .itemCard__media,
+    .itemCard.isInactive .itemCard__body {
+        opacity: 0.60;
+        filter: grayscale(1);
+    }
+
+    /* Make image look slightly “disabled” too */
+    .itemCard.isInactive .itemCard__img {
+        filter: grayscale(1) contrast(0.95);
+    }
 
 </style>

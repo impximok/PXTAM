@@ -50,8 +50,8 @@
     }
 
     .card-head {
-        padding-bottom: 16px; /* 🔽 tighter */
-        margin-bottom: 18px; /* 🔽 tighter */
+        padding-bottom: 14px; /* 🔽 tighter */
+        margin-bottom: 14px; /* 🔽 tighter */
         border-bottom: 1px solid var(--border);
     }
 
@@ -114,8 +114,8 @@
     }
 
     /* ===============================
-           Field states
-           =============================== */
+               Field states
+               =============================== */
 
     /* Default */
     .control {
@@ -221,8 +221,8 @@
     }
 
     /* ===============================
-           Minimal Select (B&W)
-           =============================== */
+               Minimal Select (B&W)
+               =============================== */
 
     select.control {
         appearance: none;
@@ -242,7 +242,6 @@
         /* Focus */
         select.control:focus {
             border-color: #111;
-            box-shadow: 0 0 0 4px rgba(0,0,0,.06);
         }
 
         /* Disabled (optional, future-proof) */
@@ -309,7 +308,6 @@
         background: #fff;
         border: 1px solid var(--border);
         border-radius: 14px;
-        box-shadow: 0 12px 28px rgba(0,0,0,.10);
         padding: 6px;
         display: none;
         z-index: 50;
@@ -484,11 +482,7 @@
         .cs2-item.active {
             background: transparent;
         }
-    /* Trigger focus */
-    .cs2-btn:focus {
-        border-color: #111 !important;
-        box-shadow: none; /* keep it clean */
-    }
+
 
     /* When dropdown is open, keep black border */
     .cs2.open .cs2-btn {
@@ -558,20 +552,43 @@
                 </div>
 
                 <!-- Costing Method -->
-                <div class="field">
+                <div class="field span-2">
                     <label asp-for="CostingMethod" class="label">
                         Costing Method <span class="req">*</span>
                     </label>
 
-                    <select asp-for="CostingMethod" class="control">
+                    <!-- Real select for MVC binding -->
+                    <select asp-for="CostingMethod"
+                            class="real-select"
+                            id="CostingMethod">
                         <option value="">Select Costing Method</option>
                         <option value="1">FIFO</option>
                         <option value="2">Weighted Average</option>
                         <option value="3">Fixed</option>
                     </select>
 
+                    <!-- Custom UI -->
+                    <div class="cs2" data-select="CostingMethod">
+                        <button type="button"
+                                class="cs2-btn"
+                                aria-haspopup="listbox"
+                                aria-expanded="false">
+                            <span class="cs2-value">Select Costing Method</span>
+                            <span class="cs2-caret"></span>
+                        </button>
+
+                        <div class="cs2-menu" role="listbox">
+                            <button type="button" class="cs2-item" data-value="">Select Costing Method</button>
+                            <button type="button" class="cs2-item" data-value="1">FIFO</button>
+                            <button type="button" class="cs2-item" data-value="2">Weighted Average</button>
+                            <button type="button" class="cs2-item" data-value="3">Fixed</button>
+                        </div>
+                    </div>
+
                     <span asp-validation-for="CostingMethod" class="text-danger small"></span>
                 </div>
+
+
 
 
                 <!-- Description -->
@@ -605,30 +622,45 @@
 
 <script>
     (() => {
-      // =========================
-      // Custom dropdown (Status)
-      // =========================
-      const cs = document.querySelector('.cs2[data-select="CategoryStatus"]');
-      if (!cs) return;
+    // =========================
+    // Custom dropdown (ALL cs2)
+    // =========================
+    function setupCS2(cs) {
+      const selectId = cs.dataset.select;
+      const real = document.getElementById(selectId);
+      if (!real) return;
 
-      const real = document.getElementById("CategoryStatus");
       const btn = cs.querySelector(".cs2-btn");
       const valueEl = cs.querySelector(".cs2-value");
       const items = Array.from(cs.querySelectorAll(".cs2-item"));
 
-      const setActive = (val) => {
-        valueEl.textContent = val || "Select Status";
-        items.forEach(i => i.classList.toggle("active", i.dataset.value === val));
+      const labelForValue = (val) => {
+        const found = items.find(i => i.dataset.value === val);
+        return found ? found.textContent.trim() : (items[0]?.textContent.trim() ?? "Select");
       };
 
-      setActive(real.value);
+      const syncLabel = () => {
+        valueEl.textContent = labelForValue(real.value);
+      };
 
+      // init label
+      syncLabel();
+
+      // open/close
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
+
+        // close others first
+        document.querySelectorAll(".cs2.open").forEach(x => {
+          if (x !== cs) x.classList.remove("open");
+        });
+
         cs.classList.toggle("open");
+        btn.setAttribute("aria-expanded", cs.classList.contains("open") ? "true" : "false");
       });
 
+      // select item
       items.forEach(i => {
         i.addEventListener("click", (e) => {
           e.preventDefault();
@@ -636,36 +668,51 @@
 
           real.value = i.dataset.value;
           real.dispatchEvent(new Event("change", { bubbles: true }));
-          setActive(i.dataset.value);
 
+          syncLabel();
           cs.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
         });
       });
 
-      document.addEventListener("click", e => {
-        if (!cs.contains(e.target)) cs.classList.remove("open");
+      // close on outside click
+      document.addEventListener("click", (e) => {
+        if (!cs.contains(e.target)) {
+          cs.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+        }
       });
 
-      // =========================
-      // Save / Save & New (FIXED)
-      // =========================
-      const form = document.getElementById("catForm");
-      const hiddenAction = document.getElementById("submitAction");
-
-      form.querySelectorAll(".js-submit").forEach(btn => {
-        btn.addEventListener("click", () => {
-          hiddenAction.value = btn.dataset.action;
-        });
+      // close on ESC
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          cs.classList.remove("open");
+          btn.setAttribute("aria-expanded", "false");
+        }
       });
+    }
 
-      form.addEventListener("submit", () => {
-        form.querySelectorAll(".js-submit").forEach(b => {
-          b.disabled = true;
-          if (b.dataset.action === hiddenAction.value) {
-            b.textContent = "Saving...";
-          }
-        });
+    document.querySelectorAll('.cs2[data-select]').forEach(setupCS2);
+
+    // =========================
+    // Save / Save & New (yours)
+    // =========================
+    const form = document.getElementById("catForm");
+    const hiddenAction = document.getElementById("submitAction");
+
+    form?.querySelectorAll(".js-submit").forEach(btn => {
+      btn.addEventListener("click", () => {
+        hiddenAction.value = btn.dataset.action;
       });
+    });
+
+    form?.addEventListener("submit", () => {
+      form.querySelectorAll(".js-submit").forEach(b => {
+        b.disabled = true;
+        if (b.dataset.action === hiddenAction.value) b.textContent = "Saving...";
+      });
+    });
+
     })();
 </script>
 

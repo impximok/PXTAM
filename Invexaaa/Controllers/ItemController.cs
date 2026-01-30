@@ -132,7 +132,7 @@ namespace Invexaaa.Controllers
          ItemID = i.ItemID,
          ItemName = i.ItemName,
          CategoryName = c.CategoryName,
-   
+
 
          UnitOfMeasure = i.ItemUnitOfMeasure,
          BuyPrice = i.ItemBuyPrice,
@@ -205,16 +205,36 @@ namespace Invexaaa.Controllers
                 return View("CreateItem", vm);
             }
             // ================= IMAGE UPLOAD =================
-            if (vm.ImageFile != null && vm.ImageFile.Length > 0)
+            var uploadsFolder = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot/uploads/items"
+            );
+            Directory.CreateDirectory(uploadsFolder);
+
+            // 1) ✅ Prefer EDITOR result (base64) if exists
+            if (!string.IsNullOrWhiteSpace(vm.EditedImageData))
             {
-                var uploadsFolder = Path.Combine(
-                    Directory.GetCurrentDirectory(),
-                    "wwwroot/uploads/items"
-                );
+                var base64 = vm.EditedImageData;
 
-                Directory.CreateDirectory(uploadsFolder);
+                // remove prefix: data:image/png;base64,...
+                var commaIndex = base64.IndexOf(',');
+                if (commaIndex >= 0)
+                    base64 = base64[(commaIndex + 1)..];
 
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(vm.ImageFile.FileName)}";
+                byte[] imageBytes = Convert.FromBase64String(base64);
+
+                var fileName = $"item_{Guid.NewGuid():N}.png";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                System.IO.File.WriteAllBytes(filePath, imageBytes);
+
+                vm.Item.ItemImageUrl = $"/uploads/items/{fileName}";
+            }
+            // 2) fallback: normal raw file upload
+            else if (vm.ImageFile != null && vm.ImageFile.Length > 0)
+            {
+                var ext = Path.GetExtension(vm.ImageFile.FileName);
+                var fileName = $"item_{Guid.NewGuid():N}{ext}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -222,9 +242,15 @@ namespace Invexaaa.Controllers
                     vm.ImageFile.CopyTo(stream);
                 }
 
-                // ✅ VERY IMPORTANT: save WEB path, not physical path
                 vm.Item.ItemImageUrl = $"/uploads/items/{fileName}";
             }
+            // 3) optional default image if none chosen
+            else
+            {
+                vm.Item.ItemImageUrl = "/images/items/item-default.png";
+            }
+
+
 
             // =====================================================
             // ⭐ AUTO-GENERATE BARCODE (Option B)
@@ -284,7 +310,7 @@ namespace Invexaaa.Controllers
             {
                 Item = item,
                 Categories = _context.Categories.ToList(),
-    
+
             };
 
             return View(vm);
@@ -301,7 +327,7 @@ namespace Invexaaa.Controllers
             {
                 // 🔴 IMPORTANT: reload dropdown data
                 model.Categories = _context.Categories.ToList();
-            
+
                 return View(model);
             }
 
@@ -325,46 +351,61 @@ namespace Invexaaa.Controllers
             // ❗ DO NOT TOUCH ItemID
 
             // ================= IMAGE UPDATE =================
-            if (!string.IsNullOrEmpty(model.EditedImageData))
-            {
-                // Edited image from canvas (base64)
-                var base64 = model.EditedImageData;
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/items");
+            Directory.CreateDirectory(uploadsFolder);
 
-                // Remove prefix: data:image/png;base64,...
+            // helper to delete old file safely
+            void DeleteOldImageIfAny(string? url)
+            {
+                if (string.IsNullOrWhiteSpace(url)) return;
+
+                // don't delete your system default image
+                if (url.Contains("/images/items/item-default.png")) return;
+
+                var oldPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    url.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString())
+                );
+
+                if (System.IO.File.Exists(oldPath))
+                    System.IO.File.Delete(oldPath);
+            }
+
+            // A) Edited image from canvas (base64)
+            if (!string.IsNullOrWhiteSpace(model.EditedImageData))
+            {
+                var base64 = model.EditedImageData;
                 var commaIndex = base64.IndexOf(',');
                 if (commaIndex >= 0)
                     base64 = base64[(commaIndex + 1)..];
 
                 byte[] imageBytes = Convert.FromBase64String(base64);
 
-                var uploadsFolder = Path.Combine(
-                    Directory.GetCurrentDirectory(),
-                    "wwwroot/uploads/items"
-                );
-
-                Directory.CreateDirectory(uploadsFolder);
-
-                var fileName = $"{Guid.NewGuid()}.png";
+                var fileName = $"item_{item.ItemID}_{Guid.NewGuid():N}.png";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
                 System.IO.File.WriteAllBytes(filePath, imageBytes);
 
-                // OPTIONAL: delete old image file
-                if (!string.IsNullOrEmpty(item.ItemImageUrl))
-                {
-                    var oldPath = Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot",
-                        item.ItemImageUrl.TrimStart('/')
-                    );
-
-                    if (System.IO.File.Exists(oldPath))
-                        System.IO.File.Delete(oldPath);
-                }
-
-                // SAVE WEB PATH
+                DeleteOldImageIfAny(item.ItemImageUrl);
                 item.ItemImageUrl = $"/uploads/items/{fileName}";
             }
+            // B) Normal upload file (if your Edit page has <input type="file" ...>)
+            else if (model.ImageFile != null && model.ImageFile.Length > 0)
+            {
+                var ext = Path.GetExtension(model.ImageFile.FileName);
+                var fileName = $"item_{item.ItemID}_{Guid.NewGuid():N}{ext}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    model.ImageFile.CopyTo(stream);
+                }
+
+                DeleteOldImageIfAny(item.ItemImageUrl);
+                item.ItemImageUrl = $"/uploads/items/{fileName}";
+            }
+
 
 
             _context.SaveChanges();
@@ -442,9 +483,9 @@ namespace Invexaaa.Controllers
             _context.SaveChanges();
 
             TempData["Success"] = "Item has been activated.";
-
             return RedirectToAction("ItemIndex");
         }
+
 
 
 
