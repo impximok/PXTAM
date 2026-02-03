@@ -394,6 +394,8 @@
         align-items: center;
         justify-content: center;
         height: 36px;
+        max-width: 180px;
+        min-width: 180px;
     }
 
         .action-btn:hover, .action-btn:focus-visible {
@@ -601,6 +603,309 @@
             font-size: 16px;
         }
 
+    /* ===============================
+           Subtle vertical column dividers
+           (matches monochrome system)
+        ================================ */
+    .sys-table thead th,
+    .sys-table tbody td {
+        border-right: 1px solid #eef0f3; /* subtle thin line */
+    }
+
+        .sys-table thead th:last-child,
+        .sys-table tbody td:last-child {
+            border-right: 0;
+        }
+
+    /* ===============================
+           Pager (monochrome, subtle)
+        ================================ */
+    .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-top: 1px solid #e5e7eb;
+        background: #fff;
+    }
+
+    .pager-info {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .pager-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pager-label {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .pager-select {
+        height: 36px;
+        border: 2px solid #e6e7eb;
+        border-radius: 12px;
+        padding: 0 10px;
+        font-size: 13px;
+        font-weight: 700;
+        background: #fff;
+        color: #111;
+        outline: none;
+    }
+
+        .pager-select:focus {
+            border-color: #000;
+        }
+
+    .pager-btn {
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 2px solid #111;
+        background: #fff;
+        color: #111;
+        font-size: 13px;
+        font-weight: 800;
+        transition: background-color 160ms ease, color 160ms ease, opacity 160ms ease;
+    }
+
+        .pager-btn:hover,
+        .pager-btn:focus-visible {
+            background: #111;
+            color: #fff;
+            outline: none;
+        }
+
+        .pager-btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+    .pager-page {
+        font-size: 13px;
+        font-weight: 800;
+        color: #111;
+        min-width: 64px;
+        text-align: center;
+    }
+
+    /* ===== table footer like Supplier ===== */
+    .table-footer {
+        border-top: 1px solid #e5e7eb;
+        padding: 12px 14px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    /* ===== pager layout ===== */
+    .pager-left {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .pager-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .pager-range {
+        display: inline-flex;
+        align-items: center;
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #111;
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .pager-label {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    /* pager buttons */
+    .pager-btn {
+        height: 38px;
+        min-width: 58px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #fff;
+        color: #000;
+        font-size: 13px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color .18s ease, color .18s ease, opacity .18s ease;
+    }
+
+        .pager-btn:hover,
+        .pager-btn:focus-visible {
+            background: #000;
+            color: #fff;
+            outline: none;
+        }
+
+        .pager-btn.is-active {
+            min-width: 38px;
+            padding: 0 14px;
+            background: #000;
+            color: #fff;
+        }
+
+        .pager-btn[disabled] {
+            opacity: .35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    .pager-dots {
+        font-weight: 900;
+        color: #6b7280;
+        padding: 0 4px;
+    }
+
+    /* compact cs2 for footer */
+    .pager-cs2 .cs2-btn {
+        height: 38px;
+        min-width: 80px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        font-size: 13px;
+        font-weight: 900;
+        padding: 0 44px 0 14px;
+    }
+
+    .pager-cs2 .cs2-menu {
+        z-index: 999999 !important;
+        box-shadow: 0 16px 45px rgba(0,0,0,.14);
+    }
+
+    .pager-cs2 .cs2-item {
+        text-align: center;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    /* mobile */
+    @@media (max-width: 700px) {
+        .table-footer {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .pager-right {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    /* ===============================
+           Subtle vertical column separators
+        ================================ */
+
+    /* Header column separators */
+    .sys-table thead th {
+        border-right: 1px solid #eceef2;
+    }
+
+        .sys-table thead th:last-child {
+            border-right: none;
+        }
+
+    /* Body column separators */
+    .sys-table tbody td {
+        border-right: 1px solid #f0f2f5;
+    }
+
+        .sys-table tbody td:last-child {
+            border-right: none;
+        }
+
+    /* Global column shift → slightly to the right */
+    .sys-table thead th,
+    .sys-table tbody td {
+        padding-left: 22px;
+        padding-right: 18px;
+    }
+
+    /* Equal left & right table edge spacing */
+    .sys-table thead th,
+    .sys-table tbody td {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .sys-table thead th,
+    .sys-table tbody td {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .sys-table thead th {
+        border-right: 1px solid #eceef2;
+    }
+
+        .sys-table thead th:last-child {
+            border-right: 0;
+        }
+
+    .sys-table tbody td {
+        border-right: 1px solid #f0f2f5;
+    }
+
+        .sys-table tbody td:last-child {
+            border-right: 0;
+        }
+    /* ✅ allow cs2 to open upward when needed */
+    .cs2.open-up .cs2-menu {
+        transform-origin: bottom;
+    }
+
+    /* ✅ scroll if too tall */
+    .cs2-menu {
+        overflow: auto;
+    }
+    /* ===============================
+           CS2 dropdown — NO SCROLLER
+           (match Maintain Supplier)
+        ================================ */
+
+    /* completely remove scrolling */
+    .cs2-menu {
+        overflow: hidden !important;
+        max-height: none !important;
+    }
+
+    /* pager dropdown specifically */
+    .pager-cs2 .cs2-menu {
+        overflow: hidden !important;
+        max-height: none !important;
+    }
+
 </style>
 
 <div class="page-wrap">
@@ -718,8 +1023,8 @@
                         <th style="min-width:160px">Category</th>
                         <th style="width:190px">Available</th>
                         <th style="width:190px">Status</th>
-                        <th style="width:190px">Updated</th>
-                        <th style="width:190px">Actions</th>
+                        <th style="width:150px">Updated</th>
+                        <th style="width:200px">Actions</th>
                     </tr>
                 </thead>
 
@@ -798,235 +1103,482 @@
 
             </table>
         </div>
+        <!-- ✅ Table footer pagination (Supplier style) -->
+        <div class="table-footer" id="pagerBar">
+            <div class="pager-left">
+                <span class="pager-range" id="pagerInfo">Showing 0–0 of 0</span>
+
+                <span class="pager-label">Rows per page</span>
+
+                <!-- real select (hidden) -->
+                <select class="real-select" id="pageSize">
+
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                </select>
+
+                <!-- custom select (cs2) -->
+                <div class="cs2 pager-cs2" data-select="pageSize">
+                    <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="cs2-value">50</span>
+                        <span class="cs2-caret"></span>
+                    </button>
+
+                    <div class="cs2-menu" role="listbox">
+
+                        <button type="button" class="cs2-item" data-value="25">25</button>
+                        <button type="button" class="cs2-item" data-value="50">50</button>
+                        <button type="button" class="cs2-item" data-value="100">100</button>
+                        <button type="button" class="cs2-item" data-value="200">200</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pager-right" id="pagerBtns"></div>
+        </div>
+
     </div>
+
+
 
 </div>
 
 @section Scripts {
     <script>
         (() => {
-            /* ===============================
-               Custom Select (cs2 dropdown)
-               ✅ update real select ONLY (NO auto filter)
-            ================================ */
-            function setupCS2(cs) {
-                const selectId = cs.dataset.select;
-                const real = document.getElementById(selectId);
-                if (!real) return;
 
-                const btn = cs.querySelector('.cs2-btn');
-                const valueEl = cs.querySelector('.cs2-value');
-                const items = Array.from(cs.querySelectorAll('.cs2-item'));
+          /* ===============================
+             Custom Select (cs2)
+             - updates real select value
+             - dispatches change (safe: we only listen on pageSize change)
+          ================================ */
+        function setupCS2(cs) {
+          const selectId = cs.dataset.select;
+          const real = document.getElementById(selectId);
+          if (!real) return;
 
-                const setActive = (val) => {
-                    const found = items.find(i => i.dataset.value === val);
-                    valueEl.textContent = found ? found.textContent : items[0].textContent;
-                };
+          const btn = cs.querySelector(".cs2-btn");
+          const valueEl = cs.querySelector(".cs2-value");
+          const items = Array.from(cs.querySelectorAll(".cs2-item"));
+          const menu = cs.querySelector(".cs2-menu");
+          if (!btn || !menu) return;
 
-                setActive(real.value);
+          // remember original menu home
+          const originalParent = menu.parentElement;
+          const originalNext = menu.nextSibling;
 
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    cs.classList.toggle('open');
-                    btn.setAttribute('aria-expanded', cs.classList.contains('open') ? 'true' : 'false');
-                });
+          const setActive = (val) => {
+            const found = items.find(i => String(i.dataset.value) === String(val));
+            if (valueEl) valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "");
+          };
 
-                items.forEach(i => {
-                    i.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+          const measureHeight = () => {
+            const prevDisplay = menu.style.display;
+            const prevVis = menu.style.visibility;
+            menu.style.display = "block";
+            menu.style.visibility = "hidden";
+            const h = menu.scrollHeight || 240;
+            menu.style.visibility = prevVis;
+            menu.style.display = prevDisplay;
+            return h;
+          };
 
-                        // ✅ set value only (no change event)
-                        real.value = i.dataset.value;
-                        setActive(i.dataset.value);
+          const placeMenuOnBody = () => {
+            document.body.appendChild(menu);
+            menu.style.position = "fixed";
+            menu.style.zIndex = "2147483647";
+          };
 
-                        cs.classList.remove('open');
-                        btn.setAttribute('aria-expanded', 'false');
-                    });
-                });
+          const returnMenuHome = () => {
+            if (!originalParent) return;
+            if (originalNext) originalParent.insertBefore(menu, originalNext);
+            else originalParent.appendChild(menu);
+          };
 
-                document.addEventListener('click', (e) => {
-                    if (!cs.contains(e.target)) {
-                        cs.classList.remove('open');
-                        btn.setAttribute('aria-expanded', 'false');
-                    }
-                });
+          const positionMenu = () => {
+            const rect = btn.getBoundingClientRect();
+            const menuH = measureHeight();
+
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+        const desired = menuH; // no artificial height limit
+
+
+            // ✅ for footer pager dropdown: always prefer open UP
+            const forceUp = cs.classList.contains("pager-cs2");
+            const openUp = forceUp || (spaceBelow < Math.min(220, desired) && spaceAbove > spaceBelow);
+            cs.classList.toggle("open-up", openUp);
+
+            menu.style.left = rect.left + "px";
+            menu.style.width = rect.width + "px";
+            menu.style.right = "auto";
+            menu.style.top = "auto";
+            menu.style.bottom = "auto";
+            menu.style.maxHeight = "";
+
+            if (openUp) {
+              menu.style.bottom = (window.innerHeight - rect.top + 8) + "px";
+            } else {
+              menu.style.top = (rect.bottom + 8) + "px";
             }
-            document.querySelectorAll('.cs2[data-select]').forEach(setupCS2);
+          };
 
+          const open = () => {
+            // close others
+            document.querySelectorAll(".cs2.open").forEach(other => {
+              if (other !== cs) {
+                other.classList.remove("open", "open-up");
+                other.querySelector(".cs2-btn")?.setAttribute("aria-expanded", "false");
+              }
+            });
 
-            /* ===============================
-               BULK SELECT + ADD (your logic)
-            =============================== */
-            const selectAll = document.getElementById("selectAll");
-        const bulkAddBtn = document.getElementById("bulkAddBtn");
-        const bulkOutBtn = document.getElementById("bulkOutBtn");
+            cs.classList.add("open");
+            btn.setAttribute("aria-expanded", "true");
 
-        function syncBulkUI() {
-            const checks = Array.from(document.querySelectorAll(".row-check"))
-                .filter(c => !c.disabled);
+            placeMenuOnBody();
+            menu.style.display = "block";
+            positionMenu();
+          };
 
+          const close = () => {
+            cs.classList.remove("open", "open-up");
+            btn.setAttribute("aria-expanded", "false");
+
+            menu.style.display = "none";
+            menu.style.position = "";
+            menu.style.left = "";
+            menu.style.top = "";
+            menu.style.bottom = "";
+            menu.style.width = "";
+            menu.style.maxHeight = "";
+            menu.style.right = "";
+            menu.style.zIndex = "";
+
+            returnMenuHome();
+          };
+
+          // init label
+          setActive(real.value);
+
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            cs.classList.contains("open") ? close() : open();
+          });
+
+          items.forEach(i => {
+            i.addEventListener("click", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              real.value = i.dataset.value ?? "";
+              real.dispatchEvent(new Event("change", { bubbles: true })); // ✅ so pageSize updates
+              setActive(real.value);
+              close();
+            });
+          });
+
+          document.addEventListener("click", (e) => {
+            if (!e.target.closest(".cs2") && cs.classList.contains("open")) close();
+          });
+
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && cs.classList.contains("open")) close();
+          });
+
+          window.addEventListener("scroll", () => {
+            if (cs.classList.contains("open")) positionMenu();
+          }, true);
+
+          window.addEventListener("resize", () => {
+            if (cs.classList.contains("open")) positionMenu();
+          });
+        }
+                  document.querySelectorAll(".cs2[data-select]").forEach(setupCS2);
+
+          /* ===============================
+             Refs
+          ================================ */
+          const tbody = document.querySelector("#stockTable tbody");
+          if (!tbody) return;
+
+          const selectAll = document.getElementById("selectAll");
+          const bulkAddBtn = document.getElementById("bulkAddBtn");
+          const bulkOutBtn = document.getElementById("bulkOutBtn");
+
+          // ✅ ONLY real data rows (your <tr data-name="...">)
+          const allRows = Array.from(tbody.querySelectorAll('tr[data-name]'));
+
+          /* ===============================
+             Pager refs + state (Supplier style)
+          ================================ */
+          const pagerBar = document.getElementById("pagerBar");
+          const pagerInfo = document.getElementById("pagerInfo");
+          const pagerBtns = document.getElementById("pagerBtns");
+          const pageSizeEl = document.getElementById("pageSize");
+
+          let filteredRows = [...allRows];
+          let pageSize = parseInt(pageSizeEl?.value || "50", 10);
+          let page = 1;
+
+          function clampPage() {
+            const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+            page = Math.min(Math.max(page, 1), totalPages);
+            return totalPages;
+          }
+
+          const makeDots = () => {
+            const s = document.createElement("span");
+            s.className = "pager-dots";
+            s.textContent = "…";
+            return s;
+          };
+
+          function renderPager(totalPages) {
+            if (!pagerBar) return;
+
+            const total = filteredRows.length;
+
+            // ✅ hide pager when empty
+            pagerBar.style.display = (total === 0) ? "none" : "flex";
+            if (total === 0) return;
+
+            const startIdx = (page - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, total);
+
+            if (pagerInfo) pagerInfo.textContent = `Showing ${startIdx + 1}–${endIdx} of ${total}`;
+            if (!pagerBtns) return;
+
+            pagerBtns.innerHTML = "";
+
+            const makeBtn = (label, onClick, opts = {}) => {
+              const b = document.createElement("button");
+              b.type = "button";
+              b.className = "pager-btn" + (opts.active ? " is-active" : "");
+              b.textContent = label;
+              if (opts.disabled) b.disabled = true;
+              b.addEventListener("click", onClick);
+              return b;
+            };
+
+            pagerBtns.appendChild(makeBtn("Prev", () => { page--; render(); }, { disabled: page === 1 }));
+
+            const windowSize = 5;
+            let start = Math.max(1, page - Math.floor(windowSize / 2));
+            let end = Math.min(totalPages, start + windowSize - 1);
+            start = Math.max(1, end - windowSize + 1);
+
+            if (start > 1) {
+              pagerBtns.appendChild(makeBtn("1", () => { page = 1; render(); }, { active: page === 1 }));
+              if (start > 2) pagerBtns.appendChild(makeDots());
+            }
+
+            for (let p = start; p <= end; p++) {
+              pagerBtns.appendChild(makeBtn(String(p), () => { page = p; render(); }, { active: page === p }));
+            }
+
+            if (end < totalPages) {
+              if (end < totalPages - 1) pagerBtns.appendChild(makeDots());
+              pagerBtns.appendChild(makeBtn(String(totalPages), () => { page = totalPages; render(); }, { active: page === totalPages }));
+            }
+
+            pagerBtns.appendChild(makeBtn("Next", () => { page++; render(); }, { disabled: page === totalPages }));
+          }
+
+          /* ===============================
+             Bulk UI (only visible page rows)
+          ================================ */
+          function getVisibleChecks() {
+            return Array.from(tbody.querySelectorAll(".row-check"))
+              .filter(c => !c.disabled);
+          }
+
+          function syncBulkUI() {
+            const checks = getVisibleChecks();
             const checked = checks.filter(c => c.checked);
 
-            // enable/disable buttons
             bulkAddBtn.disabled = checked.length === 0;
             bulkOutBtn.disabled = checked.length === 0;
 
-            // sync header checkbox (selectAll)
+            if (!selectAll) return;
+
             if (checks.length === 0) {
-                selectAll.checked = false;
-                selectAll.indeterminate = false;
-                return;
+              selectAll.checked = false;
+              selectAll.indeterminate = false;
+              return;
             }
 
             if (checked.length === 0) {
-                selectAll.checked = false;
-                selectAll.indeterminate = false;
+              selectAll.checked = false;
+              selectAll.indeterminate = false;
             } else if (checked.length === checks.length) {
-                selectAll.checked = true;
-                selectAll.indeterminate = false;
+              selectAll.checked = true;
+              selectAll.indeterminate = false;
             } else {
-                selectAll.checked = false;
-                selectAll.indeterminate = true;
+              selectAll.checked = false;
+              selectAll.indeterminate = true;
             }
-        }
+          }
 
+          selectAll?.addEventListener("change", function () {
+            getVisibleChecks().forEach(c => c.checked = this.checked);
+            syncBulkUI();
+          });
 
+          tbody.addEventListener("change", (e) => {
+            if (e.target && e.target.classList.contains("row-check")) syncBulkUI();
+          });
 
+          window.addEventListener("pageshow", syncBulkUI);
 
-            selectAll.addEventListener("change", function () {
-                document.querySelectorAll(".row-check").forEach(c => {
-                    if (!c.disabled) c.checked = this.checked;
-                });
-                  syncBulkUI();
-
-            });
-
-            document.querySelectorAll(".row-check").forEach(c =>
-            c.addEventListener("change", syncBulkUI)
-            );
-                    // ✅ Fix for "Back" navigation / BFCache restoring checkbox states
-        window.addEventListener("pageshow", syncBulkUI);
-
-        bulkAddBtn.addEventListener("click", function () {
-            const ids = Array.from(document.querySelectorAll(".row-check:checked"))
-                .filter(c => !c.disabled)
-                .map(c => c.value)
-                .join(",");
+          bulkAddBtn?.addEventListener("click", () => {
+            const ids = getVisibleChecks().filter(c => c.checked).map(c => c.value).join(",");
             window.location.href = `/Stock/AddStockBatch?inventoryIds=${ids}`;
-        });
+          });
 
-        bulkOutBtn.addEventListener("click", function () {
-            const ids = Array.from(document.querySelectorAll(".row-check:checked"))
-                .filter(c => !c.disabled)
-                .map(c => c.value)
-                .join(",");
+          bulkOutBtn?.addEventListener("click", () => {
+            const ids = getVisibleChecks().filter(c => c.checked).map(c => c.value).join(",");
             window.location.href = `/Stock/MinusStockBatchBulk?inventoryIds=${ids}`;
-        });
+          });
 
+          /* ===============================
+             Filter + Sort
+          ================================ */
+          const searchBox = document.getElementById("searchBox");
+          const statusFilter = document.getElementById("statusFilter");
+          const sortBy = document.getElementById("sortBy");
+          const applyBtn = document.getElementById("applyFilter");
+          const resetBtn = document.getElementById("resetFilter");
 
-            /* ===============================
-               FILTER + SEARCH + SORT
-               ✅ ONLY run on Filter click / Enter
-            =============================== */
-            const searchBox = document.getElementById("searchBox");
-            const statusFilter = document.getElementById("statusFilter"); // real select (hidden)
-            const sortBy = document.getElementById("sortBy");             // real select (hidden)
-            const applyBtn = document.getElementById("applyFilter");
-            const resetBtn = document.getElementById("resetFilter");
-            const tbody = document.querySelector("#stockTable tbody");
+          function applyFilterSort(resetToFirst = true) {
+            const keyword = (searchBox?.value || "").trim().toLowerCase();
+            const st = statusFilter?.value || "";
+            const sort = sortBy?.value || "nameAsc";
 
-            const allRows = Array.from(tbody.querySelectorAll("tr"))
-                .filter(r => r.querySelector(".row-check"));
+            filteredRows = allRows.filter(tr => {
+              const name = (tr.dataset.name || "").toLowerCase();
+              const cat = (tr.dataset.category || "").toLowerCase();
+              const status = tr.dataset.status || "";
 
-            function applySortToVisibleRows() {
-                const rows = allRows.filter(r => r.style.display !== "none");
-                const mode = sortBy?.value || "nameAsc";
-
-                rows.sort((a, b) => {
-                    const nameA = (a.dataset.name || "").toLowerCase();
-                    const nameB = (b.dataset.name || "").toLowerCase();
-                    const qtyA = parseFloat(a.dataset.qty || "0");
-                    const qtyB = parseFloat(b.dataset.qty || "0");
-
-                    if (mode === "nameAsc") return nameA.localeCompare(nameB);
-                    if (mode === "nameDesc") return nameB.localeCompare(nameA);
-                    if (mode === "qtyAsc") return qtyA - qtyB;
-                    if (mode === "qtyDesc") return qtyB - qtyA;
-                    return 0;
-                });
-
-                rows.forEach(r => tbody.appendChild(r));
-            }
-
-            function applyUIFilters() {
-                const q = (searchBox?.value || "").trim().toLowerCase();
-                const st = statusFilter?.value || "";
-
-                allRows.forEach(r => {
-                    const name = (r.dataset.name || "").toLowerCase();
-                    const cat = (r.dataset.category || "").toLowerCase();
-                    const status = r.dataset.status || "";
-
-                    const matchText = !q || name.includes(q) || cat.includes(q);
-                    const matchStatus = !st || status === st;
-
-                    r.style.display = (matchText && matchStatus) ? "" : "none";
-                });
-
-                 applySortToVisibleRows();
-                 syncBulkUI();
-
-            }
-
-            // ✅ ONLY these triggers
-            applyBtn?.addEventListener("click", applyUIFilters);
-
-            searchBox?.addEventListener("keydown", (e) => {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    applyUIFilters();
-                }
+              const matchText = !keyword || name.includes(keyword) || cat.includes(keyword);
+              const matchStatus = !st || status === st;
+              return matchText && matchStatus;
             });
 
-            resetBtn?.addEventListener("click", () => {
-                if (searchBox) searchBox.value = "";
-                if (statusFilter) statusFilter.value = "";
-                if (sortBy) sortBy.value = "nameAsc";
+            filteredRows.sort((a, b) => {
+              const nameA = (a.dataset.name || "").toLowerCase();
+              const nameB = (b.dataset.name || "").toLowerCase();
+              const qtyA = parseFloat(a.dataset.qty || "0");
+              const qtyB = parseFloat(b.dataset.qty || "0");
 
-                // show all rows
-                allRows.forEach(r => r.style.display = "");
-
-                // restore original order exactly (like SupplierIndex)
-                tbody.innerHTML = "";
-                allRows.forEach(r => tbody.appendChild(r));
-
-                // sync cs2 labels with the real selects
-                document.querySelectorAll('.cs2[data-select]').forEach(cs => {
-                    const id = cs.dataset.select;
-                    const real = document.getElementById(id);
-                    const valueEl = cs.querySelector('.cs2-value');
-                    const items = Array.from(cs.querySelectorAll('.cs2-item'));
-                    const found = items.find(i => i.dataset.value === (real?.value || ""));
-                    if (valueEl) valueEl.textContent = found ? found.textContent : items[0]?.textContent || "All";
-                    cs.classList.remove('open');
-                    cs.querySelector('.cs2-btn')?.setAttribute('aria-expanded', 'false');
-                });
-
-                // clear header checkbox
-                if (selectAll) selectAll.checked = false;
-
-        syncBulkUI();
-
+              if (sort === "nameAsc") return nameA.localeCompare(nameB);
+              if (sort === "nameDesc") return nameB.localeCompare(nameA);
+              if (sort === "qtyAsc") return qtyA - qtyB;
+              if (sort === "qtyDesc") return qtyB - qtyA;
+              return 0;
             });
 
-            // ✅ do NOT auto-filter at load
-        syncBulkUI();
+            if (resetToFirst) page = 1;
+            render();
+          }
+
+          /* ===============================
+             Render (tbody is rebuilt like Supplier)
+          ================================ */
+          function renderRows(rows) {
+            // reset header checkbox each page
+            if (selectAll) {
+              selectAll.checked = false;
+              selectAll.indeterminate = false;
+            }
+
+            tbody.innerHTML = "";
+
+            if (rows.length === 0) {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td colspan="7"><div class="empty-state">No stock items found.</div></td>`;
+              tbody.appendChild(tr);
+
+              syncBulkUI();
+              return;
+            }
+
+            rows.forEach(r => tbody.appendChild(r));
+            syncBulkUI();
+          }
+
+          function render() {
+            const totalPages = clampPage();
+
+            if (filteredRows.length === 0) {
+              renderRows([]);
+              if (pagerBar) pagerBar.style.display = "none";
+              if (pagerInfo) pagerInfo.textContent = "Showing 0–0 of 0";
+              if (pagerBtns) pagerBtns.innerHTML = "";
+              return;
+            }
+
+            const startIdx = (page - 1) * pageSize;
+            const pageRows = filteredRows.slice(startIdx, startIdx + pageSize);
+
+            renderRows(pageRows);
+            renderPager(totalPages);
+          }
+
+          /* ===============================
+             Events
+          ================================ */
+          applyBtn?.addEventListener("click", () => applyFilterSort(true));
+
+          searchBox?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              applyFilterSort(true);
+            }
+          });
+
+          resetBtn?.addEventListener("click", () => {
+            if (searchBox) searchBox.value = "";
+            if (statusFilter) statusFilter.value = "";
+            if (sortBy) sortBy.value = "nameAsc";
+
+            filteredRows = [...allRows];
+            page = 1;
+
+            // sync cs2 labels
+            document.querySelectorAll(".cs2[data-select]").forEach(cs => {
+              const id = cs.dataset.select;
+              const real = document.getElementById(id);
+              const valueEl = cs.querySelector(".cs2-value");
+              const items = Array.from(cs.querySelectorAll(".cs2-item"));
+              const found = items.find(i => String(i.dataset.value) === String(real?.value || ""));
+              if (valueEl) valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "All");
+              cs.classList.remove("open");
+              cs.querySelector(".cs2-btn")?.setAttribute("aria-expanded", "false");
+            });
+
+            render();
+          });
+
+          pageSizeEl?.addEventListener("change", () => {
+            pageSize = parseInt(pageSizeEl.value || "50", 10);
+            page = 1;
+            render();
+          });
+
+          /* ===============================
+             Initial
+          ================================ */
+          filteredRows = [...allRows];
+          page = 1;
+          render();
 
         })();
     </script>
 }
+
 
 
 

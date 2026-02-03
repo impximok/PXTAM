@@ -16,8 +16,8 @@
 
 <style>
     /* ===============================
-               INVEXA · BLACK & WHITE SYSTEM
-               =============================== */
+                   INVEXA · BLACK & WHITE SYSTEM
+                   =============================== */
     :root {
         --bg: #ffffff;
         --card: #ffffff;
@@ -376,14 +376,43 @@
 
     /* ===== Print ===== */
     @@media print {
+        /* Remove browser default margins */
+        @@page {
+            margin: 12mm;
+        }
+
         body {
             background: #fff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
-
-        .no-print {
+        /* Hide anything you don’t want printed */
+        .no-print,
+        /* common nav / side menu / header selectors (covers most templates) */
+        aside, nav, header, footer,
+        .sidebar, .side-menu, .sidemenu, .left-menu, .main-menu, .vertical-menu,
+        .app-sidebar, .app-header, .app-navbar, .navbar, .topbar,
+        .content-footer, .footer, .app-footer, .layout-footer,
+        .brand, .logo, .user-pill, .profile-pill {
             display: none !important;
+            visibility: hidden !important;
         }
-
+        /* Force your page content to full width (no left offset from sidebar) */
+        html, body, main,
+        .container-fluid, .content, .content-body,
+        .app-content, .app-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            left: 0 !important;
+        }
+        /* Some layouts use margin-left or padding-left for sidebar spacing */
+        .content, .app-content, .content-body, main, .page-wrap {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+        }
+        /* Your own view tweaks */
         .page-wrap {
             padding: 0 !important;
         }
@@ -405,6 +434,7 @@
                 height: 260px !important;
             }
     }
+
 
     /* Allow dropdown panel to overflow outside filter card */
     .filter-card {
@@ -880,215 +910,215 @@
 @if (Model.ReportType == "DemandForecast" && Model.DemandForecastReport != null && Model.DemandForecastReport.Any())
 {
     <script>
-        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                                    Model.DemandForecastReport.Select(x => (x.ItemName.Length > 12 ? x.ItemName.Substring(0, 12) + "…" : x.ItemName))
-                    ));
+            const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                                                                            Model.DemandForecastReport.Select(x => (x.ItemName.Length > 12 ? x.ItemName.Substring(0, 12) + "…" : x.ItemName))
+                                            ));
 
     const daily = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.AverageDailyDemand)));
     const forecast = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.ForecastQty)));
     const reorder = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.RecommendedReorder)));
 
-        // Safe max calc (prevents weird scaling)
-        function maxOf(arr) {
-          const nums = (arr || []).map(x => Number(x) || 0);
-          return Math.max(0, ...nums);
-        }
-
-        function niceMax(maxVal) {
-          if (maxVal <= 0) return 10;
-          const pow = Math.pow(10, Math.floor(Math.log10(maxVal)));
-          return Math.ceil(maxVal / pow) * pow;
-        }
-
-        const maxDaily = niceMax(maxOf(daily));
-        const maxForecast = niceMax(maxOf(forecast));
-        const maxReorder = niceMax(Math.max(maxOf(forecast), maxOf(reorder)));
-
-                // ===== External tooltip (follows cursor + fade + pin on click) =====
-        const tooltipState = new WeakMap(); // chart -> { pinned: bool, lastModel: any }
-
-        function getOrCreateTooltipEl(chart) {
-          let el = chart.canvas._invTooltip;
-          if (!el) {
-            el = document.createElement('div');
-            el.className = 'inv-tooltip';
-            document.body.appendChild(el);
-            chart.canvas._invTooltip = el;
-          }
-          return el;
-        }
-
-        function externalTooltipHandler(context) {
-          const { chart, tooltip } = context;
-          const el = getOrCreateTooltipEl(chart);
-
-          const st = tooltipState.get(chart) || { pinned: false, lastModel: null };
-          tooltipState.set(chart, st);
-
-          // If no tooltip shown and not pinned -> hide
-          if (tooltip.opacity === 0 && !st.pinned) {
-            el.classList.remove('show');
-            return;
-          }
-
-          // Update content when we have data (or keep last when pinned)
-          if (tooltip.opacity !== 0) {
-            st.lastModel = tooltip;
-          }
-          const model = st.lastModel;
-          if (!model) return;
-
-          const title = (model.title && model.title[0]) ? model.title[0] : '';
-          const bodyLines = (model.body || []).map(b => b.lines).flat();
-
-          // Build HTML (clean, no color boxes)
-          let html = `<div class="tt-title">${title}</div>`;
-          bodyLines.forEach(line => {
-            html += `<div class="tt-row">${line}</div>`;
-          });
-
-          // Optional extra hint
-          const hasReorder = bodyLines.some(l => l.toLowerCase().includes('recommended reorder'));
-          if (hasReorder) {
-            html += `<div class="tt-sub">Suggested restock quantity</div>`;
-          }
-
-          html += `<div class="tt-pin">${st.pinned ? 'Pinned (click chart to unpin)' : 'Click bar to pin'}</div>`;
-
-          el.innerHTML = html;
-
-          // Position under mouse cursor
-          const e = chart._lastEvent;
-          if (e) {
-            const offset = 14; // distance from cursor
-            el.style.left = (e.x + offset) + 'px';
-            el.style.top  = (e.y + offset) + 'px';
-          }
-
-          el.classList.add('show');
-        }
-
-        // Track last mouse position so tooltip can follow cursor
-        function attachCursorTracker(chart) {
-          const canvas = chart.canvas;
-
-          // Chart.js sends a "native" event wrapper; we’ll store screen coords in chart._lastEvent
-          canvas.addEventListener('mousemove', (ev) => {
-            chart._lastEvent = { x: ev.clientX, y: ev.clientY };
-          });
-
-          // Pin toggle on click (click a bar -> pin / unpin)
-          canvas.addEventListener('click', () => {
-            const st = tooltipState.get(chart) || { pinned: false, lastModel: null };
-            // Only allow pin if tooltip currently has content
-            if (st.lastModel) {
-              st.pinned = !st.pinned;
-              tooltipState.set(chart, st);
-              // Force redraw so external handler runs
-              chart.update();
+            // Safe max calc (prevents weird scaling)
+            function maxOf(arr) {
+              const nums = (arr || []).map(x => Number(x) || 0);
+              return Math.max(0, ...nums);
             }
-          });
-        }
 
-        const baseOptions = (yMax) => ({
-        responsive: true,
-        maintainAspectRatio: false,
-
-                interaction: {
-          mode: 'index',
-          intersect: false
-        },
-
-        plugins: {
-          legend: {
-            labels: {
-              boxWidth: 14,
-              boxHeight: 10,
-              font: { size: 12, weight: '600' }
+            function niceMax(maxVal) {
+              if (maxVal <= 0) return 10;
+              const pow = Math.pow(10, Math.floor(Math.log10(maxVal)));
+              return Math.ceil(maxVal / pow) * pow;
             }
-          },
-          tooltip: {
-            backgroundColor: '#ffffff',
-            titleColor: '#111827',
-            bodyColor: '#111827',
-            borderColor: '#e5e7eb',
-            position: 'nearest',
-            borderWidth: 1,
-            cornerRadius: 10,
-            padding: 12,
-            titleFont: { size: 13, weight: '800' },
-            bodyFont: { size: 13, weight: '500' },
-            displayColors: false,
-            callbacks: {
-              title: (items) => items[0].label,
-              label: (ctx) => {
-                const value = Number(ctx.parsed.y || 0).toLocaleString();
-                return `${ctx.dataset.label}: ${value}`;
-              },
-              afterLabel: (ctx) => {
-                return ctx.dataset.label === 'Recommended Reorder'
-                  ? 'Suggested restock quantity'
-                  : '';
+
+            const maxDaily = niceMax(maxOf(daily));
+            const maxForecast = niceMax(maxOf(forecast));
+            const maxReorder = niceMax(Math.max(maxOf(forecast), maxOf(reorder)));
+
+                    // ===== External tooltip (follows cursor + fade + pin on click) =====
+            const tooltipState = new WeakMap(); // chart -> { pinned: bool, lastModel: any }
+
+            function getOrCreateTooltipEl(chart) {
+              let el = chart.canvas._invTooltip;
+              if (!el) {
+                el = document.createElement('div');
+                el.className = 'inv-tooltip';
+                document.body.appendChild(el);
+                chart.canvas._invTooltip = el;
               }
+              return el;
             }
-          }
-        },
-                  scales: {
-            x: {
-              ticks: { maxRotation: 0, autoSkip: true },
-              grid: { display: false }
+
+            function externalTooltipHandler(context) {
+              const { chart, tooltip } = context;
+              const el = getOrCreateTooltipEl(chart);
+
+              const st = tooltipState.get(chart) || { pinned: false, lastModel: null };
+              tooltipState.set(chart, st);
+
+              // If no tooltip shown and not pinned -> hide
+              if (tooltip.opacity === 0 && !st.pinned) {
+                el.classList.remove('show');
+                return;
+              }
+
+              // Update content when we have data (or keep last when pinned)
+              if (tooltip.opacity !== 0) {
+                st.lastModel = tooltip;
+              }
+              const model = st.lastModel;
+              if (!model) return;
+
+              const title = (model.title && model.title[0]) ? model.title[0] : '';
+              const bodyLines = (model.body || []).map(b => b.lines).flat();
+
+              // Build HTML (clean, no color boxes)
+              let html = `<div class="tt-title">${title}</div>`;
+              bodyLines.forEach(line => {
+                html += `<div class="tt-row">${line}</div>`;
+              });
+
+              // Optional extra hint
+              const hasReorder = bodyLines.some(l => l.toLowerCase().includes('recommended reorder'));
+              if (hasReorder) {
+                html += `<div class="tt-sub">Suggested restock quantity</div>`;
+              }
+
+              html += `<div class="tt-pin">${st.pinned ? 'Pinned (click chart to unpin)' : 'Click bar to pin'}</div>`;
+
+              el.innerHTML = html;
+
+              // Position under mouse cursor
+              const e = chart._lastEvent;
+              if (e) {
+                const offset = 14; // distance from cursor
+                el.style.left = (e.x + offset) + 'px';
+                el.style.top  = (e.y + offset) + 'px';
+              }
+
+              el.classList.add('show');
+            }
+
+            // Track last mouse position so tooltip can follow cursor
+            function attachCursorTracker(chart) {
+              const canvas = chart.canvas;
+
+              // Chart.js sends a "native" event wrapper; we’ll store screen coords in chart._lastEvent
+              canvas.addEventListener('mousemove', (ev) => {
+                chart._lastEvent = { x: ev.clientX, y: ev.clientY };
+              });
+
+              // Pin toggle on click (click a bar -> pin / unpin)
+              canvas.addEventListener('click', () => {
+                const st = tooltipState.get(chart) || { pinned: false, lastModel: null };
+                // Only allow pin if tooltip currently has content
+                if (st.lastModel) {
+                  st.pinned = !st.pinned;
+                  tooltipState.set(chart, st);
+                  // Force redraw so external handler runs
+                  chart.update();
+                }
+              });
+            }
+
+            const baseOptions = (yMax) => ({
+            responsive: true,
+            maintainAspectRatio: false,
+
+                    interaction: {
+              mode: 'index',
+              intersect: false
             },
-            y: {
-              beginAtZero: true,
-              suggestedMax: yMax,
-              ticks: { callback: (v) => Number(v).toLocaleString() },
-              grid: { color: "rgba(0,0,0,0.06)" }
-            }
-          }
-        });
+
+            plugins: {
+              legend: {
+                labels: {
+                  boxWidth: 14,
+                  boxHeight: 10,
+                  font: { size: 12, weight: '600' }
+                }
+              },
+              tooltip: {
+                backgroundColor: '#ffffff',
+                titleColor: '#111827',
+                bodyColor: '#111827',
+                borderColor: '#e5e7eb',
+                position: 'nearest',
+                borderWidth: 1,
+                cornerRadius: 10,
+                padding: 12,
+                titleFont: { size: 13, weight: '800' },
+                bodyFont: { size: 13, weight: '500' },
+                displayColors: false,
+                callbacks: {
+                  title: (items) => items[0].label,
+                  label: (ctx) => {
+                    const value = Number(ctx.parsed.y || 0).toLocaleString();
+                    return `${ctx.dataset.label}: ${value}`;
+                  },
+                  afterLabel: (ctx) => {
+                    return ctx.dataset.label === 'Recommended Reorder'
+                      ? 'Suggested restock quantity'
+                      : '';
+                  }
+                }
+              }
+            },
+                      scales: {
+                x: {
+                  ticks: { maxRotation: 0, autoSkip: true },
+                  grid: { display: false }
+                },
+                y: {
+                  beginAtZero: true,
+                  suggestedMax: yMax,
+                  ticks: { callback: (v) => Number(v).toLocaleString() },
+                  grid: { color: "rgba(0,0,0,0.06)" }
+                }
+              }
+            });
 
 
 
-        // ✅ 1) Avg Daily Demand
-        new Chart(document.getElementById('dailyDemandChart'), {
-          type: 'bar',
-          data: {
-            labels,
-            datasets: [{
-              label: 'Avg Daily Demand',
-              data: daily,
-              borderRadius: 10
-            }]
-          },
-          options: baseOptions(maxDaily)
-        });
+            // ✅ 1) Avg Daily Demand
+            new Chart(document.getElementById('dailyDemandChart'), {
+              type: 'bar',
+              data: {
+                labels,
+                datasets: [{
+                  label: 'Avg Daily Demand',
+                  data: daily,
+                  borderRadius: 10
+                }]
+              },
+              options: baseOptions(maxDaily)
+            });
 
-        // ✅ 2) Forecast Qty
-        new Chart(document.getElementById('forecastQtyChart'), {
-          type: 'bar',
-          data: {
-            labels,
-            datasets: [{
-              label: 'Forecast Qty',
-              data: forecast,
-              borderRadius: 10
-            }]
-          },
-          options: baseOptions(maxForecast)
-        });
+            // ✅ 2) Forecast Qty
+            new Chart(document.getElementById('forecastQtyChart'), {
+              type: 'bar',
+              data: {
+                labels,
+                datasets: [{
+                  label: 'Forecast Qty',
+                  data: forecast,
+                  borderRadius: 10
+                }]
+              },
+              options: baseOptions(maxForecast)
+            });
 
-        // ✅ 3) Reorder Compare
-        new Chart(document.getElementById('reorderChart'), {
-          type: 'bar',
-          data: {
-            labels,
-            datasets: [
-              { label: 'Forecast', data: forecast, borderRadius: 10 },
-              { label: 'Recommended Reorder', data: reorder, borderRadius: 10 }
-            ]
-          },
-          options: baseOptions(maxReorder)
-        });
+            // ✅ 3) Reorder Compare
+            new Chart(document.getElementById('reorderChart'), {
+              type: 'bar',
+              data: {
+                labels,
+                datasets: [
+                  { label: 'Forecast', data: forecast, borderRadius: 10 },
+                  { label: 'Recommended Reorder', data: reorder, borderRadius: 10 }
+                ]
+              },
+              options: baseOptions(maxReorder)
+            });
     </script>
 }
 
