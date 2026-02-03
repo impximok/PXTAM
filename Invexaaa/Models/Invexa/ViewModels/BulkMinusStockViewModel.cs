@@ -41,6 +41,7 @@ namespace Invexaaa.Models.ViewModels
         // =========================
         public List<ItemUnitConversion> AvailableUnits { get; set; } = new();
         public List<BulkMinusPreviewRow> PreviewItems { get; set; } = new();
+        public List<Customer> Customers { get; set; } = new();
 
         public bool ShowSummary { get; set; } = false;
     }

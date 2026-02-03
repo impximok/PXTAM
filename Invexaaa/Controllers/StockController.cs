@@ -120,6 +120,10 @@ namespace Invexaaa.Controllers
     .Where(u => u.ItemID == vm.ItemID)
     .OrderByDescending(u => u.IsBaseUnit)
     .ToList();
+            vm.Customers = _context.Customers
+    .OrderBy(c => c.CustomerName)
+    .ToList();
+
 
 
             return View(vm);
@@ -167,6 +171,20 @@ namespace Invexaaa.Controllers
             }
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            string? customerSnapshot = null;
+
+            if (vm.CustomerID.HasValue)
+            {
+                customerSnapshot = _context.Customers
+                    .Where(c => c.CustomerID == vm.CustomerID.Value)
+                    .Select(c => c.CustomerName)
+                    .FirstOrDefault();
+            }
+            else if (!string.IsNullOrWhiteSpace(vm.CustomerNameSnapshot))
+            {
+                customerSnapshot = vm.CustomerNameSnapshot.Trim();
+            }
+
 
             using var tx = _context.Database.BeginTransaction();
 
@@ -190,6 +208,7 @@ namespace Invexaaa.Controllers
                 {
                     if (row.InputQuantity == 0)
                         continue;
+
 
                     // 🔒 Unit required
                     if (row.UnitConversionID <= 0)
@@ -215,6 +234,23 @@ namespace Invexaaa.Controllers
 
                         return View(vm);
                     }
+
+                    // 🔒 Validate unit belongs to THIS item
+                    bool unitValid = _context.ItemUnitConversions.Any(u =>
+                        u.ItemUnitConversionID == row.UnitConversionID &&
+                        u.ItemID == vm.ItemID
+                    );
+
+                    if (!unitValid)
+                    {
+                        ModelState.AddModelError(
+                            "",
+                            $"Invalid unit selected for batch {row.BatchNumber}."
+                        );
+
+                        return View(vm);
+                    }
+
 
                     var batch = _context.StockBatches.First(b => b.BatchID == row.BatchID);
                     var before = batch.BatchQuantity;
@@ -262,11 +298,22 @@ namespace Invexaaa.Controllers
                         UserID = userId,
                         ItemID = vm.ItemID,
                         BatchID = batch.BatchID,
-                        TransactionType = baseQty > 0 ? "IN" : "OUT",
+                        TransactionType = baseQty > 0 ? "ADJUST_IN" : "ADJUST_OUT",
                         TransactionQuantity = Math.Abs(baseQty),
+
+                        UnitCost =
+        item.CostingMethod == CostingMethod.FIFO
+            ? batch.TransactionUnitCost
+            : item.CostingMethod == CostingMethod.Fixed
+                ? inventory.StandardUnitCost
+                : inventory.AverageUnitCost,
+
                         CostingMethodUsed = item.CostingMethod,
+                        CustomerID = baseQty < 0 ? vm.CustomerID : null,
+                        CustomerNameSnapshot = baseQty < 0 ? customerSnapshot : null,
                         TransactionRemark = vm.AdjustmentReason
                     });
+
 
                     _context.StockAdjustmentDetails.Add(new StockAdjustmentDetail
                     {
@@ -572,12 +619,18 @@ namespace Invexaaa.Controllers
                 .OrderByDescending(u => u.IsBaseUnit)
                 .ToList();
 
+            var customers = _context.Customers
+    .OrderBy(c => c.CustomerName)
+    .ToList();
+
             return View(new BulkMinusStockViewModel
             {
                 InventoryIds = ids,
                 PreviewItems = preview.ToList(),
-                AvailableUnits = units
+                AvailableUnits = units,
+                Customers = customers
             });
+
         }
 
 
@@ -618,6 +671,21 @@ namespace Invexaaa.Controllers
 
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            string? customerSnapshot = null;
+
+            if (vm.CustomerID.HasValue)
+            {
+                customerSnapshot = _context.Customers
+                    .Where(c => c.CustomerID == vm.CustomerID.Value)
+                    .Select(c => c.CustomerName)
+                    .FirstOrDefault();
+            }
+            else if (!string.IsNullOrWhiteSpace(vm.CustomerNameSnapshot))
+            {
+                customerSnapshot = vm.CustomerNameSnapshot.Trim();
+            }
+
 
             using var tx = _context.Database.BeginTransaction();
 
@@ -693,7 +761,7 @@ namespace Invexaaa.Controllers
         : outUnitCost,
                             CostingMethodUsed = item.CostingMethod,
                             CustomerID = vm.CustomerID,
-                            CustomerNameSnapshot = vm.CustomerNameSnapshot,
+                            CustomerNameSnapshot = customerSnapshot,
                             TransactionRemark = vm.Reason
                         });
 
@@ -871,8 +939,8 @@ namespace Invexaaa.Controllers
         // =====================================================
         private int ConvertToBaseUnit(int itemId, int inputQty, int unitConversionId)
         {
-            if (inputQty <= 0)
-                throw new InvalidOperationException("Quantity must be greater than zero.");
+            if (inputQty == 0)
+                throw new InvalidOperationException("Quantity cannot be zero.");
 
             var conversion = _context.ItemUnitConversions
                 .FirstOrDefault(u =>

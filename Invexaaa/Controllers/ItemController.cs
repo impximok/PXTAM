@@ -568,6 +568,17 @@ namespace Invexaaa.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ForceDeleteItem(int id)
         {
+
+            // 🔒 BLOCK HARD DELETE IF TRANSACTIONS EXIST
+            bool hasTransactions = _context.StockTransactions
+                .Any(t => t.ItemID == id);
+
+            if (hasTransactions)
+            {
+                TempData["Error"] = "Cannot delete — stock transactions exist.";
+                return RedirectToAction("ItemDetail", new { id });
+            }
+
             using var tx = _context.Database.BeginTransaction();
 
             try
