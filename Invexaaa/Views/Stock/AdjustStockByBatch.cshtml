@@ -1121,6 +1121,31 @@
                 </div>
             </div>
 
+            <div class="section">
+                <div class="section-title">
+                    <h3>Customer (optional)</h3>
+                    <p class="hint">Only applies when stock is reduced</p>
+                </div>
+
+                <select asp-for="CustomerID"
+                        class="form-select"
+                        disabled="@(isInactive || !hasBatches)">
+                    <option value="">-- Select Customer --</option>
+                    @foreach (var c in Model.Customers)
+                    {
+                        <option value="@c.CustomerID">@c.CustomerName</option>
+                    }
+                </select>
+
+                <div class="mt-2">
+                    <input asp-for="CustomerNameSnapshot"
+                           class="form-control"
+                           placeholder="Fallback (walk-in, internal use, etc.)"
+                           disabled="@(isInactive || !hasBatches)" />
+                </div>
+            </div>
+
+
             <div class="footer-bar">
                 <div class="footer-left">
                     <div class="footer-k">Total Adjustment</div>

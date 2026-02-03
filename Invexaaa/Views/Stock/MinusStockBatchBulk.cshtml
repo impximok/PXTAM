@@ -529,12 +529,32 @@
                             Customer (optional)
                         </div>
 
+                        <select asp-for="CustomerID"
+                                class="form-control inv-input">
+                            <option value="">-- Select Customer --</option>
+                            @foreach (var c in Model.Customers)
+                            {
+                                <option value="@c.CustomerID">
+                                    @c.CustomerName
+                                </option>
+                            }
+                        </select>
+
+                        <span asp-validation-for="CustomerID" class="text-danger"></span>
+                    </div>
+
+                    <div class="field">
+                        <div class="inv-label">
+                            Customer Name (fallback)
+                        </div>
+
                         <input asp-for="CustomerNameSnapshot"
                                class="form-control inv-input"
                                placeholder="e.g. Walk-in customer, Order #1234" />
 
                         <span asp-validation-for="CustomerNameSnapshot" class="text-danger"></span>
                     </div>
+
 
                 </div>
 

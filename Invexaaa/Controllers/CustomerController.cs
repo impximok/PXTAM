@@ -14,7 +14,7 @@ namespace Invexaaa.Controllers
         }
 
         // =========================
-        // INDEX (Maintain Customer)
+        // INDEX
         // =========================
         public IActionResult Index()
         {
@@ -22,16 +22,15 @@ namespace Invexaaa.Controllers
                 .OrderBy(c => c.CustomerName)
                 .ToList();
 
-            return View("CustomerIndex", list);
+            return View("CustomerIndex", list); // 👈 explicit view
         }
-
 
         // =========================
         // CREATE (GET)
         // =========================
         public IActionResult Create()
         {
-            return View(new Customer());
+            return View("CreateCustomer", new Customer()); // 👈 explicit view
         }
 
         // =========================
@@ -42,7 +41,7 @@ namespace Invexaaa.Controllers
         public IActionResult Create(Customer model, string? submitAction)
         {
             if (!ModelState.IsValid)
-                return View(model);
+                return View("CreateCustomer", model); // 👈 explicit view
 
             model.CustomerStatus = "Active";
             model.CustomerCreatedAt = DateTime.Now;
@@ -52,10 +51,9 @@ namespace Invexaaa.Controllers
 
             TempData["Success"] = "Customer created successfully.";
 
-            if (submitAction == "saveNew")
-                return RedirectToAction(nameof(Create));
-
-            return RedirectToAction(nameof(Index));
+            return submitAction == "saveNew"
+                ? RedirectToAction(nameof(Create))
+                : RedirectToAction(nameof(Index));
         }
 
         // =========================
@@ -67,7 +65,7 @@ namespace Invexaaa.Controllers
             if (customer == null)
                 return NotFound();
 
-            return View(customer);
+            return View("EditCustomer", customer); // 👈 explicit view
         }
 
         // =========================
@@ -78,7 +76,7 @@ namespace Invexaaa.Controllers
         public IActionResult Edit(Customer model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+                return View("EditCustomer", model); // 👈 explicit view
 
             var customer = _context.Customers.Find(model.CustomerID);
             if (customer == null)
@@ -111,12 +109,11 @@ namespace Invexaaa.Controllers
                 customer.CustomerStatus == "Active" ? "Inactive" : "Active";
 
             _context.SaveChanges();
-
             return RedirectToAction(nameof(Index));
         }
 
         // =========================
-        // DELETE (Single)
+        // DELETE
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -125,6 +122,15 @@ namespace Invexaaa.Controllers
             var customer = _context.Customers.Find(id);
             if (customer == null)
                 return NotFound();
+
+            bool hasTransactions = _context.StockTransactions
+                .Any(t => t.CustomerID == id);
+
+            if (hasTransactions)
+            {
+                TempData["Error"] = "Cannot delete — customer has stock transactions.";
+                return RedirectToAction(nameof(Index));
+            }
 
             _context.Customers.Remove(customer);
             _context.SaveChanges();
@@ -143,10 +149,18 @@ namespace Invexaaa.Controllers
             if (string.IsNullOrWhiteSpace(ids))
                 return RedirectToAction(nameof(Index));
 
-            var idList = ids
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(int.Parse)
-                .ToList();
+            var idList = ids.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(int.Parse)
+                            .ToList();
+
+            bool anyUsed = _context.StockTransactions
+                .Any(t => t.CustomerID != null && idList.Contains(t.CustomerID.Value));
+
+            if (anyUsed)
+            {
+                TempData["Error"] = "Cannot delete — one or more customers have stock transactions.";
+                return RedirectToAction(nameof(Index));
+            }
 
             var customers = _context.Customers
                 .Where(c => idList.Contains(c.CustomerID))
@@ -159,4 +173,5 @@ namespace Invexaaa.Controllers
             return RedirectToAction(nameof(Index));
         }
     }
+
 }

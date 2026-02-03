@@ -32,6 +32,8 @@ namespace Invexaaa.Models.ViewModels
         public int? CustomerID { get; set; }
         public string? CustomerNameSnapshot { get; set; }
 
+        public List<Customer> Customers { get; set; } = new();
+
         // =========================
         // ADJUSTMENT
         // =========================
@@ -44,5 +46,7 @@ namespace Invexaaa.Models.ViewModels
         // =========================
         public List<ItemUnitConversion> AvailableUnits { get; set; } = new();
         public List<AdjustStockBatchRowViewModel> Batches { get; set; } = new();
+
+
     }
 }

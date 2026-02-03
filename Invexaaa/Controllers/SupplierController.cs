@@ -112,14 +112,26 @@ namespace Invexaaa.Controllers
         public IActionResult Delete(int id)
         {
             var supplier = _context.Suppliers.Find(id);
-            if (supplier != null)
+            if (supplier == null)
+                return NotFound();
+
+            // 🔒 BLOCK DELETE IF SUPPLIER USED IN STOCK HISTORY
+            bool hasStockHistory = _context.StockBatches
+                .Any(b => b.SupplierNameSnapshot == supplier.SupplierName);
+
+            if (hasStockHistory)
             {
-                _context.Suppliers.Remove(supplier);
-                _context.SaveChanges();
+                TempData["Error"] = "Cannot delete — supplier has stock transactions.";
+                return RedirectToAction(nameof(SupplierIndex));
             }
 
+            _context.Suppliers.Remove(supplier);
+            _context.SaveChanges();
+
+            TempData["Success"] = "Supplier deleted.";
             return RedirectToAction(nameof(SupplierIndex));
         }
+
 
         // =========================
         // JSON LIST (for dropdown refresh)
