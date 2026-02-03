@@ -3,98 +3,201 @@
     ViewData["Title"] = "Logout";
     ViewBag.HideHeader = true;
     Layout = "~/Views/Shared/_Layout.cshtml";
-    
 }
 
 <div class="logout-wrapper">
-    <div class="logout-card">
-        <h2 class="logout-title">Sign out</h2>
-        <p class="logout-text">
-            You’re about to sign out from <strong>Invexa</strong>.
-        </p>
+    <div class="logout-card" role="region" aria-labelledby="logoutTitle">
+        <div class="logout-head">
+            <h2 class="logout-title" id="logoutTitle">Log Out</h2>
+            <p class="logout-text">
+                You’re about to log out from <strong>Invexa</strong>.
+            </p>
+            <p class="logout-hint">Any unsaved changes will be lost.</p>
+        </div>
 
         <form asp-action="Logout" method="post" class="logout-actions">
             @Html.AntiForgeryToken()
 
-            <button type="submit" class="btn btn-logout">
+            <button type="submit" class="pill-btn pill-btn--primary">
                 Logout
             </button>
 
             <a asp-controller="Dashboard"
                asp-action="Index"
-               class="btn btn-cancel">
+               class="pill-btn pill-btn--ghost">
                 Cancel
             </a>
-
         </form>
     </div>
 </div>
 
 <style>
+    :root {
+        --bg: #fff;
+        --card: #fff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --shadow: 0 12px 30px rgba(0,0,0,.06);
+        --radius: 20px;
+        --black: #111;
+        --soft: #f6f7f9;
+    }
 
-    /* Logout Page – Minimal Black & White */
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: var(--bg) !important;
+    }
 
     .logout-wrapper {
-        min-height: 70vh;
+        min-height: 100vh; /* ⬅ full viewport */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+
+    /* ✅ Better proportion card (not too tall) */
+    .logout-card {
+        max-width: 560px;
+        width: 100%;
+        padding: 55px 54px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--card);
+        text-align: center;
+        box-shadow: var(--shadow);
+    }
+
+    .logout-head {
+        margin-bottom: 22px;
+    }
+
+    /* ✅ Better font hierarchy */
+    .logout-title {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.4px;
+        margin: 0 0 18px;
+        color: #111;
+    }
+
+    .logout-text {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.3;
+        color: #000;
+    }
+
+    .logout-hint {
+        margin: 8px 0 0;
+        font-size: 13px;
+        line-height: 1.3;
+        color: var(--muted);
+    }
+
+    /* ✅ Buttons row spacing fixed */
+    .logout-actions {
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        margin-top: 24px;
+        flex-wrap: wrap;
+    }
+
+    /* Pills (match your system) */
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 10px 20px !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        border: 2px solid var(--black) !important;
+        min-width: 160px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+        white-space: nowrap;
+        transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+
+    /* Primary (black) */
+    .pill-btn--primary {
+        background: var(--black) !important;
+        color: #fff !important;
+        border-color: var(--black) !important;
+    }
+
+        /* Your system hover: invert */
+        .pill-btn--primary:hover {
+            background: #fff !important;
+            color: var(--black) !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,.10);
+        }
+
+    /* Ghost (Cancel) = white bg + black border */
+    .pill-btn--ghost {
+        background: #fff !important;
+        color: var(--black) !important;
+        border-color: var(--black) !important;
+        text-decoration: none !important;
+    }
+
+        .pill-btn--ghost:hover {
+            background: var(--black) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,.10);
+        }
+
+    .pill-btn:active {
+        box-shadow: 0 2px 8px rgba(0,0,0,.16);
+    }
+
+    /* ✅ Loading state */
+    .pill-btn.is-loading {
+        pointer-events: none;
+        opacity: .7;
+    }
+
+    @@media (max-width: 520px) {
+        .logout-card {
+            padding: 36px 22px;
+        }
+
+        .pill-btn {
+            width: 100%;
+            min-width: 0;
+        }
+    }
+
+    main,
+    .content,
+    .content-body,
+    .app-content,
+    .app-wrapper {
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
     .logout-card {
-        max-width: 420px;
-        width: 100%;
-        padding: 40px;
-        border: 1px solid #e5e5e5;
-        background: #fff;
-        text-align: center;
+        margin: 0;
     }
-
-    .logout-title {
-        font-size: 1.6rem;
-        font-weight: 600;
-        margin-bottom: 12px;
-        color: #000;
-    }
-
-    .logout-text {
-        font-size: 0.95rem;
-        color: #555;
-        margin-bottom: 30px;
-    }
-
-    .logout-actions {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-    }
-
-    /* Buttons */
-    .btn-logout {
-        background: #000;
-        color: #fff;
-        border: none;
-        padding: 10px 22px;
-        font-size: 0.9rem;
-    }
-
-        .btn-logout:hover {
-            background: #222;
-            color: #fff;
-        }
-
-    .btn-cancel {
-        background: transparent;
-        color: #000;
-        border: 1px solid #000;
-        padding: 10px 22px;
-        font-size: 0.9rem;
-        text-decoration: none;
-    }
-
-        .btn-cancel:hover {
-            background: #f5f5f5;
-            color: #000;
-        }
 
 </style>
+
+<script>
+    const form = document.querySelector('.logout-actions');
+    const logoutBtn = document.querySelector('.pill-btn--primary');
+
+    if (form && logoutBtn) {
+        form.addEventListener('submit', () => {
+            logoutBtn.classList.add('is-loading');
+            logoutBtn.textContent = 'Logging out…';
+        });
+    }
+</script>
+

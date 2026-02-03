@@ -353,8 +353,8 @@
             text-decoration: underline;
         }
     /* =====================================
-               LOGIN BUTTON – PRIMARY (REVERSE HOVER)
-               ===================================== */
+                   LOGIN BUTTON – PRIMARY (REVERSE HOVER)
+                   ===================================== */
 
     /* Default */
     .auth-card .btn.btn-primary {
@@ -404,5 +404,47 @@
     html, body {
         background: #fff;
     }
+
+    .auth-head {
+        text-align: center;
+        margin-bottom: 16px; /* consistent */
+    }
+
+        .auth-head h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 6px; /* clean */
+        }
+
+        .auth-head p {
+            font-size: 14px;
+            color: var(--muted);
+            margin: 0; /* ✅ remove extra bottom gap */
+        }
+
+    .auth-alert {
+        border: 1px solid var(--danger-br);
+        background: var(--danger-bg);
+        color: var(--danger);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 14px 0 18px; /* ✅ consistent top & bottom spacing */
+    }
+
+        /* ✅ kill default spacing from validation summary */
+        .auth-alert .validation-summary-errors,
+        .auth-alert .validation-summary-valid {
+            margin: 0;
+        }
+
+        .auth-alert ul {
+            margin: 0;
+            padding-left: 18px; /* keep bullet spacing nice */
+        }
+
+        .auth-alert li {
+            margin: 0;
+            line-height: 1.5;
+        }
 
 </style>
