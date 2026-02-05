@@ -1091,16 +1091,20 @@
                                 <td>
                                     <select asp-for="Batches[i].UnitConversionID"
                                             class="form-select"
-                                            disabled="@isInactive">
+                                            disabled="@(isInactive
+                                                        || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed
+                                                        || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage)">
+
                                         <option value="">-- Unit --</option>
-                                        @foreach (var unit in Model.AvailableUnits)
+                                    @foreach (var unit in Model.AvailableUnits)
                                         {
                                             <option value="@unit.ItemUnitConversionID"
-                                                    data-multiplier="@unit.BaseUnitMultiplier">
-                                                @unit.UnitName
+                                                    data-multiplier="@unit.BaseUnitMultiplier"
+                                                    selected="@(Model.CostingMethod != Invexaaa.Models.Invexa.Enums.CostingMethod.FIFO && unit.IsBaseUnit ? "selected" : null)">
+                                                @unit.UnitName @(unit.IsBaseUnit ? "(Base)" : "")
                                             </option>
-
                                         }
+
                                     </select>
                                 </td>
                                 <td>

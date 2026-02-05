@@ -910,6 +910,17 @@
 
 <div class="page-wrap">
 
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger" style="
+            margin-bottom:16px;
+            border-radius:12px;
+            font-size:14px;
+            font-weight:600;">
+            @TempData["Error"]
+        </div>
+    }
+
     <div class="page-head">
         <div>
             <h1 class="title">Manage Stock</h1>

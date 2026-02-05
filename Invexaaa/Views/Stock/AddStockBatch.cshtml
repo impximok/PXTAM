@@ -1016,7 +1016,9 @@ else
                 </div>
 
 
-                @if (!Model.CanSubmit)
+                @if ((Model.CostingMethod == CostingMethod.Fixed ||
+                                Model.CostingMethod == CostingMethod.WeightedAverage)
+                                && !Model.HasBaseUnit)
                 {
                     <div class="text-danger" style="margin-top:12px;">
                         ⚠ This item uses <b>@Model.CostingMethod</b> costing.
@@ -1024,6 +1026,7 @@ else
                         Please fix unit setup first.
                     </div>
                 }
+
 
 
                 <div class="actions">

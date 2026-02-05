@@ -7,172 +7,753 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
 <style>
-    .inventory-health {
+    :root {
+        --bg: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 18px;
+        --table-edge-pad: 18px;
+    }
+
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
+
+    /* Full width page padding */
+    .page-wrap {
+        width: 100%;
+        padding: 10px 18px 24px;
+    }
+
+    /* Header */
+    .page-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f0f0f0;
+        margin-bottom: 12px;
+    }
+
+    .title {
+        font-size: 34px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* Right header pill button (match sample) */
+    .add-btn {
+        height: 44px;
+        padding: 0 16px;
+        border: 2px solid #000 !important;
+        background: #000 !important;
+        color: #fff !important;
+        border-radius: 999px !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none !important;
+        transition: background-color 220ms ease, color 220ms ease, opacity 220ms ease;
+        user-select: none;
+        white-space: nowrap;
+        cursor: pointer;
+        font-weight: 800;
+        font-size: 14px;
+    }
+
+        .add-btn:hover, .add-btn:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+        .add-btn i {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+    /* Filters (same layout) */
+    .filters {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr auto;
+        gap: 10px 12px;
+        align-items: end;
+        padding: 18px 0 18px;
+        border-bottom: 1.5px solid #e5e7eb;
+        margin-bottom: 18px;
+    }
+
+    .label {
         font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 12px;
+        color: #111;
+        margin-bottom: 6px;
         font-size: 13px;
     }
 
-    .health-healthy {
-        background: #e6f7ec;
-        color: #15803d;
+    .control {
+        width: 100%;
+        border: 2px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 11px 14px !important;
+        height: 46px;
+        font-size: 15px !important;
+        background: #fff !important;
+        color: var(--text) !important;
+        outline: none !important;
+        box-shadow: none !important;
     }
 
-    .health-low {
-        background: #fff7ed;
-        color: #b45309;
+        .control:focus {
+            border-color: #000 !important;
+        }
+
+    .filter-actions {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: flex-end;
+        align-self: flex-end;
+        margin-bottom: 2px;
     }
 
-    .health-critical {
-        background: #fee2e2;
-        color: #b91c1c;
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 6px 12px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        border: 2px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        white-space: nowrap;
+        height: 43px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 220ms ease, color 220ms ease;
     }
 
-    /* 🔒 Inactive row styling */
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+        .pill-solid:hover, .pill-solid:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    .pill-outline:hover, .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        outline: none;
+    }
+
+    /* ===== Custom Select (cs2) ===== */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 11px 40px 11px 14px;
+        height: 46px;
+        background: #fff;
+        color: #111;
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cs2-value {
+        flex: 1;
+        text-align: left;
+    }
+
+    .cs2-btn:focus,
+    .cs2.open .cs2-btn {
+        border-color: #000 !important;
+        outline: none;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 9999;
+        display: none;
+        overflow: hidden !important;
+        max-height: none !important;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: #111;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+        .cs2-item:hover {
+            background: #f2f2f2;
+        }
+
+    /* Table shell */
+    .table-shell {
+        border: 2px solid #e5e7eb;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: #fff;
+    }
+
+    table.sys-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .sys-table thead th {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #111;
+        padding: 16px 18px;
+        background: #f6f7f9;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+        border-right: 1px solid #eceef2;
+    }
+
+        .sys-table thead th:last-child {
+            border-right: 0;
+        }
+
+    .sys-table tbody td {
+        font-size: 13.5px;
+        font-weight: 400;
+        color: #111;
+        padding: 16px 18px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+        background: #fff;
+        border-right: 1px solid #f0f2f5;
+    }
+
+        .sys-table tbody td:last-child {
+            border-right: 0;
+        }
+
+    .sys-table tbody tr:nth-child(even) td {
+        background: #fcfcfd;
+    }
+
+    .sys-table tbody tr:hover td {
+        background: #f2f4f7;
+    }
+
+    .sys-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    /* Uniform row height */
+    .sys-table tbody tr {
+        height: 76px;
+    }
+
+    /* Item cell layout */
+    .item-inline {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: #111;
+        line-height: 1.2;
+    }
+
+    /* Inactive row */
     .inactive-row {
         opacity: 0.55;
-        background: #f1f5f9;
     }
 
-    .inactive-badge {
-        background: #e5e7eb;
-        color: #374151;
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
-    }
+        .inactive-row td {
+            color: #b6bcc6;
+        }
 
-    .cost-badge {
-        font-size: 12px;
-        font-weight: 600;
-        padding: 3px 8px;
+        .inactive-row .item-name {
+            color: #9ca3af;
+        }
+
+    /* Small badges (cost + inactive) */
+    .mini-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 10px;
         border-radius: 999px;
-        margin-left: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        color: #111;
+        white-space: nowrap;
+        line-height: 1;
     }
 
     .cost-fixed {
-        background: #e0f2fe;
-        color: #0369a1;
+        border-color: #111;
+        color: #111;
     }
 
     .cost-avg {
-        background: #ecfeff;
-        color: #155e75;
+        border-color: #111;
+        color: #111;
     }
 
     .cost-fifo {
-        background: #fef9c3;
-        color: #854d0e;
+        border-color: #111;
+        color: #111;
     }
+
+    .inactive-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #f5f6f8;
+        border: 1px solid #e5e7eb;
+        color: #9ca3af;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: .02em;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    /* Health pill (same structure as status-pill) */
+    .health-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 110px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-weight: 800;
+        border: 1.5px solid #111;
+        background: #fff;
+        color: #111;
+        font-size: 13px;
+        white-space: nowrap;
+        transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+    }
+
+        .health-pill.healthy {
+            border-color: #16a34a;
+            color: #15803d;
+        }
+
+        .health-pill.low {
+            border-color: #f59e0b;
+            color: #a16207;
+        }
+
+        .health-pill.critical {
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+
+        .health-pill.locked {
+            border-color: #e5e7eb;
+            color: #9ca3af;
+            background: #f3f4f6;
+        }
+
+    /* Action buttons like sample action-btn */
+    .action-btn {
+        border-radius: 999px !important;
+        padding: 8px 24px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        border: 2px solid #111 !important;
+        background: #fff !important;
+        color: #111 !important;
+        white-space: nowrap;
+        transition: background-color 180ms ease, color 180ms ease, transform 160ms ease;
+        text-decoration: none !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+        min-width: 160px;
+    }
+
+        .action-btn:hover, .action-btn:focus-visible {
+            background: #111 !important;
+            color: #fff !important;
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+    .lock-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 14px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        color: #9ca3af;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        min-width: 160px;
+        justify-content: center;
+    }
+
+        .lock-pill i {
+            font-size: 13px;
+            opacity: .85;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    @@media (max-width: 980px) {
+        .filters {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .filters {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-actions {
+            width: 100%;
+        }
+
+        .pill-btn {
+            width: 100%;
+        }
+    }
+
+
+
+    .action-btn,
+    .lock-pill {
+        height: 36px;
+        min-height: 36px;
+    }
+
+    .actions-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center; /* vertical center inside td */
+        gap: 8px;
+        height: 100%;
+    }
+
+    /* Make all action controls same size */
+    .action-btn,
+    .lock-pill {
+        height: 36px;
+        min-height: 36px;
+        min-width: 160px;
+    }
+
+    /* Invisible slot to keep row height consistent */
+    .action-placeholder {
+        height: 36px;
+        min-width: 160px;
+        visibility: hidden;
+    }
+
+    .action-placeholder {
+        display: none;
+    }
+    /* Actions td must stay as a real table-cell */
+    .sys-table tbody td:last-child {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    /* Edit Cost – emphasis pill */
+    .action-edit {
+        border-color: #f59e0b !important;
+        color: #b45309 !important;
+        background: #fff !important;
+    }
+
+        .action-edit:hover,
+        .action-edit:focus-visible {
+            background: #f59e0b !important;
+            color: #fff !important;
+            border-color: #f59e0b !important;
+        }
 
 </style>
 
-<div class="container-fluid">
+<div class="page-wrap">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-semibold">Inventory Overview</h3>
-        <span class="text-muted small">
-            Management & Planning View
-        </span>
+    <div class="page-head">
+        <div>
+            <h1 class="title">Inventory Overview</h1>
+            <p class="subtitle">Management & planning view across all items.</p>
+        </div>
+
+       
     </div>
 
-    <div class="card">
+    <!-- FILTERS (same pattern as sample) -->
+    <div class="filters">
+        <div>
+            <div class="label">Search</div>
+            <input id="searchBox" type="text" class="control" placeholder="Item name" />
+        </div>
+
+        <div>
+            <div class="label">Health</div>
+
+            <select class="real-select" id="healthFilter">
+                <option value="">All</option>
+                <option value="Healthy">Healthy</option>
+                <option value="Low">Low</option>
+                <option value="Critical">Critical</option>
+                <option value="Locked">Locked</option>
+            </select>
+
+            <div class="cs2" data-select="healthFilter">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">All</span>
+                    <span class="cs2-caret"></span>
+                </button>
+
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="">All</button>
+                    <button type="button" class="cs2-item" data-value="Healthy">Healthy</button>
+                    <button type="button" class="cs2-item" data-value="Low">Low</button>
+                    <button type="button" class="cs2-item" data-value="Critical">Critical</button>
+                    <button type="button" class="cs2-item" data-value="Locked">Locked</button>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="label">Sort</div>
+
+            <select class="real-select" id="sortBy">
+                <option value="nameAsc">Name (A–Z)</option>
+                <option value="nameDesc">Name (Z–A)</option>
+                <option value="qtyAsc">Quantity (Low–High)</option>
+                <option value="qtyDesc">Quantity (High–Low)</option>
+                <option value="updatedDesc">Updated (Newest)</option>
+            </select>
+
+            <div class="cs2" data-select="sortBy">
+                <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cs2-value">Name (A–Z)</span>
+                    <span class="cs2-caret"></span>
+                </button>
+
+                <div class="cs2-menu" role="listbox">
+                    <button type="button" class="cs2-item" data-value="nameAsc">Name (A–Z)</button>
+                    <button type="button" class="cs2-item" data-value="nameDesc">Name (Z–A)</button>
+                    <button type="button" class="cs2-item" data-value="qtyAsc">Quantity (Low–High)</button>
+                    <button type="button" class="cs2-item" data-value="qtyDesc">Quantity (High–Low)</button>
+                    <button type="button" class="cs2-item" data-value="updatedDesc">Updated (Newest)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button id="applyFilter" class="pill-btn pill-solid" type="button">Filter</button>
+            <button id="resetFilter" class="pill-btn pill-outline" type="button">Reset</button>
+        </div>
+    </div>
+
+    <!-- TABLE (SupplierIndex-style) -->
+    <div class="table-shell">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-secondary small">
+            <table class="sys-table" id="invTable">
+                <thead>
                     <tr>
-                        <th>Item</th>
-                        <th>Total Quantity</th>
-                        <th>Health</th>
-                        <th>Last Updated</th>
-                        <th style="width:140px">Action</th>
+                        <th style="min-width:260px">Item</th>
+                        <th style="width:190px">Costing Method</th>
+                        <th style="width:190px">Total Quantity</th>
+                        <th style="width:190px">Health</th>
+                        <th style="width:170px">Updated</th>
+                        <th style="width:200px">Actions</th>
                     </tr>
                 </thead>
 
+
                 <tbody>
-                    @foreach (var inv in Model)
+                    @if (Model == null || !Model.Any())
                     {
-                        bool isInactive = inv.ItemStatus == "Inactive";
-
-                        var healthClass =
-                        inv.HealthStatus == "Healthy" ? "health-healthy" :
-                        inv.HealthStatus == "Low" ? "health-low" :
-                        inv.HealthStatus == "Critical" ? "health-critical" :
-                        "";
-
-                        <tr class="@(isInactive ? "inactive-row" : "")">
-                            <td class="fw-semibold">
-                                @inv.ItemName
-
-                                <span class="cost-badge
-            @(inv.CostingMethod == CostingMethod.Fixed ? "cost-fixed" :
-                                                inv.CostingMethod == CostingMethod.WeightedAverage ? "cost-avg" :
-                                                "cost-fifo")">
-                                @inv.CostingMethod
-                            </span>
-
-                            @if (isInactive)
-                                {
-                                    <div class="mt-1">
-                                        <span class="inactive-badge">INACTIVE</span>
-                                    </div>
-                                }
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">No inventory items found.</div>
                             </td>
-
-
-                            <td>@inv.TotalQuantity</td>
-
-                            <td>
-                                @if (isInactive)
-                                {
-                                    <span class="inventory-health inactive-badge">
-                                        Locked
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="inventory-health @healthClass">
-                                        @inv.HealthStatus
-                                    </span>
-                                }
-                            </td>
-
-                            <td>@inv.LastUpdated.ToString("dd/MM/yyyy")</td>
-
-                            <td class="d-flex gap-2">
-                                @if (isInactive)
-                                {
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>
-                                        Locked
-                                    </button>
-                                }
-                                else
-                                {
-                                    @* Fixed costing → allow cost edit *@
-                                    if (inv.CostingMethod == CostingMethod.Fixed)
-                                    {
-                                        <a asp-controller="Inventory"
-                                           asp-action="Edit"
-                                           asp-route-id="@inv.InventoryID"
-                                           class="btn btn-sm btn-outline-dark">
-                                            Edit Cost
-                                        </a>
-                                    }
-
-                                    @* Everyone can view stock *@
-                                    <a asp-controller="Stock"
-                                       asp-action="StockIndex"
-                                       class="btn btn-sm btn-outline-primary">
-                                        View Stock
-                                    </a>
-                                }
-                            </td>
-
-
                         </tr>
+                    }
+                    else
+                    {
+                        @foreach (var inv in Model)
+                        {
+                            bool isInactive = inv.ItemStatus == "Inactive";
+
+                            string healthKey = isInactive ? "locked" :
+                            (inv.HealthStatus == "Healthy" ? "healthy" :
+                            inv.HealthStatus == "Low" ? "low" :
+                            inv.HealthStatus == "Critical" ? "critical" : "");
+
+                            var displayHealth = isInactive ? "Locked" : inv.HealthStatus;
+
+                            var costClass =
+                            inv.CostingMethod == CostingMethod.Fixed ? "cost-fixed" :
+                            inv.CostingMethod == CostingMethod.WeightedAverage ? "cost-avg" :
+                            "cost-fifo";
+
+                            <tr class="@(isInactive ? "inactive-row" : "")"
+                                data-name="@inv.ItemName"
+                                data-health="@displayHealth"
+                                data-qty="@inv.TotalQuantity"
+                                data-updated="@inv.LastUpdated.Ticks">
+
+                                <td>
+                                    <div class="item-inline">
+                                        <span class="item-name">@inv.ItemName</span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @inv.CostingMethod
+                                </td>
+
+
+                                <td><strong>@inv.TotalQuantity</strong></td>
+
+                                <td>
+                                    <span class="health-pill @healthKey">
+                                        @displayHealth
+                                    </span>
+                                </td>
+
+                                <td>@inv.LastUpdated.ToString("dd/MM/yyyy")</td>
+
+                                <td>
+                                    <div class="actions-cell">
+                                        @if (isInactive)
+                                        {
+                                            <span class="lock-pill" title="This item is inactive and cannot be changed">
+                                                <i class="bi bi-lock-fill"></i> Locked
+                                            </span>
+
+                                            <span class="action-placeholder"></span>
+                                        }
+                                        else
+                                        {
+                                            @* Slot 1: Edit Cost only for Fixed; otherwise placeholder *@
+                                            if (inv.CostingMethod == CostingMethod.Fixed)
+                                            {
+                                                <a asp-controller="Inventory"
+                                                   asp-action="Edit"
+                                                   asp-route-id="@inv.InventoryID"
+                                                   class="action-btn action-edit">
+                                                    Edit Cost
+                                                </a>
+
+                                            }
+                                            else
+                                            {
+                                                <span class="action-placeholder"></span>
+                                            }
+
+                                            @* Slot 2: always View Stock *@
+                                            <a asp-controller="Stock"
+                                               asp-action="StockIndex"
+                                               class="action-btn">
+                                                View Stock
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+
+                            </tr>
+                        }
                     }
                 </tbody>
 
@@ -181,3 +762,155 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script>
+        (() => {
+
+          /* ===============================
+             Custom Select (cs2) – same behaviour
+          =============================== */
+          function setupCS2(cs) {
+            const selectId = cs.dataset.select;
+            const real = document.getElementById(selectId);
+            if (!real) return;
+
+            const btn = cs.querySelector(".cs2-btn");
+            const valueEl = cs.querySelector(".cs2-value");
+            const items = Array.from(cs.querySelectorAll(".cs2-item"));
+            const menu = cs.querySelector(".cs2-menu");
+            if (!btn || !menu) return;
+
+            const setActive = (val) => {
+              const found = items.find(i => String(i.dataset.value) === String(val));
+              valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "");
+            };
+
+            const open = () => {
+              document.querySelectorAll(".cs2.open").forEach(o => {
+                if (o !== cs) {
+                  o.classList.remove("open");
+                  o.querySelector(".cs2-btn")?.setAttribute("aria-expanded", "false");
+                }
+              });
+              cs.classList.add("open");
+              btn.setAttribute("aria-expanded", "true");
+            };
+
+            const close = () => {
+              cs.classList.remove("open");
+              btn.setAttribute("aria-expanded", "false");
+            };
+
+            setActive(real.value);
+
+            btn.addEventListener("click", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              cs.classList.contains("open") ? close() : open();
+            });
+
+            items.forEach(i => {
+              i.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                real.value = i.dataset.value ?? "";
+                real.dispatchEvent(new Event("change", { bubbles: true }));
+                setActive(real.value);
+                close();
+              });
+            });
+
+            document.addEventListener("click", (e) => {
+              if (!e.target.closest(".cs2") && cs.classList.contains("open")) close();
+            });
+
+            document.addEventListener("keydown", (e) => {
+              if (e.key === "Escape" && cs.classList.contains("open")) close();
+            });
+          }
+          document.querySelectorAll(".cs2[data-select]").forEach(setupCS2);
+
+          /* ===============================
+             Filter + Sort (client-side)
+          =============================== */
+          const tbody = document.querySelector("#invTable tbody");
+          if (!tbody) return;
+
+          const allRows = Array.from(tbody.querySelectorAll("tr[data-name]"));
+
+          const searchBox = document.getElementById("searchBox");
+          const healthFilter = document.getElementById("healthFilter");
+          const sortBy = document.getElementById("sortBy");
+          const applyBtn = document.getElementById("applyFilter");
+          const resetBtn = document.getElementById("resetFilter");
+
+          function applyFilterSort() {
+            const keyword = (searchBox?.value || "").trim().toLowerCase();
+            const h = healthFilter?.value || "";
+            const sort = sortBy?.value || "nameAsc";
+
+            let filtered = allRows.filter(tr => {
+              const name = (tr.dataset.name || "").toLowerCase();
+              const health = (tr.dataset.health || "");
+              const matchText = !keyword || name.includes(keyword);
+              const matchHealth = !h || health === h;
+              return matchText && matchHealth;
+            });
+
+            filtered.sort((a, b) => {
+              const nameA = (a.dataset.name || "").toLowerCase();
+              const nameB = (b.dataset.name || "").toLowerCase();
+              const qtyA = parseFloat(a.dataset.qty || "0");
+              const qtyB = parseFloat(b.dataset.qty || "0");
+              const updA = parseFloat(a.dataset.updated || "0");
+              const updB = parseFloat(b.dataset.updated || "0");
+
+              if (sort === "nameAsc") return nameA.localeCompare(nameB);
+              if (sort === "nameDesc") return nameB.localeCompare(nameA);
+              if (sort === "qtyAsc") return qtyA - qtyB;
+              if (sort === "qtyDesc") return qtyB - qtyA;
+              if (sort === "updatedDesc") return updB - updA;
+              return 0;
+            });
+
+            // rebuild tbody
+            // keep the empty-state row if model is empty (handled server-side), so here we only handle real rows
+            tbody.querySelectorAll("tr[data-name]").forEach(r => r.remove());
+            filtered.forEach(r => tbody.appendChild(r));
+          }
+
+          applyBtn?.addEventListener("click", applyFilterSort);
+
+          searchBox?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              applyFilterSort();
+            }
+          });
+
+          resetBtn?.addEventListener("click", () => {
+            if (searchBox) searchBox.value = "";
+            if (healthFilter) healthFilter.value = "";
+            if (sortBy) sortBy.value = "nameAsc";
+
+            // sync cs2 labels
+            document.querySelectorAll(".cs2[data-select]").forEach(cs => {
+              const id = cs.dataset.select;
+              const real = document.getElementById(id);
+              const valueEl = cs.querySelector(".cs2-value");
+              const items = Array.from(cs.querySelectorAll(".cs2-item"));
+              const found = items.find(i => String(i.dataset.value) === String(real?.value || ""));
+              if (valueEl) valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "All");
+              cs.classList.remove("open");
+              cs.querySelector(".cs2-btn")?.setAttribute("aria-expanded", "false");
+            });
+
+            // restore original ordering in DOM
+            tbody.querySelectorAll("tr[data-name]").forEach(r => r.remove());
+            allRows.forEach(r => tbody.appendChild(r));
+          });
+
+        })();
+    </script>
+}

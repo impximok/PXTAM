@@ -1,15 +1,16 @@
 ﻿using Invexaaa.Data;
 using Invexaaa.Models.Invexa;
+using Invexaaa.Models.Invexa.ViewModels;
 using Invexaaa.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using ZXing;
 using ZXing.Common;
-using Microsoft.EntityFrameworkCore;
-using OfficeOpenXml;
-using System.Globalization;
 
 namespace Invexaaa.Controllers
 {
@@ -868,6 +869,19 @@ namespace Invexaaa.Controllers
 
                 _context.Inventories.AddRange(inventories);
                 await _context.SaveChangesAsync();
+
+                // 🔴 CRITICAL FIX: Auto-create base unit for imported items
+                var unitConversions = newItems.Select(i => new ItemUnitConversion
+                {
+                    ItemID = i.ItemID,
+                    UnitName = i.ItemUnitOfMeasure ?? "pcs",
+                    BaseUnitMultiplier = 1,
+                    IsBaseUnit = true
+                });
+
+                _context.ItemUnitConversions.AddRange(unitConversions);
+                await _context.SaveChangesAsync();
+
             }
 
             TempData["Success"] = $"{newItems.Count} items imported successfully.";
@@ -945,6 +959,135 @@ namespace Invexaaa.Controllers
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"Items_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
             );
+        }
+
+        // =====================================================
+        // ITEM UNITS MANAGEMENT (GET)
+        // URL: /Item/Units/{itemId}
+        // =====================================================
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("Units/{itemId}")]
+        public IActionResult Units(int itemId)
+        {
+            var item = _context.Items.FirstOrDefault(i => i.ItemID == itemId);
+            if (item == null)
+                return NotFound();
+
+            bool hasStock = _context.Inventories
+                .Any(i => i.ItemID == itemId && i.InventoryTotalQuantity > 0);
+
+            var units = _context.ItemUnitConversions
+                .Where(u => u.ItemID == itemId)
+                .OrderByDescending(u => u.IsBaseUnit)
+                .ThenBy(u => u.UnitName)
+                .ToList();
+
+            var vm = new ItemUnitsViewModel
+            {
+                ItemID = item.ItemID,
+                ItemName = item.ItemName,
+                CostingMethod = item.CostingMethod,
+                HasStock = hasStock,
+                Units = units
+            };
+
+            return View("Units", vm);
+        }
+
+        // =====================================================
+        // ADD UNIT (POST)
+        // =====================================================
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPost("AddUnit")]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddUnit(ItemUnitsViewModel vm)
+        {
+            if (string.IsNullOrWhiteSpace(vm.NewUnitName))
+            {
+                ModelState.AddModelError("", "Unit name is required.");
+                return RedirectToAction("Units", new { itemId = vm.ItemID });
+            }
+
+            if (vm.NewBaseUnitMultiplier < 1)
+            {
+                ModelState.AddModelError("", "Multiplier must be at least 1.");
+                return RedirectToAction("Units", new { itemId = vm.ItemID });
+            }
+
+            // 🔒 Base unit rules
+            if (vm.NewIsBaseUnit && vm.NewBaseUnitMultiplier != 1)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Base unit must have a multiplier of 1."
+                );
+                return RedirectToAction("Units", new { itemId = vm.ItemID });
+            }
+
+            // 🔒 If setting base unit → unset existing base
+            if (vm.NewIsBaseUnit)
+            {
+                var existingBase = _context.ItemUnitConversions
+                    .Where(u => u.ItemID == vm.ItemID && u.IsBaseUnit)
+                    .ToList();
+
+                foreach (var u in existingBase)
+                {
+                    u.IsBaseUnit = false;
+                }
+            }
+
+            _context.ItemUnitConversions.Add(new ItemUnitConversion
+            {
+                ItemID = vm.ItemID,
+                UnitName = vm.NewUnitName.Trim(),
+                BaseUnitMultiplier = vm.NewBaseUnitMultiplier,
+                IsBaseUnit = vm.NewIsBaseUnit
+            });
+
+            _context.SaveChanges();
+
+            TempData["Success"] = "Unit added successfully.";
+            return RedirectToAction("Units", new { itemId = vm.ItemID });
+        }
+
+        // =====================================================
+        // DELETE UNIT (POST)
+        // =====================================================
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPost("DeleteUnit")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteUnit(int unitId, int itemId)
+        {
+            var unit = _context.ItemUnitConversions
+                .FirstOrDefault(u => u.ItemUnitConversionID == unitId && u.ItemID == itemId);
+
+            if (unit == null)
+                return NotFound();
+
+            // 🔒 Cannot delete base unit
+            if (unit.IsBaseUnit)
+            {
+                TempData["Error"] = "Base unit cannot be deleted.";
+                return RedirectToAction("Units", new { itemId });
+            }
+
+            // 🔒 Block deletion if stock exists
+            bool hasStock = _context.Inventories
+                .Any(i => i.ItemID == itemId && i.InventoryTotalQuantity > 0);
+
+            if (hasStock)
+            {
+                TempData["Error"] =
+                    "Units cannot be deleted while stock exists. Clear stock first.";
+                return RedirectToAction("Units", new { itemId });
+            }
+
+            _context.ItemUnitConversions.Remove(unit);
+            _context.SaveChanges();
+
+            TempData["Success"] = "Unit deleted successfully.";
+            return RedirectToAction("Units", new { itemId });
         }
 
     }
