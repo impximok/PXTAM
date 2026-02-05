@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Invexaaa.Models.Invexa.Enums;
+using System;
 
 namespace Invexaaa.Models.ViewModels
 {
@@ -17,5 +18,9 @@ namespace Invexaaa.Models.ViewModels
         public string ItemStatus { get; set; } = "Active";
 
         public DateTime LastUpdated { get; set; }
+
+        public CostingMethod CostingMethod { get; set; }
+        public decimal StandardUnitCost { get; set; }
+
     }
 }

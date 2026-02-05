@@ -1,0 +1,118 @@
+﻿@model Invexaaa.Models.ViewModels.InventoryEditViewModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Edit Inventory Cost";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <div class="mb-3">
+        <h3 class="fw-semibold">Edit Standard Cost</h3>
+        <p class="text-muted small">
+            Administrative cost maintenance for Fixed Costing items.
+        </p>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- 🔑 Required -->
+                <input type="hidden" asp-for="InventoryID" />
+                <input type="hidden" asp-for="ItemID" />
+
+                <!-- ITEM INFO (READ ONLY) -->
+                <div class="mb-3">
+                    <label class="form-label">Item</label>
+                    <input class="form-control" value="@Model.ItemName" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Costing Method</label>
+                    <input class="form-control" value="Fixed Costing" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Current Quantity</label>
+                    <input class="form-control" value="@Model.InventoryTotalQuantity" readonly />
+                </div>
+
+                <hr />
+
+                <!-- STANDARD COST -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        Standard Unit Cost <span class="text-danger">*</span>
+                    </label>
+
+                    <input asp-for="StandardUnitCost"
+                           type="number"
+                           step="0.0001"
+                           min="0"
+                           class="form-control"
+                           placeholder="e.g. 5.2500" />
+
+                    <span asp-validation-for="StandardUnitCost" class="text-danger"></span>
+
+                    <div class="form-text">
+                        This cost will be used for <b>all inventory valuation</b>.
+                        <br />
+                        <span class="text-muted">
+                            Stock IN will <u>not</u> modify this value.
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- LIVE PREVIEW -->
+                <div class="alert alert-info">
+                    <b>New Total Stock Value Preview</b><br />
+                    <span id="previewValue">RM 0.00</span>
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="InventoryIndex"
+                       class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Save Cost
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const costInput = document.querySelector('[name="StandardUnitCost"]');
+        const qty = @Model.InventoryTotalQuantity;
+        const preview = document.getElementById('previewValue');
+
+        function updatePreview() {
+            const cost = parseFloat(costInput.value);
+            if (!isNaN(cost)) {
+                const total = (cost * qty).toFixed(2);
+                preview.innerText = `RM ${total}`;
+            } else {
+                preview.innerText = 'RM 0.00';
+            }
+        }
+
+        costInput?.addEventListener('input', updatePreview);
+        updatePreview();
+    </script>
+}

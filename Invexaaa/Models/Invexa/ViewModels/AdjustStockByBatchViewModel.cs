@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Invexaaa.Models.Invexa;
+using Invexaaa.Models.Invexa.Enums;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Invexaaa.Models.Invexa;
 
 namespace Invexaaa.Models.ViewModels
 {
@@ -26,6 +27,8 @@ namespace Invexaaa.Models.ViewModels
 
         public int BaseQuantity { get; set; }
 
+        public CostingMethod CostingMethod { get; set; }
+
         // =========================
         // CUSTOMER (OPTIONAL)
         // =========================
@@ -35,11 +38,12 @@ namespace Invexaaa.Models.ViewModels
         public List<Customer> Customers { get; set; } = new();
 
         // =========================
-        // ADJUSTMENT
+        // STOCK OUT METADATA (AUDIT)
         // =========================
-        [Required(ErrorMessage = "Adjustment reason is required.")]
+        [Required(ErrorMessage = "Stock out remark is required.")]
         [StringLength(255)]
-        public string AdjustmentReason { get; set; } = "";
+        public string StockOutRemark { get; set; } = "";
+
 
         // =========================
         // UI DATA

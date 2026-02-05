@@ -980,6 +980,35 @@
                 <div class="subtitle-note">
                     Manual corrections only — damage, miscount, or system fixes.
                 </div>
+
+                <div class="note note-warn">
+                    <strong>Costing Method:</strong>
+                    <span style="font-weight:800">
+                        @Model.CostingMethod
+                    </span>
+
+                    <div style="margin-top:6px">
+                        @if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.FIFO)
+                        {
+                            <span>
+                                Cost is derived from the <b>affected batches</b> (FIFO).
+                            </span>
+                        }
+                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage)
+                        {
+                            <span>
+                                Cost is derived from the <b>current inventory average</b>.
+                            </span>
+                        }
+                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed)
+                        {
+                            <span>
+                                Cost is derived from the <b>inventory standard cost</b>.
+                            </span>
+                        }
+                    </div>
+                </div>
+
             </div>
 
             <div class="header-mini">
@@ -1109,7 +1138,7 @@
                 </div>
 
                 <div class="reason">
-<textarea asp-for="AdjustmentReason"
+<textarea asp-for="StockOutRemark"
           class="form-control"
           rows="3"
           placeholder="Damage, recount, correction..."
@@ -1117,7 +1146,7 @@
 </textarea>
 
 
-                    <span asp-validation-for="AdjustmentReason" class="field-error"></span>
+                    <span asp-validation-for="StockOutRemark" class="field-error"></span>
                 </div>
             </div>
 

@@ -26,6 +26,11 @@ namespace Invexaaa.Models.ViewModels
 
         public CostingMethod CostingMethod { get; set; }
 
+        // Costing (read-only, derived from inventory)
+        public decimal AverageUnitCost { get; set; }     // For Weighted Average
+        public decimal StandardUnitCost { get; set; }    // For Fixed Costing
+        public decimal TotalStockValue { get; set; }     // Qty × unit cost
+
 
         public int CurrentBalance { get; set; }
         public List<ItemBatchViewModel> Batches { get; set; }

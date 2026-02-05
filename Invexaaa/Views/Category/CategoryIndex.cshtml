@@ -819,64 +819,7 @@
     }
 
 
-    /* ===== Text Pills (Import/Export/Add) ===== */
-    .pill-action {
-        height: 40px;
-        border-radius: 999px !important;
-        padding: 0 18px !important;
-        font-size: 14px !important;
-        font-weight: 800 !important;
-        border: 2px solid #000 !important;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none !important;
-        cursor: pointer;
-        user-select: none;
-        white-space: nowrap;
-        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
-    }
 
-    /* solid (Export) */
-    .pill-solid {
-        background: #000 !important;
-        color: #fff !important;
-    }
-
-        .pill-solid:hover,
-        .pill-solid:focus-visible {
-            background: #fff !important;
-            color: #000 !important;
-            outline: none;
-        }
-
-    /* outline (Import/Add) */
-    .pill-outline {
-        background: #fff !important;
-        color: #000 !important;
-    }
-
-        .pill-outline:hover,
-        .pill-outline:focus-visible {
-            background: #000 !important;
-            color: #fff !important;
-            outline: none;
-        }
-
-    /* ===== File input overlay (Import) ===== */
-    .pill-file {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .pill-file-input {
-        position: absolute;
-        inset: 0;
-        opacity: 0;
-        cursor: pointer;
-        width: 100%;
-        height: 100%;
-    }
     /* ===== table footer like Supplier ===== */
     .table-footer {
         border-top: 1px solid #e5e7eb;
@@ -1040,8 +983,8 @@
     }
 
     /* ===============================
-           INVEXA Toast v2 (System style)
-           =============================== */
+               INVEXA Toast v2 (System style)
+               =============================== */
     .ix-toast {
         position: fixed;
         top: 18px;
@@ -1182,6 +1125,129 @@
             margin-left: auto;
         }
     }
+    /* ===== Header actions (match Customer exactly) ===== */
+    .header-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    /* header pill buttons (Export/Import) */
+    .header-pill {
+        height: 44px !important;
+        padding: 0 14px !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        border-radius: 999px !important;
+        border: 2px solid #000 !important;
+        background: #000 !important;
+        color: #fff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-decoration: none !important;
+        cursor: pointer;
+        transition: background-color .18s ease, color .18s ease;
+    }
+
+        .header-pill:hover,
+        .header-pill:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+        /* file input hidden */
+        .header-pill input[type="file"] {
+            display: none !important;
+        }
+
+    /* icon button (match Customer: fixed 44x44 circle) */
+    .icon-btn {
+        width: 44px !important;
+        height: 44px !important;
+        padding: 0 !important;
+        margin-top: 0 !important;
+        border: 2px solid #000 !important;
+        background: #000 !important;
+        color: #fff !important;
+        border-radius: 999px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-decoration: none !important;
+        transition: background-color 220ms ease, color 220ms ease;
+    }
+
+        .icon-btn:hover,
+        .icon-btn:focus-visible {
+            background: #fff !important;
+            color: #000 !important;
+            outline: none;
+        }
+
+    /* ===== Header actions (Customer baseline) ===== */
+    .header-actions {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    /* Export / Import */
+    .header-pill {
+        height: 44px;
+        padding: 0 14px;
+        font-size: 13px;
+        font-weight: 800;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #000;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color .18s ease, color .18s ease;
+    }
+
+        .header-pill:hover,
+        .header-pill:focus-visible {
+            background: #fff;
+            color: #000;
+            outline: none;
+        }
+
+        /* hide file input */
+        .header-pill input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+    /* + button (exact match) */
+    .icon-btn {
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border: 2px solid #000;
+        background: #000;
+        color: #fff;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color .18s ease, color .18s ease;
+    }
+
+        .icon-btn:hover,
+        .icon-btn:focus-visible {
+            background: #fff;
+            color: #000;
+            outline: none;
+        }
+
 </style>
 
 <div class="page-wrap">
@@ -1215,12 +1281,12 @@
             <p class="subtitle">Search, filter and manage categories.</p>
         </div>
 
-        <div style="display:flex; gap:10px; align-items:center;">
+        <div class="header-actions">
 
             <!-- Export -->
             <a asp-controller="Category"
                asp-action="Export"
-               class="pill-action pill-solid"
+               class="header-pill"
                title="Export Categories">
                 Export
             </a>
@@ -1230,22 +1296,17 @@
                   asp-controller="Category"
                   method="post"
                   enctype="multipart/form-data"
-                  style="margin:0"
-                  onsubmit="handleImportSubmit(this)">
-
+                  style="display:inline-flex; margin:0;">
                 @Html.AntiForgeryToken()
 
-                <label class="pill-action pill-solid pill-file" title="Import Excel / CSV">
-
+                <label class="header-pill" title="Import Excel / CSV">
                     Import
-                    <input class="pill-file-input"
-                           type="file"
+                    <input type="file"
                            name="file"
                            accept=".xlsx,.csv"
                            onchange="this.form.submit()" />
                 </label>
             </form>
-
 
             <!-- Add Category -->
             <a asp-action="Create"
