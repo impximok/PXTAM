@@ -1,0 +1,35 @@
+﻿@model List<Invexaaa.Models.Invexa.ViewModels.SupplierStockInSummaryViewModel>
+
+@{
+    ViewData["Title"] = "Supplier Stock-In Summary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Supplier Stock-In Summary</h1>
+<p>Financial overview of received inventory (read-only).</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Supplier</th>
+            <th>Total Qty</th>
+            <th>Total Value</th>
+            <th>Avg Unit Cost</th>
+            <th>Avg Lead Time (Days)</th>
+            <th>Last Delivery</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.SupplierName</td>
+                <td>@s.TotalQuantityReceived</td>
+                <td>@s.TotalPayableValue.ToString("RM 0.00")</td>
+                <td>@s.AverageUnitCost.ToString("0.0000")</td>
+                <td>@s.AverageLeadTimeDays</td>
+                <td>@s.LastDeliveryDate?.ToString("dd MMM yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>

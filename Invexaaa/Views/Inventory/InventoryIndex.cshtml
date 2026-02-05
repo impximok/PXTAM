@@ -1,4 +1,5 @@
 ﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Invexaaa.Models.Invexa.Enums
 @model IEnumerable<Invexaaa.Models.ViewModels.InventoryOverviewViewModel>
 
 @{
@@ -43,6 +44,30 @@
         font-size: 12px;
         font-weight: 600;
     }
+
+    .cost-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 999px;
+        margin-left: 6px;
+    }
+
+    .cost-fixed {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .cost-avg {
+        background: #ecfeff;
+        color: #155e75;
+    }
+
+    .cost-fifo {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
 </style>
 
 <div class="container-fluid">
@@ -81,13 +106,22 @@
                         <tr class="@(isInactive ? "inactive-row" : "")">
                             <td class="fw-semibold">
                                 @inv.ItemName
-                                @if (isInactive)
+
+                                <span class="cost-badge
+            @(inv.CostingMethod == CostingMethod.Fixed ? "cost-fixed" :
+                                                inv.CostingMethod == CostingMethod.WeightedAverage ? "cost-avg" :
+                                                "cost-fifo")">
+                                @inv.CostingMethod
+                            </span>
+
+                            @if (isInactive)
                                 {
                                     <div class="mt-1">
                                         <span class="inactive-badge">INACTIVE</span>
                                     </div>
                                 }
                             </td>
+
 
                             <td>@inv.TotalQuantity</td>
 
@@ -108,7 +142,7 @@
 
                             <td>@inv.LastUpdated.ToString("dd/MM/yyyy")</td>
 
-                            <td>
+                            <td class="d-flex gap-2">
                                 @if (isInactive)
                                 {
                                     <button class="btn btn-sm btn-outline-secondary" disabled>
@@ -117,6 +151,18 @@
                                 }
                                 else
                                 {
+                                    @* Fixed costing → allow cost edit *@
+                                    if (inv.CostingMethod == CostingMethod.Fixed)
+                                    {
+                                        <a asp-controller="Inventory"
+                                           asp-action="Edit"
+                                           asp-route-id="@inv.InventoryID"
+                                           class="btn btn-sm btn-outline-dark">
+                                            Edit Cost
+                                        </a>
+                                    }
+
+                                    @* Everyone can view stock *@
                                     <a asp-controller="Stock"
                                        asp-action="StockIndex"
                                        class="btn btn-sm btn-outline-primary">
@@ -124,6 +170,8 @@
                                     </a>
                                 }
                             </td>
+
+
                         </tr>
                     }
                 </tbody>

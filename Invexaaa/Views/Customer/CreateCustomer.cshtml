@@ -9,13 +9,13 @@
 
 <style>
     :root {
-        --bg: #ffffff;
-        --card: #ffffff;
-        --border: #e6e7eb;
-        --text: #111827;
-        --muted: #6b7280;
-        --radius: 22px;
-        --shadow: 0 10px 28px rgba(0,0,0,.06);
+        --bg: #fff;
+        --card: #fff;
+        --text: #111;
+        --muted: #777;
+        --border: #e6e6e6;
+        --border-strong: #d6d6d6;
+        --radius: 18px;
     }
 
     /* Force layout background to white (dashboard wrappers too) */
@@ -37,7 +37,7 @@
 
 
     .card-clean {
-        width: min(980px, 100%);
+        width: min(880px, 100%);
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
@@ -46,28 +46,28 @@
     }
 
     .card-inner {
-        padding: 24px 32px 20px;
+        padding: 18px 22px 22px;
     }
 
     .title {
-        font-size: 35px;
-        line-height: 1.1;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        margin: 6px 0 0;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: .2px;
+        margin: 0;
         color: var(--text);
+        line-height: 1.4;
     }
 
     .subtitle {
-        margin: 12px 0 0;
+        font-size: 13px;
         color: var(--muted);
-        font-size: 16px;
+        line-height: 1.4;
     }
 
     .divider {
         border: 0;
         border-top: 2px solid var(--border);
-        margin: 22px 0 20px;
+        margin: 20px 0 10px;
     }
 
 
@@ -89,12 +89,12 @@
 
     .label {
         display: inline-flex;
-        gap: 6px;
+        gap: 8px;
         align-items: center;
         font-weight: 600;
         color: var(--text);
         margin-bottom: 4px; /* tighter */
-        font-size: 14px;
+        font-size: 13px;
     }
 
 
@@ -283,6 +283,18 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* When select is invalid, highlight the visible cs2 button */
+    select.input-validation-error + .cs2 .cs2-btn,
+    .real-select.input-validation-error + .cs2 .cs2-btn {
+        border-color: #dc2626 !important;
+    }
+
+    /* Optional: make dropdown text slightly red too */
+    select.input-validation-error + .cs2 .cs2-value {
+        color: #dc2626 !important;
+    }
+
 </style>
 
 <div class="page-wrap">
@@ -325,14 +337,7 @@
                         <span asp-validation-for="CustomerPhone" class="text-danger val"></span>
                     </div>
 
-                    <!-- Email -->
-                    <div class="field">
-                        <label asp-for="CustomerEmail" class="label">Email</label>
-                        <input asp-for="CustomerEmail" type="email" class="control" />
-                        <span asp-validation-for="CustomerEmail" class="text-danger val"></span>
-                    </div>
-
-                    <!-- Status -->
+                    <!-- Status (⬅ moved UP) -->
                     <div class="field">
                         <label asp-for="CustomerStatus" class="label">
                             Status <span class="req">*</span>
@@ -359,6 +364,14 @@
 
                         <span asp-validation-for="CustomerStatus" class="text-danger val"></span>
                     </div>
+
+                    <!-- Email (⬅ moved DOWN) -->
+                    <div class="field span-2">
+                        <label asp-for="CustomerEmail" class="label">Email</label>
+                        <input asp-for="CustomerEmail" type="email" class="control" />
+                        <span asp-validation-for="CustomerEmail" class="text-danger val"></span>
+                    </div>
+
 
                     <!-- Address -->
                     <div class="field span-2">
@@ -420,10 +433,17 @@
         i.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
+    real.value = i.dataset.value;
+    real.dispatchEvent(new Event("change", { bubbles: true }));
+    real.dispatchEvent(new Event("blur", { bubbles: true }));
 
-          real.value = i.dataset.value;
-          real.dispatchEvent(new Event("change", { bubbles: true }));
-          setActive(i.dataset.value);
+    // ✅ force jquery unobtrusive to validate immediately
+    if (window.jQuery && window.jQuery.validator) {
+      window.jQuery(real).valid();
+    }
+
+    setActive(i.dataset.value);
+
 
           cs.classList.remove("open");
           btn.setAttribute("aria-expanded", "false");

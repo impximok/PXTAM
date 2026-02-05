@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Invexaaa.Models.Invexa;
+using Invexaaa.Models.Invexa.Enums;
 
 namespace Invexaaa.Models.ViewModels
 {
@@ -22,11 +23,14 @@ namespace Invexaaa.Models.ViewModels
         // calculated (not user input)
         public int BaseQuantity { get; set; }
 
+    
         // =========================
-        // REASON
+        // STOCK OUT METADATA (AUDIT)
         // =========================
-        [Required]
-        public string Reason { get; set; } = "";
+        [Required(ErrorMessage = "Stock out remark is required.")]
+        [StringLength(255)]
+        public string StockOutRemark { get; set; } = "";
+
 
         // =========================
         // CUSTOMER (STOCK OUT)
@@ -44,6 +48,9 @@ namespace Invexaaa.Models.ViewModels
         public List<Customer> Customers { get; set; } = new();
 
         public bool ShowSummary { get; set; } = false;
+        public List<FifoConsumptionRow> FifoConsumptions { get; set; } = new();
+
+        public CostingMethod CostingMethod { get; set; }
     }
 
     public class BulkMinusPreviewRow
@@ -52,4 +59,12 @@ namespace Invexaaa.Models.ViewModels
         public string ItemName { get; set; } = "";
         public int AvailableQuantity { get; set; }
     }
+
+    public class FifoConsumptionRow
+    {
+        public string BatchNumber { get; set; } = "";
+        public DateTime ExpiryDate { get; set; }
+        public int QuantityConsumed { get; set; }
+    }
+
 }

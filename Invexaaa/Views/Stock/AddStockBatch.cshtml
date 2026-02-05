@@ -1,4 +1,5 @@
 ﻿@model Invexaaa.Models.ViewModels.AddStockBatchViewModel
+@using Invexaaa.Models.Invexa.Enums
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
@@ -797,6 +798,25 @@
 
         <div class="inv-card__head inv-card__head--stacked">
             <h2 class="inv-card__title">Stock Entry</h2>
+            <p class="card-subtitle" style="margin-top:6px">
+                <b>@Model.CostingMethod</b> costing is applied automatically.
+
+                @if (Model.CostingMethod == CostingMethod.WeightedAverage)
+                {
+                    <span> Quantity is recorded in base unit only.</span>
+                }
+                else if (Model.CostingMethod == CostingMethod.Fixed)
+                {
+                    <span> Quantity and cost are fixed.</span>
+                }
+                else
+                {
+                    <span> Cost is stored per batch.</span>
+                }
+            </p>
+
+
+            
             <p class="card-subtitle">Enter quantity and expiry date for the selected items.</p>
         </div>
 
@@ -819,40 +839,70 @@
                             Quantity to Add <span class="req">*</span>
                         </div>
 
-                        <input asp-for="Quantity"
+                        <input asp-for="InputQuantity"
                                type="number"
                                min="1"
                                class="form-control inv-input"
                                placeholder="e.g. 10" />
-                        <span asp-validation-for="Quantity" class="text-danger"></span>
+                        <span asp-validation-for="InputQuantity" class="text-danger"></span>
+
                     </div>
 
-                    <!-- Unit -->
                     <div class="field">
                         <div class="inv-label">
                             Unit <span class="req">*</span>
-                            <span class="hint">Auto-converted to base unit</span>
+                            <span class="hint">
+                                @(Model.CostingMethod == CostingMethod.WeightedAverage ||
+                                                                Model.CostingMethod == CostingMethod.Fixed
+                                                                ? "Locked to base unit"
+                                                                : "Auto-converted to base unit")
+                            </span>
                         </div>
 
-                        <select asp-for="UnitConversionID"
-                                class="form-control inv-input"
-                                required>
-                            <option value="">-- Select Unit --</option>
+                       @{
+    var baseUnit = Model.AvailableUnits?
+        .FirstOrDefault(u => u.IsBaseUnit);
+}
 
-                            @if (Model.AvailableUnits != null)
-                            {
-                                foreach (var u in Model.AvailableUnits)
-                                {
-                                    <option value="@u.ItemUnitConversionID">
-                                        @u.UnitName
-                                        @(u.IsBaseUnit ? "(Base)" : $"(×{u.BaseUnitMultiplier})")
-                                    </option>
-                                }
-                            }
-                        </select>
+@if ((Model.CostingMethod == CostingMethod.WeightedAverage ||
+      Model.CostingMethod == CostingMethod.Fixed) && baseUnit != null)
+{
+    <input type="hidden"
+           name="UnitConversionID"
+           value="@baseUnit.ItemUnitConversionID" />
+
+    <input type="text"
+           class="form-control inv-input"
+           value="@($"{baseUnit.UnitName} (Base)")"
+           readonly />
+}
+else if (Model.CostingMethod == CostingMethod.WeightedAverage ||
+         Model.CostingMethod == CostingMethod.Fixed)
+{
+    <div class="text-danger">
+        ⚠ Base unit is missing for this item. Please fix unit setup.
+    </div>
+}
+else
+{
+    <select asp-for="UnitConversionID"
+            class="form-control inv-input"
+            required>
+        <option value="">-- Select Unit --</option>
+        @foreach (var u in Model.AvailableUnits!)
+        {
+            <option value="@u.ItemUnitConversionID">
+                @u.UnitName @(u.IsBaseUnit ? "(Base)" : $"(×{u.BaseUnitMultiplier})")
+            </option>
+        }
+    </select>
+}
+
+
 
                         <span asp-validation-for="UnitConversionID" class="text-danger"></span>
                     </div>
+
 
 
                     <!-- Expiry -->
@@ -868,32 +918,86 @@
                         <span asp-validation-for="ExpiryDate" class="text-danger"></span>
                     </div>
 
-                    <!-- Unit Cost -->
                     <div class="field">
                         <div class="inv-label">
-                            Unit Cost <span class="req">*</span>
-                            <span class="hint">Used for FIFO / Average costing</span>
+                            Unit Cost
+                            @if (!Model.IsUnitCostLocked)
+                            {
+                                <span class="req">*</span>
+                            }
+                            <span class="hint">
+                                @(Model.IsUnitCostLocked
+                                                                ? "Locked by system costing"
+                                                                : "Required for FIFO costing")
+                            </span>
                         </div>
 
-                        <input asp-for="UnitCost"
-                               type="number"
-                               step="0.0001"
-                               min="0"
-                               class="form-control inv-input"
-                               placeholder="e.g. 5.25" />
-                        <span asp-validation-for="UnitCost" class="text-danger"></span>
+                        @if (Model.IsUnitCostLocked)
+                        {
+                            <input asp-for="UnitCost"
+                                   type="number"
+                                   step="0.0001"
+                                   class="form-control inv-input"
+                                   placeholder="Calculated by system"
+                                   readonly tabindex="-1" />
+
+                            <div class="hint" style="margin-top:6px;">
+                                @if (Model.CostingMethod == CostingMethod.Fixed)
+                                {
+                                    <span>Uses <b>Standard Cost</b> defined in inventory.</span>
+                                }
+                                else
+                                {
+                                    <span>Uses current <b>Weighted Average Cost</b>.</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <input asp-for="UnitCost"
+                                   type="number"
+                                   step="0.0001"
+                                   min="0.01"
+                                   class="form-control inv-input"
+                                   placeholder="e.g. 5.2500" />
+
+                            <span asp-validation-for="UnitCost" class="text-danger"></span>
+                        }
                     </div>
 
-                    <!-- Supplier (snapshot) -->
+
+
+                    <!-- Supplier (from master) -->
                     <div class="field">
                         <div class="inv-label">
                             Supplier <span class="hint">(optional)</span>
                         </div>
 
+                        <select asp-for="SupplierID"
+                                class="form-control inv-input"
+                                id="supplierSelect">
+                            <option value="">-- Select Supplier --</option>
+                            @foreach (var s in Model.Suppliers)
+                            {
+                                <option value="@s.SupplierID">
+                                    @s.SupplierName
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Supplier fallback -->
+                    <div class="field">
+                        <div class="inv-label">
+                            Supplier Name (fallback)
+                        </div>
+
                         <input asp-for="SupplierNameSnapshot"
                                class="form-control inv-input"
-                               placeholder="e.g. ABC Trading Sdn Bhd" />
+                               id="supplierSnapshot"
+                               placeholder="e.g. Walk-in supplier, Cash purchase" />
                     </div>
+
 
                     <!-- Lead Time -->
                     <div class="field">
@@ -912,8 +1016,23 @@
                 </div>
 
 
+                @if (!Model.CanSubmit)
+                {
+                    <div class="text-danger" style="margin-top:12px;">
+                        ⚠ This item uses <b>@Model.CostingMethod</b> costing.
+                        A base unit is required before stock can be added.
+                        Please fix unit setup first.
+                    </div>
+                }
+
+
                 <div class="actions">
-                    <button type="submit" class="pill-btn">Confirm</button>
+                    <button type="submit"
+                            class="pill-btn"
+                            disabled="@(!Model.CanSubmit)">
+                        Confirm
+                    </button>
+
                     <a asp-action="StockIndex" class="pill-btn pill-btn--ghost">Cancel</a>
                 </div>
 
@@ -1032,7 +1151,14 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        const qtyInput = document.querySelector('[name="Quantity"]');
+
+                const isLockedUnit = @(
+            (Model.CostingMethod == CostingMethod.WeightedAverage ||
+              Model.CostingMethod == CostingMethod.Fixed).ToString().ToLower()
+        );
+
+        const qtyInput = document.querySelector('[name="InputQuantity"]');
+
         const unitSelect = document.querySelector('[name="UnitConversionID"]');
 
         const expiryInput = document.querySelector('[name="ExpiryDate"]');
@@ -1060,9 +1186,12 @@
         const baseQty = qty ? qty * multiplier : null;
 
         if (qtyEl) {
-            qtyEl.innerText = qty
-                ? `${qty} ${unitText}${baseQty > qty ? ` → ${baseQty} base units` : ''}`
-                : '–';
+                qtyEl.innerText = qty
+        ? (isLockedUnit
+            ? `${baseQty} (base unit)`
+            : `${qty} ${unitText}${baseQty > qty ? ` → ${baseQty} pcs` : ''}`)
+        : '–';
+
         }
 
 
@@ -1083,6 +1212,22 @@
         qtyInput?.addEventListener('input', updatePreview);
         expiryInput?.addEventListener('change', updatePreview);
         unitSelect?.addEventListener('change', updatePreview);
+
+                const supplierSelect = document.getElementById("supplierSelect");
+        const supplierSnapshot = document.getElementById("supplierSnapshot");
+
+        function syncSupplierFields() {
+            if (supplierSelect.value) {
+                supplierSnapshot.value = "";
+                supplierSnapshot.disabled = true;
+            } else {
+                supplierSnapshot.disabled = false;
+            }
+        }
+
+        supplierSelect.addEventListener("change", syncSupplierFields);
+        syncSupplierFields();
+
 
     </script>
 }

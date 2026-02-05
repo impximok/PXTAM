@@ -10,8 +10,8 @@
 
 <style>
     /* ===============================
-               INVEXA · BLACK & WHITE SYSTEM
-            =============================== */
+                           INVEXA · BLACK & WHITE SYSTEM
+                        =============================== */
     :root {
         --bg: #ffffff;
         --card: #ffffff;
@@ -180,6 +180,26 @@
         font-size: 16px;
     }
 
+    .panel-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: auto;
+        position: relative;
+    }
+
+    @@media (max-width: 560px) {
+        .panel-head {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .panel-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
     /* Table */
     .sys-table-wrap {
         border: 1px solid var(--border);
@@ -230,34 +250,6 @@
         padding: 4px 8px;
     }
 
-    /* Right panel chart */
-    .chart-box {
-        display: grid;
-        place-items: center;
-        margin: 8px 0 12px;
-    }
-
-    .legend-box p {
-        margin: 0;
-        font-size: 13px;
-        color: var(--text);
-    }
-
-        .legend-box p + p {
-            margin-top: 6px;
-        }
-
-    .legend-box strong {
-        font-weight: 900;
-    }
-
-    .mini-note {
-        margin-top: 12px;
-        font-size: 12px;
-        color: var(--muted);
-        font-weight: 600;
-    }
-
     /* Quick insights row */
     .dash-insights {
         display: grid;
@@ -303,265 +295,69 @@
         font-weight: 600;
     }
 
-    .dash-controls {
+    /* Search + Filter row */
+    .stock-tools {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        margin: 10px 0 12px;
+        flex-wrap: wrap;
+    }
+
+    .stock-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 8px 10px;
+        background: #fff;
+        min-width: 260px;
+    }
+
+        .stock-search i {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .stock-search input {
+            border: 0;
+            outline: 0;
+            width: 220px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+    /* Segmented buttons */
+    .seg {
         display: flex;
         gap: 8px;
-        align-items: center;
+        flex-wrap: wrap;
     }
 
-    .dash-select {
-        border: 1px solid var(--border);
+    .seg-btn {
+        border: 2px solid var(--border);
         background: #fff;
-        border-radius: 12px;
-        padding: 6px 10px;
-        font-size: 12.5px;
-        font-weight: 700;
-        color: var(--text);
-    }
-
-        .dash-select:focus {
-            outline: none;
-            box-shadow: var(--focus);
-        }
-
-    .panel-head {
-        display: flex;
-        align-items: center; /* ✅ same baseline */
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 10px;
-    }
-
-    .panel-actions {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-left: auto; /* ✅ push to far right */
-    }
-
-    /* Make selects consistent and not too tall */
-    .dash-select {
-        border: 1px solid var(--border);
-        background: #fff;
-        border-radius: 12px;
-        padding: 6px 10px;
-        font-size: 12.5px;
-        font-weight: 700;
-        color: var(--text);
-        height: 34px; /* ✅ locks weird vertical jump */
-        line-height: 1;
-    }
-
-        .dash-select:focus {
-            outline: none;
-            box-shadow: var(--focus);
-        }
-
-    @@media (max-width: 560px) {
-        .panel-head {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
-        .panel-actions {
-            width: 100%;
-            justify-content: flex-start;
-        }
-    }
-
-    .panel-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 10px;
-    }
-
-    .panel-actions {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-left: auto;
-    }
-
-    .dash-select {
-        border: 1px solid var(--border);
-        background: #fff;
-        border-radius: 12px;
-        padding: 6px 10px;
-        font-size: 12.5px;
-        font-weight: 700;
-        color: var(--text);
-        height: 34px;
-        line-height: 1;
-    }
-
-        .dash-select:focus {
-            outline: none;
-            box-shadow: var(--focus);
-        }
-
-    @@media (max-width: 560px) {
-        .panel-head {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
-        .panel-actions {
-            width: 100%;
-            justify-content: flex-start;
-        }
-    }
-
-    .inv-select {
-        position: relative;
-    }
-
-    .inv-select-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        height: 34px;
-        padding: 6px 12px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        background: #fff;
-        color: var(--text);
+        color: #111;
+        border-radius: 999px;
+        padding: 7px 10px;
         font-size: 12.5px;
         font-weight: 800;
-        line-height: 1;
         cursor: pointer;
-        transition: box-shadow .12s ease, border-color .12s ease, transform .08s ease;
+        transition: background-color .12s ease, transform .08s ease, box-shadow .12s ease, border-color .12s ease;
     }
 
-        .inv-select-btn:hover {
-            border-color: #d1d5db;
+        .seg-btn:hover {
+            background: #111;
+            border: 2px solid #000;
+            color: #fff;
         }
 
-        .inv-select-btn:focus {
-            outline: none;
-            box-shadow: var(--focus);
+        .seg-btn.is-on {
+            border: 2px solid var(--border);
         }
-
-        .inv-select-btn i {
-            font-size: 14px;
-            color: var(--muted);
-        }
-
-    .inv-select-menu {
-        position: absolute;
-        right: 0;
-        top: calc(100% + 8px);
-        min-width: 180px;
-        background: #fff;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        box-shadow: var(--shadow);
-        padding: 6px;
-        display: none;
-        z-index: 50;
-    }
-
-    .inv-select.open .inv-select-menu {
-        display: block;
-    }
-
-    .inv-select-opt {
-        width: 100%;
-        text-align: left;
-        padding: 9px 10px;
-        border: 0;
-        background: transparent;
-        border-radius: 10px;
-        font-size: 12.5px;
-        font-weight: 800;
-        color: var(--text);
-        cursor: pointer;
-    }
-
-        .inv-select-opt:hover {
-            background: var(--soft);
-        }
-
-
-    .inv-select {
-        position: relative;
-        display: inline-block; /* important: wrapper width = button width */
-    }
-
-    .inv-select-menu {
-        position: absolute;
-        left: 0;
-        right: 0; /* forces same width as wrapper */
-        top: calc(100% + 8px);
-        width: 100%; /* ✅ menu = button width */
-
-        background: #fff;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 6px;
-        display: none;
-        z-index: 50;
-    }
-
-    .inv-select {
-        position: relative;
-        display: inline-block;
-    }
-
-    .inv-select-btn {
-        width: 100%; /* important */
-        box-sizing: border-box;
-    }
-
-    .inv-select-menu {
-        left: 0;
-        top: calc(100% + 6px);
-        width: 100%; /* will match wrapper width */
-        min-width: 100px !important; /* 🔥 kills any old min-width */
-        max-width: 100px;
-        box-sizing: border-box; /* 🔥 prevents width expansion */
-
-        position: absolute;
-        background: #fff;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        box-shadow: var(--shadow);
-        padding: 6px;
-        display: none;
-        z-index: 50;
-    }
-
-    .inv-select.open .inv-select-menu {
-        display: block;
-    }
-    /* Keep dropdown width stable */
-    .inv-select {
-        display: inline-block;
-    }
-
-    .inv-select-btn {
-        width: 180px; /* ✅ fixed width (choose a value you like) */
-        justify-content: space-between;
-        box-sizing: border-box;
-    }
-
-    .panel-actions .inv-select {
-        width: 180px; /* wrapper controls width */
-    }
-
-    .panel-actions .inv-select-btn,
-    .panel-actions .inv-select-menu {
-        width: 100%;
-    }
-
-    .inv-select-text {
-        max-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
 
     /* Filter icon button */
     .icon-btn {
@@ -584,10 +380,6 @@
             color: #fff;
         }
 
-        .icon-btn:focus {
-            outline: none;
-        }
-
         .icon-btn.sm {
             width: 32px;
             height: 32px;
@@ -595,10 +387,6 @@
         }
 
     /* Popover */
-    .panel-actions {
-        position: relative;
-    }
-
     .filter-pop {
         position: absolute;
         right: 0;
@@ -610,6 +398,7 @@
         padding: 12px;
         display: none;
         z-index: 100;
+        box-shadow: var(--shadow);
     }
 
         .filter-pop.open {
@@ -643,51 +432,7 @@
         margin-bottom: 8px;
     }
 
-    /* Segmented controls (no dropdown) */
-    .seg {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .seg-btn {
-        border: 2px solid var(--border);
-        background: #fff;
-        color: #111;
-        border-radius: 999px;
-        border: 2px solid var(--border);
-        padding: 7px 10px;
-        font-size: 12.5px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: background-color .12s ease, transform .08s ease, box-shadow .12s ease;
-    }
-
-        .seg-btn:hover {
-            background: #111;
-            border: 2px solid #000;
-            color: #fff;
-        }
-
-        /* Keep subtle selected state (not dramatic) */
-        .seg-btn.is-on {
-            border: 2px solid var(--border);
-        }
-
-
-    .legend-grid {
-        margin-top: 8px;
-        display: grid;
-        gap: 10px;
-    }
-
-    .legend-row {
-        display: grid;
-        grid-template-columns: 14px 1fr auto;
-        align-items: center;
-        gap: 10px;
-    }
-
+    /* Legend dots */
     .dot {
         width: 10px;
         height: 10px;
@@ -711,21 +456,134 @@
             background: var(--danger2);
         }
 
+    /* ===== Stock Overview V2 ===== */
+    .chart-wrap {
+        padding-top: 2px;
+    }
+
+    .chart-box {
+        position: relative;
+        display: grid;
+        place-items: center;
+        margin: 6px 0 10px;
+        width: 260px;
+        height: 260px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+        .chart-box canvas {
+            width: 260px !important;
+            height: 260px !important;
+        }
+
+    .chart-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        pointer-events: none;
+        transform: translateY(-2px);
+    }
+
+    .cc-top {
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: .35px;
+        color: var(--muted);
+        margin: 0 0 6px 0;
+    }
+
+    .cc-main {
+        font-size: 38px;
+        font-weight: 950;
+        color: var(--text);
+        line-height: 1;
+        margin: 0;
+    }
+
+    .cc-sub {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+        margin: 8px 0 0 0;
+        max-width: 180px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .legend-click {
+        display: grid;
+        gap: 10px;
+        margin-top: 6px;
+    }
+
+    .legend-row {
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 14px;
+        padding: 10px 12px;
+        display: grid;
+        grid-template-columns: 14px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease, background-color .12s ease;
+    }
+
+        .legend-row:hover {
+            border-color: #d1d5db;
+            box-shadow: 0 10px 24px rgba(0,0,0,.06);
+            transform: translateY(-1px);
+        }
+
+        .legend-row:focus {
+            outline: none;
+            box-shadow: var(--focus);
+        }
+
+        .legend-row.is-dim {
+            opacity: .42;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .legend-row.is-focused {
+            border-color: #111;
+            box-shadow: 0 12px 28px rgba(0,0,0,.10);
+        }
+
     .k {
         font-size: 13px;
-        font-weight: 800;
+        font-weight: 900;
         color: var(--text);
+    }
+
+    .legend-row .right {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pct {
+        font-size: 12px;
+        font-weight: 900;
+        color: var(--muted);
     }
 
     .v {
         font-size: 13px;
         font-weight: 900;
         color: var(--text);
-        padding: 4px 10px;
+        padding: 5px 10px;
         border: 1px solid var(--border);
         border-radius: 999px;
         background: #fff;
-        min-width: 44px;
+        min-width: 48px;
         text-align: center;
     }
 
@@ -736,7 +594,41 @@
         font-size: 12px;
         color: var(--muted);
         font-weight: 600;
+        text-align: center;
     }
+
+    /* ✅ aligned stack for bottom sections */
+    .left-stack {
+        display: grid;
+        gap: 14px;
+        margin-top: 14px;
+    }
+
+    /* ✅ sub panels (instead of nesting .panel inside .panel) */
+    .subpanel {
+        background: #fff;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px;
+    }
+
+    .chart-box {
+        position: relative;
+        display: grid;
+        place-items: center;
+        /* ✅ give room for hoverOffset */
+        width: 300px;
+        height: 300px;
+        margin: 6px auto 10px;
+        padding: 18px; /* ✅ key */
+        overflow: visible; /* ✅ key */
+    }
+
+        .chart-box canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
 
 </style>
 
@@ -751,7 +643,7 @@
         <span class="dash-chip">Authorized User</span>
     </div>
 
-    <!-- STATS -->
+    <!-- STATS (KEEP) -->
     <div class="dash-stats">
         <div class="stat-card">
             <p class="stat-label">Total Items</p>
@@ -777,43 +669,32 @@
             <div class="stat-meta">Below reorder point</div>
         </div>
     </div>
-    <!-- QUICK INSIGHTS (scan in 3 seconds) -->
-    <div class="dash-insights">
-        <div class="insight">
-            <div class="insight-label">Critical Today</div>
-            <div class="insight-value t-danger">@(@Model.OutOfStockCount + @Model.ReorderAlertCount)</div>
-            <div class="insight-meta">Out of stock + reorder</div>
-        </div>
 
-        <div class="insight">
-            <div class="insight-label">Stock Health</div>
-            <div class="insight-value">@Model.OkStockCount OK</div>
-            <div class="insight-meta">@Model.LowStockCount Low · @Model.ReorderAlertCount Reorder</div>
-        </div>
 
-        <div class="insight">
-            <div class="insight-label">Active Ratio</div>
-            <div class="insight-value">
-                @(
-                                Model.TotalItems == 0
-                                ? "—"
-                                : $"{Math.Round((Model.ActiveItemCount * 100.0) / Model.TotalItems)}%"
-                                )
-            </div>
-            <div class="insight-meta">Active vs total items</div>
-        </div>
-    </div>
 
     <!-- MAIN -->
     <div class="dash-grid">
 
-        <!-- LEFT: RECENT ACTIVITY -->
+        <!-- LEFT: STOCK LIST + NEW SECTIONS -->
         <div class="panel">
             <div class="panel-head">
                 <h5 class="panel-title">Stock List</h5>
-
             </div>
 
+            <div class="stock-tools">
+                <div class="stock-search">
+                    <i class="bi bi-search"></i>
+                    <input id="stockSearch" type="text" placeholder="Search item name..." />
+                </div>
+
+                <div class="seg stock-filter">
+                    <button type="button" class="seg-btn is-on" data-filter="ALL">All</button>
+                    <button type="button" class="seg-btn" data-filter="OK">OK</button>
+                    <button type="button" class="seg-btn" data-filter="Low">Low</button>
+                    <button type="button" class="seg-btn" data-filter="Reorder">Reorder</button>
+                    <button type="button" class="seg-btn" data-filter="Out">Out</button>
+                </div>
+            </div>
 
             <div class="sys-table-wrap">
                 <table class="sys-table">
@@ -834,7 +715,10 @@
                             ? "t-warn"
                             : "t-danger";
 
-                            <tr class="@(isInactive ? "inactive-row" : "")">
+                            <tr class="@(isInactive ? "inactive-row" : "")"
+                                data-name="@item.ItemName"
+                                data-status="@item.Status"
+                                data-active="@(isInactive ? "0" : "1")">
                                 <td>
                                     <strong>@item.ItemName</strong>
                                     @if (isInactive)
@@ -849,20 +733,131 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Extra mini cards BELOW stock list (Business + Action) -->
+            <div class="dash-insights" style="margin-top:14px;">
+                <div class="insight">
+                    <div class="insight-label">Today Sales</div>
+                    <div class="insight-value">RM @Model.TodaySales.ToString("0.00")</div>
+                    <div class="insight-meta">@Model.TodayOrders order(s) · Avg RM @Model.AvgOrderValueToday.ToString("0.00")</div>
+                </div>
+
+                <div class="insight">
+                    <div class="insight-label">This Month Sales</div>
+                    <div class="insight-value">RM @Model.MonthSales.ToString("0.00")</div>
+                    <div class="insight-meta">Month-to-date</div>
+                </div>
+
+                <div class="insight">
+                    <div class="insight-label">Reorder Cost Est.</div>
+                    <div class="insight-value">RM @Model.TotalReorderCostEstimate.ToString("0.00")</div>
+                    <div class="insight-meta">Top suggested orders</div>
+                </div>
+            </div>
+
+            <!-- Top Selling -->
+            <div class="panel" style="margin-top:14px; padding:14px 14px;">
+                <div class="panel-head" style="margin-bottom:8px;">
+                    <h5 class="panel-title">Top Selling (Last 7 Days)</h5>
+                </div>
+
+                <div class="sys-table-wrap">
+                    <table class="sys-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th style="width:120px;">Qty</th>
+                                <th style="width:160px;">Sales</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.TopSellingItems?.Any() == true)
+                            {
+                                foreach (var x in Model.TopSellingItems)
+                                {
+                                    <tr>
+                                        <td><strong>@x.ItemName</strong></td>
+                                        <td>@x.QtySold</td>
+                                        <td>RM @x.SalesAmount.ToString("0.00")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" style="color: var(--muted); font-weight:700;">No sales data in this period</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reorder Planner -->
+            <div class="panel" style="margin-top:14px; padding:14px 14px;">
+                <div class="panel-head" style="margin-bottom:8px;">
+                    <h5 class="panel-title">Reorder Planner</h5>
+                </div>
+
+                <div class="sys-table-wrap">
+                    <table class="sys-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th style="width:90px;">Qty</th>
+                                <th style="width:110px;">Target</th>
+                                <th style="width:130px;">Suggest</th>
+                                <th style="width:150px;">Est. Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.ReorderPlanner?.Any() == true)
+                            {
+                                foreach (var r in Model.ReorderPlanner)
+                                {
+                                    var target = r.ReorderPoint + r.SafetyStock;
+
+                                    <tr>
+                                        <td>
+                                            <strong>@r.ItemName</strong>
+                                            <div style="font-size:12px; color:var(--muted); font-weight:700;">
+                                                ROP @r.ReorderPoint · SS @r.SafetyStock · ADD @r.AverageDailyDemand
+                                                @if (r.RunoutDays.HasValue)
+                                                {
+                                                    <span> · ~@Math.Round(r.RunoutDays.Value, 1) days left</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>@r.CurrentQty</td>
+                                        <td>@target</td>
+                                        <td><strong>@r.SuggestedOrderQty</strong></td>
+                                        <td>RM @r.EstimatedCost.ToString("0.00")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" style="color: var(--muted); font-weight:700;">No reorder suggestions</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
 
-        <!-- RIGHT: STOCK OVERVIEW -->
+        <!-- RIGHT: STOCK OVERVIEW (V2) -->
         <div class="panel stock-card">
             <div class="panel-head">
                 <h5 class="panel-title">Stock Overview</h5>
 
                 <div class="panel-actions">
-                    <!-- Filter icon button -->
                     <button type="button" class="icon-btn" id="btnStockFilters" aria-expanded="false" aria-label="Filters">
                         <i class="bi bi-sliders"></i>
                     </button>
 
-                    <!-- Popover -->
                     <div class="filter-pop" id="stockFilterPop">
                         <div class="filter-pop-head">
                             <div class="filter-pop-title">Filters</div>
@@ -889,48 +884,66 @@
                             </div>
                         </div>
 
-                        <!-- Hidden values (keeps your JS simple) -->
                         <input type="hidden" id="chartRange" value="current" />
                         <input type="hidden" id="chartType" value="doughnut" />
                     </div>
                 </div>
             </div>
 
-            <div class="chart-box">
-                <canvas id="stockChart" width="220" height="220"></canvas>
-            </div>
-            <div class="legend-grid">
-                <div class="legend-row">
-                    <span class="dot ok"></span>
-                    <span class="k">OK</span>
-                    <span class="v">@Model.OkStockCount</span>
-                </div>
+            <div class="chart-wrap">
+                <div class="chart-box">
+                    <canvas id="stockChart" width="240" height="240"></canvas>
 
-                <div class="legend-row">
+                    <div class="chart-center" id="chartCenter">
+                        <div class="cc-top">TOTAL</div>
+                        <div class="cc-main" id="ccTotal">0</div>
+                        <div class="cc-sub" id="ccHint">Active items</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legend-click" id="stockLegend">
+                <button type="button" class="legend-row" aria-pressed="true">
+                    <span class="dot ok"></span>
+                    <span class="k">Ok</span>
+                    <span class="right">
+                        <span class="pct" data-pct="ok">0%</span>
+                        <span class="v">@Model.OkStockCount</span>
+                    </span>
+                </button>
+
+                <button type="button" class="legend-row" aria-pressed="true">
                     <span class="dot low"></span>
                     <span class="k">Low</span>
-                    <span class="v">@Model.LowStockCount</span>
-                </div>
+                    <span class="right">
+                        <span class="pct" data-pct="low">0%</span>
+                        <span class="v">@Model.LowStockCount</span>
+                    </span>
+                </button>
 
-                <div class="legend-row">
+                <button type="button" class="legend-row" aria-pressed="true">
                     <span class="dot reorder"></span>
                     <span class="k">Reorder</span>
-                    <span class="v">@Model.ReorderAlertCount</span>
-                </div>
+                    <span class="right">
+                        <span class="pct" data-pct="reorder">0%</span>
+                        <span class="v">@Model.ReorderAlertCount</span>
+                    </span>
+                </button>
 
-                <div class="legend-row">
+                <button type="button" class="legend-row" aria-pressed="true">
                     <span class="dot out"></span>
                     <span class="k">Out</span>
-                    <span class="v">@Model.OutOfStockCount</span>
-                </div>
+                    <span class="right">
+                        <span class="pct" data-pct="out">0%</span>
+                        <span class="v">@Model.OutOfStockCount</span>
+                    </span>
+                </button>
             </div>
 
             <div class="legend-note">
-                Active items only · Inactive excluded
+                Tip: click a status to focus · click again to reset
             </div>
-
         </div>
-
 
     </div>
 </div>
@@ -938,6 +951,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    // ===============================
+    // STOCK CHART (V2)
+    // ===============================
     const chartEl = document.getElementById('stockChart');
 
     const labels = ['OK', 'Low', 'Reorder', 'Out'];
@@ -948,26 +964,73 @@
         @Model.OutOfStockCount
     ];
 
-    const baseDataset = {
+    const colors = ['#22c55e', '#f59e0b', '#ef4444', '#7f1d1d'];
+
+    const ccTotal = document.getElementById('ccTotal');
+    const ccHint = document.getElementById('ccHint');
+
+    function sum(arr) { return arr.reduce((a, b) => a + (Number(b) || 0), 0); }
+    function pct(v, total) {
+        if (!total) return 0;
+        return Math.round((v * 100) / total);
+    }
+
+    function updateCenter(label, value, percentText) {
+        const top = document.querySelector('.cc-top');
+        const main = document.querySelector('.cc-main');
+        const sub = document.querySelector('.cc-sub');
+
+        top.textContent = label.toUpperCase();
+        main.textContent = value;
+        sub.textContent = percentText;
+    }
+
+    function renderPercents() {
+        const total = sum(values);
+
+        // Default center
+        updateCenter('Total', total, total === 0 ? 'No active data' : 'Active items');
+
+        const map = { ok: values[0], low: values[1], reorder: values[2], out: values[3] };
+
+        Object.keys(map).forEach(k => {
+            const el = document.querySelector(`[data-pct="${k}"]`);
+            if (el) el.textContent = `${pct(map[k], total)}%`;
+        });
+    }
+
+    const baseDataset = () => ({
         label: 'Stock Status',
         data: values,
-        backgroundColor: ['#22c55e', '#f59e0b', '#ef4444', '#7f1d1d'],
-        borderWidth: 0
-    };
+        backgroundColor: colors,
+        borderWidth: 0,
+        hoverOffset: 6
+    });
 
     let stockChart = new Chart(chartEl, {
         type: 'doughnut',
-        data: { labels, datasets: [baseDataset] },
+        data: { labels, datasets: [baseDataset()] },
         options: {
-            cutout: '70%',
+            responsive: true,
+            maintainAspectRatio: false,
+              layout: { padding: 14 },   // ✅ give drawing padding
+            cutout: '78%',
             plugins: {
-                legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            const total = sum(values);
+                            const v = ctx.parsed;
+                            return ` ${ctx.label}: ${v} (${pct(v, total)}%)`;
+                        }
+                    }
+                }
             }
         }
     });
 
-    const typeSelect = document.getElementById('chartType');
-    const rangeSelect = document.getElementById('chartRange');
+    renderPercents();
 
     function rebuildChart(newType) {
         stockChart.destroy();
@@ -979,112 +1042,95 @@
             data: {
                 labels,
                 datasets: [{
-                    ...baseDataset,
-                    borderRadius: isBar ? 8 : 0
+                    ...baseDataset(),
+                    borderRadius: isBar ? 10 : 0
                 }]
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: { position: isBar ? 'bottom' : 'bottom', labels: { boxWidth: 12, padding: 15 } }
-                },
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
                 scales: isBar ? {
+                    x: { ticks: { font: { weight: 800 } } },
                     y: { beginAtZero: true, ticks: { precision: 0 } }
-                } : {}
+                } : {},
+                cutout: isBar ? undefined : '74%'
             }
         });
+
+        // IMPORTANT: chart-center is flex (not grid)
+        document.getElementById('chartCenter').style.display = (newType === 'doughnut') ? 'flex' : 'none';
+
+        focusedIndex = null;
+        setLegendState(null);
+
+        // reset center when coming back
+        if (newType === 'doughnut') renderPercents();
     }
 
-    typeSelect?.addEventListener('change', () => {
-        rebuildChart(typeSelect.value);
-    });
+    // ===== Legend click → focus slice =====
+    const legend = document.getElementById('stockLegend');
+    let focusedIndex = null;
 
-    rangeSelect?.addEventListener('change', () => {
-        // ✅ UI is ready.
-        // To make this real, you’ll need historical data (snapshots or transaction logs).
-        // For now, we keep current values and just show the selected range in console.
-        console.log("Selected range:", rangeSelect.value);
-    });
-
-        // --- INVEXA CUSTOM SELECT ---
-    function closeAllInvSelects(except = null){
-        document.querySelectorAll('.inv-select.open').forEach(el => {
-            if (el !== except) {
-                el.classList.remove('open');
-                el.querySelector('.inv-select-btn')?.setAttribute('aria-expanded', 'false');
-            }
+    function setLegendState(idx) {
+        const rows = Array.from(legend.querySelectorAll('.legend-row'));
+        rows.forEach((r, i) => {
+            const isTarget = (idx === null) ? true : (i === idx);
+            r.classList.toggle('is-dim', idx !== null && !isTarget);
+            r.classList.toggle('is-focused', idx !== null && isTarget);
+            r.setAttribute('aria-pressed', (idx === null || isTarget) ? 'true' : 'false');
         });
     }
 
-    document.addEventListener('click', (e) => {
-        const wrap = e.target.closest('.inv-select');
-        if (!wrap) closeAllInvSelects();
-    });
-
-    document.querySelectorAll('.inv-select').forEach(wrap => {
-        const btn = wrap.querySelector('.inv-select-btn');
-        const txt = wrap.querySelector('.inv-select-text');
-        const hidden = wrap.querySelector('input[type="hidden"]');
-
-        btn.addEventListener('click', () => {
-            const isOpen = wrap.classList.toggle('open');
-            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            if (isOpen) closeAllInvSelects(wrap);
-        });
-
-        wrap.querySelectorAll('.inv-select-opt').forEach(opt => {
-            opt.addEventListener('click', () => {
-                const val = opt.dataset.value;
-                const label = opt.textContent.trim();
-
-                // UI update
-                wrap.querySelectorAll('.inv-select-opt').forEach(x => x.classList.remove('is-active'));
-                opt.classList.add('is-active');
-                txt.textContent = label;
-
-                // hidden value update
-                hidden.value = val;
-
-                // close
-                wrap.classList.remove('open');
-                btn.setAttribute('aria-expanded', 'false');
-
-                // trigger chart update if exists
-                if (typeof rebuildChart === "function") {
-                    const typeVal = document.getElementById('chartType')?.value || 'doughnut';
-                    rebuildChart(typeVal);
-                }
-                // rangeVal is ready for future real data filtering
-                console.log("range:", document.getElementById('chartRange')?.value);
-            });
-        });
-    });
-
-        function syncInvSelectMenuWidth(wrap){
-      const btn = wrap.querySelector('.inv-select-btn');
-      const menu = wrap.querySelector('.inv-select-menu');
-      if(!btn || !menu) return;
-      menu.style.width = btn.offsetWidth + 'px'; // ✅ exact same width
+    function hexToRgba(hex, a) {
+        hex = hex.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        return `rgba(${r},${g},${b},${a})`;
     }
 
-    document.querySelectorAll('.inv-select').forEach(wrap => {
-      syncInvSelectMenuWidth(wrap);
+    function applyFocus(idx) {
+        if (stockChart.config.type !== 'doughnut') return;
 
-      // re-sync when opening (in case layout changed)
-      wrap.querySelector('.inv-select-btn')?.addEventListener('click', () => {
-        syncInvSelectMenuWidth(wrap);
-      });
+        focusedIndex = (focusedIndex === idx) ? null : idx;
+
+        const ds = stockChart.data.datasets[0];
+
+        if (focusedIndex === null) {
+            ds.backgroundColor = colors;
+            ds.hoverOffset = 6;
+
+            const total = sum(values);
+            updateCenter('Total', total, total === 0 ? 'No active data' : 'Active items');
+        } else {
+            ds.backgroundColor = colors.map((c, i) =>
+                i === focusedIndex ? c : hexToRgba(c, 0.18)
+            );
+            ds.hoverOffset = 10;
+
+            const total = sum(values);
+            const label = labels[focusedIndex];
+            const val = values[focusedIndex];
+            updateCenter(label, val, `${pct(val, total)}% of total`);
+        }
+
+        stockChart.update();
+        setLegendState(focusedIndex);
+    }
+
+    legend?.querySelectorAll('.legend-row').forEach((row, idx) => {
+        row.addEventListener('click', () => applyFocus(idx));
     });
 
-    // re-sync on resize
-    window.addEventListener('resize', () => {
-      document.querySelectorAll('.inv-select').forEach(syncInvSelectMenuWidth);
-    });
-
-        // --- FILTER POPOVER TOGGLE ---
+    // ===============================
+    // FILTER POPOVER TOGGLE
+    // ===============================
     const btnStockFilters = document.getElementById('btnStockFilters');
     const pop = document.getElementById('stockFilterPop');
     const btnCloseFilters = document.getElementById('btnCloseFilters');
+    const rangeHidden = document.getElementById('chartRange');
+    const typeHidden = document.getElementById('chartType');
 
     function closePop() {
         pop?.classList.remove('open');
@@ -1103,15 +1149,9 @@
     });
 
     document.addEventListener('click', () => closePop());
-
     pop?.addEventListener('click', (e) => e.stopPropagation());
 
-
-    // --- APPLY FILTERS ---
-    const rangeHidden = document.getElementById('chartRange');
-    const typeHidden  = document.getElementById('chartType');
-
-    function setSegState(container, activeBtn){
+    function setSegState(container, activeBtn) {
         container.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('is-on'));
         activeBtn.classList.add('is-on');
     }
@@ -1120,29 +1160,52 @@
         btn.addEventListener('click', () => {
             rangeHidden.value = btn.dataset.range;
             setSegState(btn.closest('.seg'), btn);
-
-            // ✅ close filter popover
             closePop();
-
-            // future: load historical dataset
             console.log('range:', rangeHidden.value);
         });
     });
-
 
     document.querySelectorAll('[data-type]').forEach(btn => {
         btn.addEventListener('click', () => {
             typeHidden.value = btn.dataset.type;
             setSegState(btn.closest('.seg'), btn);
-
-            if (typeof rebuildChart === 'function') {
-                rebuildChart(typeHidden.value);
-            }
-
-            // ✅ close filter popover
+            rebuildChart(typeHidden.value);
             closePop();
         });
     });
 
-</script>
+    // ===============================
+    // STOCK LIST FILTERING
+    // ===============================
+    const stockSearch = document.getElementById('stockSearch');
+    const rows = Array.from(document.querySelectorAll('.sys-table tbody tr'));
+    let activeStatus = "ALL";
 
+    function applyStockFilters() {
+        const q = (stockSearch?.value || "").trim().toLowerCase();
+
+        rows.forEach(r => {
+            const name = (r.dataset.name || "").toLowerCase();
+            const status = (r.dataset.status || "");
+            const matchSearch = !q || name.includes(q);
+            const matchStatus = (activeStatus === "ALL") || (status === activeStatus);
+
+            r.style.display = (matchSearch && matchStatus) ? "" : "none";
+        });
+    }
+
+    stockSearch?.addEventListener('input', applyStockFilters);
+
+    document.querySelectorAll('.stock-filter [data-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeStatus = btn.dataset.filter;
+
+            btn.closest('.stock-filter').querySelectorAll('.seg-btn').forEach(b => b.classList.remove('is-on'));
+            btn.classList.add('is-on');
+
+            applyStockFilters();
+        });
+    });
+
+    applyStockFilters();
+</script>

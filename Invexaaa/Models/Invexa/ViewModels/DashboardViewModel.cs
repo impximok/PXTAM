@@ -1,8 +1,12 @@
-﻿namespace Invexaaa.Models.ViewModels
+﻿using System.Collections.Generic;
+
+namespace Invexaaa.Models.ViewModels
 {
     public class DashboardViewModel
     {
+        // ===============================
         // Summary cards
+        // ===============================
         public int TotalItems { get; set; }
         public int ActiveItemCount { get; set; }
         public int InactiveItemCount { get; set; }
@@ -16,8 +20,27 @@
 
         // Table data
         public List<InventoryRow> RecentInventories { get; set; } = new();
-    }
 
+        // ===============================
+        // Sales Snapshot
+        // ===============================
+        public decimal TodaySales { get; set; }
+        public int TodayOrders { get; set; }
+        public decimal MonthSales { get; set; }
+        public decimal AvgOrderValueToday { get; set; }
+
+        // ===============================
+        // Top Selling
+        // ===============================
+        public string TopSellingRange { get; set; } = "7d"; // default
+        public List<TopSellingItemVm> TopSellingItems { get; set; } = new();
+
+        // ===============================
+        // Reorder Planner
+        // ===============================
+        public decimal TotalReorderCostEstimate { get; set; }
+        public List<ReorderPlannerItemVm> ReorderPlanner { get; set; } = new();
+    }
 
     public class InventoryRow
     {
@@ -27,4 +50,27 @@
         public string ItemStatus { get; set; } = "Active";
     }
 
+    public class TopSellingItemVm
+    {
+        public int ItemID { get; set; }
+        public string ItemName { get; set; } = string.Empty;
+        public int QtySold { get; set; }
+        public decimal SalesAmount { get; set; }
+    }
+
+    public class ReorderPlannerItemVm
+    {
+        public int ItemID { get; set; }
+        public string ItemName { get; set; } = string.Empty;
+
+        public int CurrentQty { get; set; }
+        public int ReorderPoint { get; set; }
+        public int SafetyStock { get; set; }
+        public decimal AverageDailyDemand { get; set; }
+
+        public int SuggestedOrderQty { get; set; }
+        public decimal UnitBuyPrice { get; set; }
+        public decimal EstimatedCost { get; set; }
+        public decimal? RunoutDays { get; set; } // optional
+    }
 }

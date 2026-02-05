@@ -453,7 +453,10 @@
     <div class="page-head">
         <div>
             <h1 class="title">Stock Out</h1>
-            <p class="subtitle">Deduct stock from selected items (FIFO by batch).</p>
+            <p class="subtitle">
+                Deduct stock from selected items. Costing follows item method (FIFO / Average / Fixed).
+            </p>
+
         </div>
     </div>
 
@@ -470,6 +473,39 @@
             <div class="inv-card__head">
                 <h2 class="inv-card__title">Stock Out Entry</h2>
                 <p class="inv-card__sub">Enter quantity and reason. Preview updates live.</p>
+                <div class="alert alert-info" style="margin-top:10px">
+                    <strong>Costing Method:</strong>
+                    <span class="badge bg-primary">
+                        @Model.CostingMethod
+                    </span>
+                </div>
+
+
+                <div class="val-summary" style="margin-top:10px">
+                    <strong>Costing Method Notice</strong>
+                    <ul>
+                        @if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.FIFO)
+                        {
+                            <li>
+                                Unit cost is taken from the <b>oldest available batches</b> (FIFO).
+                            </li>
+                        }
+                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage)
+                        {
+                            <li>
+                                Unit cost is taken from the <b>current average cost</b>.
+                            </li>
+                        }
+                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed)
+                        {
+                            <li>
+                                Unit cost is taken from the <b>inventory standard cost</b>.
+                            </li>
+                        }
+                    </ul>
+
+                </div>
+
             </div>
 
             <div class="inv-card__body">
@@ -517,11 +553,11 @@
                             Reason <span class="req">*</span>
                         </div>
 
-                        <input asp-for="Reason"
+                        <input asp-for="StockOutRemark"
                                class="form-control inv-input"
                                placeholder="e.g. Sales, Usage, Spoilage" />
 
-                        <span asp-validation-for="Reason" class="text-danger"></span>
+                        <span asp-validation-for="StockOutRemark" class="text-danger"></span>
                     </div>
 
                     <div class="field">
@@ -530,7 +566,9 @@
                         </div>
 
                         <select asp-for="CustomerID"
-                                class="form-control inv-input">
+                                class="form-control inv-input"
+                                id="customerSelect">
+
                             <option value="">-- Select Customer --</option>
                             @foreach (var c in Model.Customers)
                             {
@@ -550,7 +588,9 @@
 
                         <input asp-for="CustomerNameSnapshot"
                                class="form-control inv-input"
+                               id="customerSnapshot"
                                placeholder="e.g. Walk-in customer, Order #1234" />
+
 
                         <span asp-validation-for="CustomerNameSnapshot" class="text-danger"></span>
                     </div>
@@ -622,13 +662,13 @@
                                 if (count == 1)
                                 {
                                     <text>
-                                        Deducted <b>@Model.InputQuantity</b> unit(s) from <b>@names[0]</b> with reason <b>@Model.Reason</b>.
+                                        Deducted <b>@Model.InputQuantity</b> unit(s) from <b>@names[0]</b> with reason <b>@Model.StockOutRemark</b>.
                                     </text>
                                 }
                                 else
                                 {
                                     <text>
-                                        Deducted <b>@Model.InputQuantity</b> unit(s) from <b>@count</b> item(s) with reason <b>@Model.Reason</b>.
+                                        Deducted <b>@Model.InputQuantity</b> unit(s) from <b>@count</b> item(s) with reason <b>@Model.StockOutRemark</b>.
                                     </text>
                                 }
                             }
@@ -641,6 +681,44 @@
                     Back to Stock
                 </a>
             </div>
+            @if (Model.FifoConsumptions != null && Model.FifoConsumptions.Any())
+            {
+                <div class="inv-card mt-4">
+                    <div class="inv-card__head">
+                        <h2 class="inv-card__title">FIFO Batch Consumption</h2>
+                        <p class="inv-card__sub">
+                            Stock was deducted using FIFO (oldest batch first).
+                        </p>
+                    </div>
+
+                    <div class="inv-card__body p-0">
+                        <table class="table inv-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Batch</th>
+                                    <th>Expiry Date</th>
+                                    <th>Quantity Used</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in Model.FifoConsumptions)
+                                {
+                                    <tr>
+                                        <td>@row.BatchNumber</td>
+                                        <td>@row.ExpiryDate.ToString("dd MMM yyyy")</td>
+                                        <td>
+                                            <span class="mono-pill">
+                                                @row.QuantityConsumed
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
 
         }
 
@@ -702,7 +780,8 @@
                         `<span class="mono-pill mono-pill--danger">Insufficient</span>`);
                 } else {
                     setAfterCell(afterCell,
-                        `<span class="mono-pill">${remaining}</span>`);
+                               `<span class="mono-pill">${remaining} base units</span>`
+        );
                 }
             });
         }
@@ -710,12 +789,24 @@
         // =========================
         // CONFIRM BUTTON LOGIC
         // =========================
-        function toggleConfirm() {
+                function toggleConfirm() {
             const hasQty = Number(qtyInput.value) > 0;
             const hasUnit = unitSelect.value !== "";
 
-            confirmBtn.disabled = !(hasQty && hasUnit);
+            let sufficient = true;
+
+            document.querySelectorAll("#previewBody tr").forEach(row => {
+                const available = parseInt(row.dataset.available, 10);
+                const baseQty = getBaseQty();
+
+                if (baseQty && available - baseQty < 0) {
+                    sufficient = false;
+                }
+            });
+
+            confirmBtn.disabled = !(hasQty && hasUnit && sufficient);
         }
+
 
         // =========================
         // EVENTS
@@ -735,6 +826,25 @@
         // =========================
         updatePreview();
         toggleConfirm();
+
+                // =========================
+        // CUSTOMER FIELD SYNC
+        // =========================
+        const customerSelect = document.getElementById("customerSelect");
+        const customerSnapshot = document.getElementById("customerSnapshot");
+
+        function syncCustomerFields() {
+            if (customerSelect.value) {
+                customerSnapshot.value = "";
+                customerSnapshot.disabled = true;
+            } else {
+                customerSnapshot.disabled = false;
+            }
+        }
+
+        customerSelect.addEventListener("change", syncCustomerFields);
+        syncCustomerFields();
+
     </script>
 
 

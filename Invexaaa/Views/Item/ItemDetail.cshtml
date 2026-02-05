@@ -98,8 +98,34 @@
                     <div class="infoGrid">
                         <div class="infoRow">
                             <div class="infoLabel">Costing Method</div>
+
                             <div class="infoValue">@Model.CostingMethod</div>
                         </div>
+                        @if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage)
+                        {
+                            <div class="infoRow">
+                                <div class="infoLabel">Average Unit Cost</div>
+                                <div class="infoValue money">
+                                    RM @Model.AverageUnitCost.ToString("0.0000")
+                                </div>
+                            </div>
+                        }
+                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed)
+                        {
+                            <div class="infoRow">
+                                <div class="infoLabel">Standard Unit Cost</div>
+                                <div class="infoValue money">
+                                    RM @Model.StandardUnitCost.ToString("0.0000")
+                                </div>
+                            </div>
+                        }
+                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.FIFO)
+                        {
+                            <div class="infoRow">
+                                <div class="infoLabel">Valuation Method</div>
+                                <div class="infoValue">FIFO (Batch-based)</div>
+                            </div>
+                        }
 
                         <div class="infoRow">
                             <div class="infoLabel">Unit</div>
@@ -115,6 +141,14 @@
                             <div class="infoLabel">Sell Price</div>
                             <div class="infoValue money">RM @Model.SellPrice.ToString("0.00")</div>
                         </div>
+
+                        <div class="infoRow">
+                            <div class="infoLabel">Total Stock Value</div>
+                            <div class="infoValue money">
+                                RM @Model.TotalStockValue.ToString("0.00")
+                            </div>
+                        </div>
+
                     </div>
 
                     @if (isInactive)
@@ -125,6 +159,32 @@
                     }
 
                     <div class="hr"></div>
+                    <div class="sys-alert">
+                        <strong>Costing Information</strong><br />
+
+                        @if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage)
+                        {
+                            <span>
+                                This item uses <b>Weighted Average Costing</b>.
+                                Average cost updates when stock is added and resets when stock reaches zero.
+                            </span>
+                        }
+                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.FIFO)
+                        {
+                            <span>
+                                This item uses <b>FIFO</b>.
+                                Stock value is calculated from remaining batches.
+                            </span>
+                        }
+                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed)
+                        {
+                            <span>
+                                This item uses <b>Fixed Costing</b>.
+                                Unit cost remains constant regardless of stock movements.
+                            </span>
+                        }
+                    </div>
+
 
                     <div class="sectionHead">
                         <div class="sectionTitle">Batch Information</div>

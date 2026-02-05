@@ -125,7 +125,11 @@ namespace Invexaaa.Controllers
     (from i in _context.Items
      join c in _context.Categories on i.CategoryID equals c.CategoryID
 
-     join inv in _context.Inventories on i.ItemID equals inv.ItemID
+
+     join inv in _context.Inventories
+    on i.ItemID equals inv.ItemID into invGroup
+     from inv in invGroup.DefaultIfEmpty()
+
      where i.ItemID == id
      select new ItemDetailViewModel
      {
@@ -145,13 +149,29 @@ namespace Invexaaa.Controllers
          CreatedDate = i.ItemCreatedDate,
          ImageUrl = i.ItemImageUrl,
 
-         CurrentBalance = inv.InventoryTotalQuantity,
-         ItemBarcode = i.ItemBarcode
-     }).FirstOrDefault();
+         ItemBarcode = i.ItemBarcode,
+
+         // ============================
+         // INVENTORY SNAPSHOT (NULL SAFE)
+         // ============================
+         CurrentBalance = inv != null ? inv.InventoryTotalQuantity : 0,
+
+         AverageUnitCost = inv != null ? inv.AverageUnitCost : 0,
+         StandardUnitCost = inv != null ? inv.StandardUnitCost : i.ItemBuyPrice,
+         TotalStockValue = inv != null ? inv.TotalStockValue : 0
+
+
+     }
+).FirstOrDefault();
 
 
             if (item == null)
                 return NotFound();
+
+            // 🔒 FINAL SAFETY NORMALIZATION
+            item.AverageUnitCost = Math.Round(item.AverageUnitCost, 4);
+            item.TotalStockValue = Math.Round(item.TotalStockValue, 2);
+
 
             item.Batches =
     _context.StockBatches
@@ -302,6 +322,15 @@ namespace Invexaaa.Controllers
             _context.Items.Add(vm.Item);
             _context.SaveChanges();
 
+            // ✅ AUTO-CREATE BASE UNIT (CRITICAL FOR ACCOUNTING)
+            _context.ItemUnitConversions.Add(new ItemUnitConversion
+            {
+                ItemID = vm.Item.ItemID,
+                UnitName = vm.Item.ItemUnitOfMeasure ?? "pcs",
+                BaseUnitMultiplier = 1,
+                IsBaseUnit = true
+            });
+
             // Create inventory row
             _context.Inventories.Add(new Inventory
             {
@@ -310,6 +339,7 @@ namespace Invexaaa.Controllers
             });
 
             _context.SaveChanges();
+
 
             return RedirectToAction("ItemIndex", "Item");
         }

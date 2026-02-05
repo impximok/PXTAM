@@ -23,6 +23,22 @@ namespace Invexaaa.Models.ViewModels
 
         public string? TransactionRemark { get; set; }
         public string UserName { get; set; } = "";
-    }
 
+        // ===== IN (Derived Intelligence) =====
+        public DateTime? ExpectedArrivalDate { get; set; }
+        public int? LeadTimeDays { get; set; }
+
+
+
+        public decimal LinePayable
+        {
+            get
+            {
+                return TransactionType == "IN"
+                    ? UnitCost * TransactionQuantity
+                    : 0;
+            }
+        }
+
+    }
 }
