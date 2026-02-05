@@ -105,15 +105,15 @@ namespace Invexaaa.Models.ViewModels
             }
 
             // Fixed / WeightedAverage must NOT accept manual unit cost
-            if ((CostingMethod == CostingMethod.Fixed ||
-                 CostingMethod == CostingMethod.WeightedAverage) &&
-                UnitCost != null)
+            // ✅ Allow UnitCost to exist, but ignore it for Fixed / WeightedAverage
+            if (CostingMethod == CostingMethod.FIFO && UnitCost == null)
             {
                 yield return new ValidationResult(
-                    "Unit cost is system-controlled for this costing method.",
+                    "Unit cost is required for FIFO costing.",
                     new[] { nameof(UnitCost) }
                 );
             }
+
         }
 
     }

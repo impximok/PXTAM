@@ -6,6 +6,13 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@{
+    bool isUnitLocked =
+        Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed
+     || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage;
+}
+
+
 <style>
     /* ===============================
                INVEXA · BLACK & WHITE SYSTEM
@@ -533,15 +540,20 @@
 
                         <select asp-for="UnitConversionID"
                                 class="form-control inv-input"
-                                id="unitSelect">
+                                id="unitSelect"
+                                disabled="@(isUnitLocked ? "disabled" : null)">
+
+
                             <option value="">-- Select Unit --</option>
                             @foreach (var unit in Model.AvailableUnits)
                             {
                                 <option value="@unit.ItemUnitConversionID"
-                                        data-multiplier="@unit.BaseUnitMultiplier">
-                                    @unit.UnitName
+                                        data-multiplier="@unit.BaseUnitMultiplier"
+                                        selected="@(isUnitLocked && unit.IsBaseUnit ? "selected" : null)">
+                                    @unit.UnitName @(unit.IsBaseUnit ? "(Base)" : "")
                                 </option>
                             }
+
                         </select>
 
                         <span asp-validation-for="UnitConversionID" class="text-danger"></span>
@@ -791,7 +803,8 @@
         // =========================
                 function toggleConfirm() {
             const hasQty = Number(qtyInput.value) > 0;
-            const hasUnit = unitSelect.value !== "";
+            const hasUnit = unitSelect.disabled || unitSelect.value !== "";
+
 
             let sufficient = true;
 

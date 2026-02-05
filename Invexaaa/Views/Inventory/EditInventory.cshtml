@@ -6,92 +6,387 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
+<style>
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --border: #e6e7eb;
+        --text: #111827;
+        --muted: #6b7280;
+        --radius: 22px;
+    }
 
-    <div class="mb-3">
-        <h3 class="fw-semibold">Edit Standard Cost</h3>
-        <p class="text-muted small">
-            Administrative cost maintenance for Fixed Costing items.
-        </p>
-    </div>
+    /* Force full layout background to white */
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
 
-    <div class="card">
-        <div class="card-body">
+    /* Page wrapper (centered like Edit Category) */
+    .cost-page {
+        min-height: calc(100vh - 120px);
+        display: grid;
+        place-items: center;
+        padding: 20px 16px;
+        background: var(--bg);
+        align-items: start;
+        padding-top: 26px;
+    }
 
-            <form asp-action="Edit" method="post">
+    .cost-card {
+        width: min(980px, 100%);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 10px 28px rgba(0,0,0,.06);
+        overflow: hidden;
+        transform: scale(0.95);
+        transform-origin: top center;
+    }
+
+    .cost-inner {
+        padding: 22px 28px 16px;
+    }
+
+    .cost-title {
+        font-size: 32px;
+        line-height: 1.15;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .cost-subtitle {
+        margin: 8px 0 0;
+        font-size: 14px;
+        color: var(--muted);
+    }
+
+
+    .cost-divider {
+        border: 0;
+        border-top: 2px solid var(--border);
+        margin: 18px 0 16px;
+    }
+
+    .section-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        margin: 0 0 8px;
+    }
+
+
+    /* Grid like your inventory layout but same vibe */
+    .grid-3 {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr;
+        gap: 14px 18px;
+    }
+
+    .field label.form-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 6px;
+    }
+
+    .req {
+        color: #dc2626;
+        font-weight: 400;
+        margin-left: 4px;
+    }
+
+    /* Inputs match Edit Category (.cat-control style) */
+    .form-control {
+        border: 2px solid var(--border) !important;
+        border-radius: 18px !important;
+        padding: 12px 14px !important;
+        font-size: 16px !important;
+        color: var(--text) !important;
+        background: #fff !important;
+    }
+
+        .form-control:focus {
+            border-color: #000 !important;
+        }
+
+    .readonly {
+        background: #f7f7f8 !important;
+        color: #111 !important;
+    }
+
+    /* Money input – same input, just prefix pill */
+    .money {
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .money-prefix {
+        min-width: 60px;
+        display: grid;
+        place-items: center;
+        border: 2px solid var(--border);
+        border-radius: 18px;
+        background: #fff;
+        color: var(--muted);
+        font-weight: 800;
+        font-size: 14px;
+    }
+
+    .money input {
+        flex: 1;
+    }
+
+    /* Preview box = soft panel */
+    .preview-box {
+        border: 2px solid var(--border);
+        background: #f7f7f8;
+        border-radius: 18px;
+        padding: 14px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 14px;
+    }
+
+    .preview-left {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .preview-kicker {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.01em;
+    }
+
+    .preview-hint {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .preview-value {
+        font-size: 18px;
+        font-weight: 850;
+        color: var(--text);
+        white-space: nowrap;
+    }
+
+    .help-text {
+        margin-top: 6px;
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.4;
+    }
+
+        .help-text b {
+            color: var(--text);
+        }
+
+    /* Actions like Edit Category */
+    .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 14px;
+    }
+
+    .pill-btn {
+        border-radius: 999px !important;
+        padding: 12px 16px !important;
+        font-weight: 800 !important;
+        font-size: 16px !important;
+        border: 2px solid #000 !important;
+        text-align: center;
+        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+        user-select: none;
+        text-decoration: none !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .pill-solid {
+        background: #000 !important;
+        color: #fff !important;
+    }
+
+    .pill-outline {
+        background: transparent !important;
+        color: #000 !important;
+    }
+
+    /* Invert hover exactly like Category page */
+    .pill-solid:hover,
+    .pill-solid:focus-visible {
+        background: #fff !important;
+        color: #000 !important;
+        border-color: #000 !important;
+        box-shadow: none !important;
+    }
+
+    .pill-outline:hover,
+    .pill-outline:focus-visible {
+        background: #000 !important;
+        color: #fff !important;
+        border-color: #000 !important;
+        box-shadow: none !important;
+    }
+
+    /* Responsive */
+    @@media (max-width: 900px) {
+        .cost-inner {
+            padding: 26px 20px 18px;
+        }
+
+        .grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .actions {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .preview-box {
+        border: 2px solid var(--border);
+        background: #f7f7f8;
+        border-radius: 18px;
+        padding: 14px;
+        margin-top: 14px;
+    }
+
+    .preview-kicker {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .preview-hint {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .preview-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .pill-btn {
+        font-size: 16px !important;
+        font-weight: 800 !important;
+    }
+    /* 🔥 Remove all blue focus glow (browser + Bootstrap) */
+    .form-control:focus,
+    .form-control:focus-visible,
+    input:focus,
+    input:focus-visible,
+    select:focus,
+    textarea:focus {
+        outline: none !important;
+        box-shadow: none !important;
+        border-color: #000 !important; /* keep your system focus */
+    }
+
+    input[type="number"]:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+</style>
+
+<div class="cost-page">
+    <div class="cost-card">
+        <div class="cost-inner">
+
+            <h1 class="cost-title">Edit Standard Cost</h1>
+            <p class="cost-subtitle">Administrative cost maintenance for <b>Fixed Costing</b> items.</p>
+            <hr class="cost-divider" />
+
+            <form asp-action="Edit" method="post" novalidate>
                 @Html.AntiForgeryToken()
 
-                <!-- 🔑 Required -->
                 <input type="hidden" asp-for="InventoryID" />
                 <input type="hidden" asp-for="ItemID" />
 
-                <!-- ITEM INFO (READ ONLY) -->
-                <div class="mb-3">
-                    <label class="form-label">Item</label>
-                    <input class="form-control" value="@Model.ItemName" readonly />
-                </div>
+                <div class="section-title">Item Details</div>
 
-                <div class="mb-3">
-                    <label class="form-label">Costing Method</label>
-                    <input class="form-control" value="Fixed Costing" readonly />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Current Quantity</label>
-                    <input class="form-control" value="@Model.InventoryTotalQuantity" readonly />
-                </div>
-
-                <hr />
-
-                <!-- STANDARD COST -->
-                <div class="mb-3">
-                    <label class="form-label">
-                        Standard Unit Cost <span class="text-danger">*</span>
-                    </label>
-
-                    <input asp-for="StandardUnitCost"
-                           type="number"
-                           step="0.0001"
-                           min="0"
-                           class="form-control"
-                           placeholder="e.g. 5.2500" />
-
-                    <span asp-validation-for="StandardUnitCost" class="text-danger"></span>
-
-                    <div class="form-text">
-                        This cost will be used for <b>all inventory valuation</b>.
-                        <br />
-                        <span class="text-muted">
-                            Stock IN will <u>not</u> modify this value.
-                        </span>
+                <div class="grid-3">
+                    <div class="field">
+                        <label class="form-label">Item</label>
+                        <input class="form-control readonly" value="@Model.ItemName" readonly />
                     </div>
 
+                    <div class="field">
+                        <label class="form-label">Costing Method</label>
+                        <input class="form-control readonly" value="Fixed Costing" readonly />
+                    </div>
+
+                    <div class="field">
+                        <label class="form-label">Current Quantity</label>
+                        <input class="form-control readonly" value="@Model.InventoryTotalQuantity" readonly />
+                    </div>
                 </div>
 
-                <!-- LIVE PREVIEW -->
-                <div class="alert alert-info">
-                    <b>New Total Stock Value Preview</b><br />
-                    <span id="previewValue">RM 0.00</span>
+                <hr class="cost-divider" />
+
+                <div class="section-title">Standard Cost</div>
+
+                <div class="field">
+                    <label class="form-label">
+                        Standard Unit Cost <span class="req">*</span>
+                    </label>
+
+                    <div class="money">
+                        <div class="money-prefix">RM</div>
+                        <input asp-for="StandardUnitCost"
+                               type="number"
+                               step="0.0001"
+                               min="0"
+                               class="form-control"
+                               placeholder="e.g. 5.2500" />
+                    </div>
+
+                    <span asp-validation-for="StandardUnitCost" class="text-danger small"></span>
+
+                    <div class="help-text">
+                        This cost will be used for <b>all inventory valuation</b>.<br />
+                        Stock IN will <b>not</b> modify this value.
+                    </div>
                 </div>
 
-                <!-- ACTIONS -->
-                <div class="d-flex justify-content-end gap-2">
-                    <a asp-action="InventoryIndex"
-                       class="btn btn-outline-secondary">
+                <div class="preview-box" aria-live="polite">
+                    <div class="preview-left">
+                        <div class="preview-kicker">New Total Stock Value (Preview)</div>
+                        <div class="preview-hint">Based on current quantity × new unit cost</div>
+                    </div>
+                    <div class="preview-value" id="previewValue">RM 0.00</div>
+                </div>
+
+                <div class="actions">
+                    <a asp-action="InventoryIndex" class="pill-btn pill-outline">
                         Cancel
                     </a>
 
-                    <button type="submit"
-                            class="btn btn-primary">
-                        Save Cost
+                    <button type="submit" class="pill-btn pill-solid">
+                        Update
                     </button>
                 </div>
-
             </form>
 
         </div>
     </div>
-
 </div>
 
 @section Scripts {
@@ -99,16 +394,21 @@
 
     <script>
         const costInput = document.querySelector('[name="StandardUnitCost"]');
-        const qty = @Model.InventoryTotalQuantity;
+        const qty = Number(@Model.InventoryTotalQuantity);
         const preview = document.getElementById('previewValue');
 
+        function formatMoneyRM(value) {
+            const num = Number(value);
+            if (Number.isNaN(num)) return "RM 0.00";
+            return "RM " + num.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
         function updatePreview() {
-            const cost = parseFloat(costInput.value);
-            if (!isNaN(cost)) {
-                const total = (cost * qty).toFixed(2);
-                preview.innerText = `RM ${total}`;
+            const cost = parseFloat(costInput?.value);
+            if (!Number.isNaN(cost) && qty >= 0) {
+                preview.innerText = formatMoneyRM(cost * qty);
             } else {
-                preview.innerText = 'RM 0.00';
+                preview.innerText = "RM 0.00";
             }
         }
 
