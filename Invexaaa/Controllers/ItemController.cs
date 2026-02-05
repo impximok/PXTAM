@@ -1014,36 +1014,16 @@ namespace Invexaaa.Controllers
                 return RedirectToAction("Units", new { itemId = vm.ItemID });
             }
 
-            // 🔒 Base unit rules
-            if (vm.NewIsBaseUnit && vm.NewBaseUnitMultiplier != 1)
-            {
-                ModelState.AddModelError(
-                    "",
-                    "Base unit must have a multiplier of 1."
-                );
-                return RedirectToAction("Units", new { itemId = vm.ItemID });
-            }
 
-            // 🔒 If setting base unit → unset existing base
-            if (vm.NewIsBaseUnit)
-            {
-                var existingBase = _context.ItemUnitConversions
-                    .Where(u => u.ItemID == vm.ItemID && u.IsBaseUnit)
-                    .ToList();
-
-                foreach (var u in existingBase)
-                {
-                    u.IsBaseUnit = false;
-                }
-            }
 
             _context.ItemUnitConversions.Add(new ItemUnitConversion
             {
                 ItemID = vm.ItemID,
                 UnitName = vm.NewUnitName.Trim(),
                 BaseUnitMultiplier = vm.NewBaseUnitMultiplier,
-                IsBaseUnit = vm.NewIsBaseUnit
+                IsBaseUnit = false // 🔒 ALWAYS derived
             });
+
 
             _context.SaveChanges();
 
