@@ -7,11 +7,13 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     string ReportLabel(string rt) => string.IsNullOrEmpty(rt) ? "-- Select Report --" :
-        rt == "DemandForecast" ? "Demand Forecast" :
-        rt == "Stock" ? "Stock Summary" :
-        rt == "StockCharts" ? "Stock Charts" :
-        rt == "Expiry" ? "Expiry & Wastage" :
-        "-- Select Report --";
+    rt == "DemandForecast" ? "Demand Forecast" :
+    rt == "Stock" ? "Stock Summary" :
+    rt == "StockCharts" ? "Stock Charts" :
+    rt == "Expiry" ? "Expiry & Wastage" :
+    rt == "StockMovement" ? "Stock Movement" :
+    "-- Select Report --";
+
 }
 
 <style>
@@ -705,6 +707,10 @@
                             <div class="inv-opt" data-value="Stock" aria-selected="@(Model.ReportType == "Stock" ? "true" : "false")">Stock Summary</div>
                             <div class="inv-opt" data-value="StockCharts" aria-selected="@(Model.ReportType == "StockCharts" ? "true" : "false")">Stock Charts</div>
                             <div class="inv-opt" data-value="Expiry" aria-selected="@(Model.ReportType == "Expiry" ? "true" : "false")">Expiry & Wastage</div>
+                            <div class="inv-opt" data-value="StockMovement"
+                                 aria-selected="@(Model.ReportType == "StockMovement" ? "true" : "false")">
+                                Stock Movement
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -902,6 +908,78 @@
             </div>
         </div>
     }
+
+    <!-- ================= STOCK MOVEMENT ================= -->
+    @if (Model.ReportType == "StockMovement")
+    {
+        if (Model.StockMovementReport == null || !Model.StockMovementReport.Any())
+        {
+            <div class="sys-alert">
+                <b>No stock movement found.</b>
+                <div class="text-muted">Try expanding the date range.</div>
+            </div>
+        }
+        else
+        {
+            <div class="card-shell" style="margin-top:14px;">
+                <div class="card-pad">
+                    <div class="card-title">Stock Movement</div>
+                    <div class="card-desc">
+                        All stock IN and OUT transactions within the selected period.
+                    </div>
+
+                    <div class="table-shell">
+                        <table class="sys-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Item</th>
+                                    <th>Batch</th>
+                                    <th>Type</th>
+                                    <th class="num">Qty</th>
+                                    <th class="num">Unit Cost</th>
+                                    <th>Supplier / Customer</th>
+                                    <th>User</th>
+                                    <th>Remark</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var t in Model.StockMovementReport)
+                                {
+                                    <tr>
+                                        <td>@t.TransactionDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td class="td-item">@t.ItemName</td>
+                                        <td>@t.BatchNumber</td>
+                                        <td>
+                                            <span class="status-pill @(t.TransactionType == "IN" ? "is-on" : "is-off")">
+                                                @t.TransactionType
+                                            </span>
+                                        </td>
+                                        <td class="num">@t.TransactionQuantity</td>
+                                        <td class="num">RM @t.UnitCost.ToString("N4")</td>
+                                        <td>
+                                            @if (t.TransactionType == "IN")
+                                            {
+                                                @t.SupplierName
+                                            }
+                                            else
+                                            {
+                                                @t.CustomerName
+                                            }
+                                        </td>
+                                        <td>@t.UserName</td>
+                                        <td>@t.TransactionRemark</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        }
+    }
+
 
 </div>
 

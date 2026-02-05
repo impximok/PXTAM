@@ -801,19 +801,21 @@
             <p class="card-subtitle" style="margin-top:6px">
                 <b>@Model.CostingMethod</b> costing is applied automatically.
 
-                @if (Model.CostingMethod == CostingMethod.WeightedAverage)
+                @if (Model.CostingMethod == CostingMethod.WeightedAverage ||
+                                Model.CostingMethod == CostingMethod.Fixed)
                 {
-                    <span> Quantity is recorded in base unit only.</span>
-                }
-                else if (Model.CostingMethod == CostingMethod.Fixed)
-                {
-                    <span> Quantity and cost are fixed.</span>
+                    <span>
+                        Quantity is converted to <b>base unit</b> for accounting.
+                    </span>
                 }
                 else
                 {
-                    <span> Cost is stored per batch.</span>
+                    <span>
+                        Cost is recorded per batch (FIFO).
+                    </span>
                 }
             </p>
+
 
 
             
@@ -859,49 +861,41 @@
                             </span>
                         </div>
 
-                       @{
-    var baseUnit = Model.AvailableUnits?
-        .FirstOrDefault(u => u.IsBaseUnit);
-}
+                    
 
-@if ((Model.CostingMethod == CostingMethod.WeightedAverage ||
-      Model.CostingMethod == CostingMethod.Fixed) && baseUnit != null)
-{
-    <input type="hidden"
-           name="UnitConversionID"
-           value="@baseUnit.ItemUnitConversionID" />
+                        <div class="field">
+                            <div class="inv-label">
+                                Unit <span class="req">*</span>
+                                <span class="hint">
+                                    Converted to base unit automatically
+                                </span>
+                            </div>
 
-    <input type="text"
-           class="form-control inv-input"
-           value="@($"{baseUnit.UnitName} (Base)")"
-           readonly />
-}
-else if (Model.CostingMethod == CostingMethod.WeightedAverage ||
-         Model.CostingMethod == CostingMethod.Fixed)
-{
-    <div class="text-danger">
-        ⚠ Base unit is missing for this item. Please fix unit setup.
-    </div>
-}
-else
-{
-    <select asp-for="UnitConversionID"
-            class="form-control inv-input"
-            required>
-        <option value="">-- Select Unit --</option>
-        @foreach (var u in Model.AvailableUnits!)
-        {
-            <option value="@u.ItemUnitConversionID">
-                @u.UnitName @(u.IsBaseUnit ? "(Base)" : $"(×{u.BaseUnitMultiplier})")
-            </option>
-        }
-    </select>
-}
+                            @if (!Model.AvailableUnits.Any(u => u.IsBaseUnit))
+                            {
+                                <div class="text-danger">
+                                    ⚠ This item has no base unit defined.
+                                    Please set a base unit before adding stock.
+                                </div>
+                            }
+                            else
+                            {
+                                <select asp-for="UnitConversionID"
+                                        class="form-control inv-input"
+                                        required>
+                                    <option value="">-- Select Unit --</option>
 
+                                    @foreach (var u in Model.AvailableUnits)
+                                    {
+                                        <option value="@u.ItemUnitConversionID">
+                                            @u.UnitName @(u.IsBaseUnit ? "(Base)" : $"(×{u.BaseUnitMultiplier})")
+                                        </option>
+                                    }
+                                </select>
 
-
-                        <span asp-validation-for="UnitConversionID" class="text-danger"></span>
-                    </div>
+                                <span asp-validation-for="UnitConversionID" class="text-danger"></span>
+                            }
+                        </div>
 
 
 
@@ -992,10 +986,18 @@ else
                             Supplier Name (fallback)
                         </div>
 
-                        <input asp-for="SupplierNameSnapshot"
+                        <!-- Visible (display only) -->
+                        <input type="text"
                                class="form-control inv-input"
-                               id="supplierSnapshot"
-                               placeholder="e.g. Walk-in supplier, Cash purchase" />
+                               id="supplierSnapshotDisplay"
+                               placeholder="e.g. Walk-in supplier, Cash purchase"
+                               readonly />
+
+                        <!-- Hidden (actual bound value) -->
+                        <input type="hidden"
+                               asp-for="SupplierNameSnapshot"
+                               id="supplierSnapshot" />
+
                     </div>
 
 
@@ -1217,16 +1219,30 @@ else
         unitSelect?.addEventListener('change', updatePreview);
 
                 const supplierSelect = document.getElementById("supplierSelect");
-        const supplierSnapshot = document.getElementById("supplierSnapshot");
+                const supplierSnapshot = document.getElementById("supplierSnapshot"); // hidden
+        const supplierSnapshotDisplay = document.getElementById("supplierSnapshotDisplay"); // visible
 
-        function syncSupplierFields() {
+
+                        function syncSupplierFields() {
+            const selectedOption = supplierSelect.options[supplierSelect.selectedIndex];
+
             if (supplierSelect.value) {
-                supplierSnapshot.value = "";
-                supplierSnapshot.disabled = true;
+                const name = selectedOption.text.trim();
+
+                supplierSnapshot.value = name;              // 🔒 bound
+                supplierSnapshotDisplay.value = name;       // 👁 display
+                supplierSnapshotDisplay.readOnly = true;
             } else {
-                supplierSnapshot.disabled = false;
+                supplierSnapshot.value = "";
+                supplierSnapshotDisplay.value = "";
+                supplierSnapshotDisplay.readOnly = false;
             }
         }
+
+
+        supplierSelect.addEventListener("change", syncSupplierFields);
+        syncSupplierFields();
+
 
         supplierSelect.addEventListener("change", syncSupplierFields);
         syncSupplierFields();

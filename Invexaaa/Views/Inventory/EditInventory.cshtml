@@ -14,6 +14,7 @@
         --text: #111827;
         --muted: #6b7280;
         --radius: 22px;
+        --danger: #dc2626;
     }
 
     /* Force full layout background to white */
@@ -23,7 +24,7 @@
         background: #ffffff !important;
     }
 
-    /* Page wrapper (centered like Edit Category) */
+    /* Page wrapper */
     .cost-page {
         min-height: calc(100vh - 120px);
         display: grid;
@@ -46,12 +47,12 @@
     }
 
     .cost-inner {
-        padding: 22px 28px 16px;
+        padding: 22px 28px 18px;
     }
 
     .cost-title {
-        font-size: 32px;
-        line-height: 1.15;
+        font-size: 34px;
+        line-height: 1.05;
         font-weight: 800;
         letter-spacing: -0.02em;
         margin: 0;
@@ -64,44 +65,90 @@
         color: var(--muted);
     }
 
-
-    .cost-divider {
+    .top-divider {
         border: 0;
-        border-top: 2px solid var(--border);
-        margin: 18px 0 16px;
+        border-top: 1px solid var(--border);
+        margin: 18px 0 0;
     }
 
+    /* ===============================
+               ONE SPACING SYSTEM (fix weird rhythm)
+               =============================== */
+    .section {
+        display: grid;
+        gap: 16px; /* consistent spacing inside a section */
+        padding: 22px 0; /* section padding top/bottom */
+    }
+
+        .section + .section {
+            border-top: 1px solid var(--border); /* obvious separation */
+        }
+
     .section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0; /* gap handles spacing */
+    }
+
+    /* ===============================
+               Item Details - display strip
+               =============================== */
+    .info-strip {
+        border: 2px solid var(--border);
+        border-radius: 18px;
+        background: #fff;
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr;
+        overflow: hidden;
+    }
+
+    .info-cell {
+        padding: 14px 16px;
+    }
+
+        .info-cell + .info-cell {
+            border-left: 2px solid var(--border);
+        }
+
+    .info-label {
         font-size: 12px;
         font-weight: 700;
         color: var(--muted);
+        letter-spacing: .08em;
         text-transform: uppercase;
-        letter-spacing: .12em;
-        margin: 0 0 8px;
-    }
-
-
-    /* Grid like your inventory layout but same vibe */
-    .grid-3 {
-        display: grid;
-        grid-template-columns: 1.3fr 1fr 1fr;
-        gap: 14px 18px;
-    }
-
-    .field label.form-label {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text);
         margin-bottom: 6px;
     }
 
-    .req {
-        color: #dc2626;
-        font-weight: 400;
-        margin-left: 4px;
+    .info-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.2;
+        word-break: break-word;
     }
 
-    /* Inputs match Edit Category (.cat-control style) */
+    /* ===============================
+               Inputs + validation
+               =============================== */
+    .field-block {
+        display: grid;
+        gap: 10px; /* tighter than section gap */
+    }
+
+    .field-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .req {
+        color: var(--danger);
+        font-weight: 700;
+        margin-left: 6px;
+    }
+
     .form-control {
         border: 2px solid var(--border) !important;
         border-radius: 18px !important;
@@ -109,95 +156,114 @@
         font-size: 16px !important;
         color: var(--text) !important;
         background: #fff !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
 
-        .form-control:focus {
+        /* Remove blue focus glow (browser + Bootstrap) */
+        .form-control:focus,
+        .form-control:focus-visible,
+        input:focus,
+        input:focus-visible,
+        select:focus,
+        textarea:focus {
+            outline: none !important;
+            box-shadow: none !important;
             border-color: #000 !important;
         }
 
-    .readonly {
-        background: #f7f7f8 !important;
-        color: #111 !important;
+        /* Validation error -> red border */
+        .form-control.input-validation-error {
+            border-color: var(--danger) !important;
+        }
+
+            .form-control.input-validation-error:focus {
+                border-color: var(--danger) !important;
+            }
+
+    /* Inline RM inside input */
+    .money-input {
+        position: relative;
     }
 
-    /* Money input – same input, just prefix pill */
-    .money {
-        display: flex;
-        align-items: stretch;
-        gap: 10px;
-    }
-
-    .money-prefix {
-        min-width: 60px;
-        display: grid;
-        place-items: center;
-        border: 2px solid var(--border);
-        border-radius: 18px;
-        background: #fff;
-        color: var(--muted);
-        font-weight: 800;
+    .money-inline {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
         font-size: 14px;
+        font-weight: 700;
+        color: var(--muted);
+        pointer-events: none;
     }
 
-    .money input {
-        flex: 1;
+    .money-field {
+        padding-left: 44px !important; /* space for RM */
     }
 
-    /* Preview box = soft panel */
-    .preview-box {
-        border: 2px solid var(--border);
-        background: #f7f7f8;
-        border-radius: 18px;
-        padding: 14px 14px;
+    /* Note box (quiet) */
+    .field-note {
+        border: 1px solid var(--border);
+        background: #fafafa;
+        border-radius: 14px;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.45;
+    }
+
+        .field-note b {
+            color: var(--text);
+        }
+
+    /* ===============================
+               Preview result (distinct)
+               =============================== */
+    .preview-result {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        margin-top: 14px;
+        gap: 16px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: #fff;
+        border: 2px solid #000;
     }
 
-    .preview-left {
+    .preview-meta {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
     }
 
-    .preview-kicker {
-        font-size: 13px;
-        font-weight: 800;
+    .preview-title {
+        font-size: 15px;
+        font-weight: 700;
         color: var(--text);
-        letter-spacing: -0.01em;
     }
 
-    .preview-hint {
-        font-size: 12px;
+    .preview-sub {
+        font-size: 13px;
         color: var(--muted);
     }
 
-    .preview-value {
+    .preview-amount {
         font-size: 18px;
-        font-weight: 850;
+        font-weight: 900;
         color: var(--text);
         white-space: nowrap;
     }
 
-    .help-text {
-        margin-top: 6px;
-        font-size: 14px;
-        color: var(--muted);
-        line-height: 1.4;
-    }
-
-        .help-text b {
-            color: var(--text);
-        }
-
-    /* Actions like Edit Category */
+    /* ===============================
+               Actions (footer-like)
+               =============================== */
     .actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin-top: 14px;
+        gap: 14px;
+        margin-top: 10px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
     }
 
     .pill-btn {
@@ -207,7 +273,7 @@
         font-size: 16px !important;
         border: 2px solid #000 !important;
         text-align: center;
-        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
         user-select: none;
         text-decoration: none !important;
         display: inline-flex;
@@ -226,7 +292,6 @@
         color: #000 !important;
     }
 
-    /* Invert hover exactly like Category page */
     .pill-solid:hover,
     .pill-solid:focus-visible {
         background: #fff !important;
@@ -243,67 +308,30 @@
         box-shadow: none !important;
     }
 
+    button:disabled {
+        opacity: .7;
+        cursor: not-allowed;
+    }
+
     /* Responsive */
     @@media (max-width: 900px) {
         .cost-inner {
             padding: 26px 20px 18px;
         }
 
-        .grid-3 {
+        .info-strip {
             grid-template-columns: 1fr;
+        }
+
+        .info-cell + .info-cell {
+            border-left: 0;
+            border-top: 2px solid var(--border);
         }
 
         .actions {
             grid-template-columns: 1fr;
         }
     }
-
-    .preview-box {
-        border: 2px solid var(--border);
-        background: #f7f7f8;
-        border-radius: 18px;
-        padding: 14px;
-        margin-top: 14px;
-    }
-
-    .preview-kicker {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text);
-    }
-
-    .preview-hint {
-        font-size: 12px;
-        color: var(--muted);
-    }
-
-    .preview-value {
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--text);
-    }
-
-    .pill-btn {
-        font-size: 16px !important;
-        font-weight: 800 !important;
-    }
-    /* 🔥 Remove all blue focus glow (browser + Bootstrap) */
-    .form-control:focus,
-    .form-control:focus-visible,
-    input:focus,
-    input:focus-visible,
-    select:focus,
-    textarea:focus {
-        outline: none !important;
-        box-shadow: none !important;
-        border-color: #000 !important; /* keep your system focus */
-    }
-
-    input[type="number"]:focus {
-        box-shadow: none !important;
-        outline: none !important;
-    }
-
 </style>
 
 <div class="cost-page">
@@ -311,8 +339,11 @@
         <div class="cost-inner">
 
             <h1 class="cost-title">Edit Standard Cost</h1>
-            <p class="cost-subtitle">Administrative cost maintenance for <b>Fixed Costing</b> items.</p>
-            <hr class="cost-divider" />
+            <p class="cost-subtitle">
+                Administrative cost maintenance for <b>Fixed Costing</b> items.
+            </p>
+
+            <hr class="top-divider" />
 
             <form asp-action="Edit" method="post" novalidate>
                 @Html.AntiForgeryToken()
@@ -320,69 +351,80 @@
                 <input type="hidden" asp-for="InventoryID" />
                 <input type="hidden" asp-for="ItemID" />
 
-                <div class="section-title">Item Details</div>
+                <!-- ===============================
+                     SECTION: Item Details
+                     =============================== -->
+                <div class="section">
+                    <div class="section-title">Item Details</div>
 
-                <div class="grid-3">
-                    <div class="field">
-                        <label class="form-label">Item</label>
-                        <input class="form-control readonly" value="@Model.ItemName" readonly />
-                    </div>
+                    <div class="info-strip">
+                        <div class="info-cell">
+                            <div class="info-label">Item</div>
+                            <div class="info-value">@Model.ItemName</div>
+                        </div>
 
-                    <div class="field">
-                        <label class="form-label">Costing Method</label>
-                        <input class="form-control readonly" value="Fixed Costing" readonly />
-                    </div>
+                        <div class="info-cell">
+                            <div class="info-label">Costing Method</div>
+                            <div class="info-value">Fixed Costing</div>
+                        </div>
 
-                    <div class="field">
-                        <label class="form-label">Current Quantity</label>
-                        <input class="form-control readonly" value="@Model.InventoryTotalQuantity" readonly />
+                        <div class="info-cell">
+                            <div class="info-label">Current Quantity</div>
+                            <div class="info-value">@Model.InventoryTotalQuantity</div>
+                        </div>
                     </div>
                 </div>
 
-                <hr class="cost-divider" />
+                <!-- ===============================
+                     SECTION: Standard Cost
+                     =============================== -->
+                <div class="section">
+                    <div class="field-block">
+                        <label class="field-label">
+                            Standard Unit Cost <span class="req">*</span>
+                        </label>
 
-                <div class="section-title">Standard Cost</div>
+                        <div class="money-input">
+                            <span class="money-inline">RM</span>
+                            <input asp-for="StandardUnitCost"
+                                   type="number"
+                                   step="0.0001"
+                                   min="0"
+                                   class="form-control money-field"
+                                   placeholder="0.00" />
+                        </div>
 
-                <div class="field">
-                    <label class="form-label">
-                        Standard Unit Cost <span class="req">*</span>
-                    </label>
-
-                    <div class="money">
-                        <div class="money-prefix">RM</div>
-                        <input asp-for="StandardUnitCost"
-                               type="number"
-                               step="0.0001"
-                               min="0"
-                               class="form-control"
-                               placeholder="e.g. 5.2500" />
+                        <span asp-validation-for="StandardUnitCost" class="text-danger small"></span>
                     </div>
 
-                    <span asp-validation-for="StandardUnitCost" class="text-danger small"></span>
-
-                    <div class="help-text">
+                    <div class="field-note">
                         This cost will be used for <b>all inventory valuation</b>.<br />
                         Stock IN will <b>not</b> modify this value.
                     </div>
-                </div>
 
-                <div class="preview-box" aria-live="polite">
-                    <div class="preview-left">
-                        <div class="preview-kicker">New Total Stock Value (Preview)</div>
-                        <div class="preview-hint">Based on current quantity × new unit cost</div>
+                    <div class="preview-result" aria-live="polite">
+                        <div class="preview-meta">
+                            <div class="preview-title">New Total Stock Value</div>
+                            <div class="preview-sub">Based on current quantity × new unit cost</div>
+                        </div>
+                        <div class="preview-amount" id="previewValue">RM 0.00</div>
                     </div>
-                    <div class="preview-value" id="previewValue">RM 0.00</div>
+
+                    <div class="actions">
+                        <a asp-action="InventoryIndex" class="pill-btn pill-outline">
+                            Cancel
+                        </a>
+
+                        <button type="submit"
+                                class="pill-btn pill-solid"
+                                id="updateBtn"
+                                data-text="Update"
+                                data-loading="Updating…">
+                            Update
+                        </button>
+                    </div>
                 </div>
 
-                <div class="actions">
-                    <a asp-action="InventoryIndex" class="pill-btn pill-outline">
-                        Cancel
-                    </a>
-
-                    <button type="submit" class="pill-btn pill-solid">
-                        Update
-                    </button>
-                </div>
             </form>
 
         </div>
@@ -393,6 +435,9 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
+        const form = document.querySelector('form');
+        const btn = document.getElementById('updateBtn');
+
         const costInput = document.querySelector('[name="StandardUnitCost"]');
         const qty = Number(@Model.InventoryTotalQuantity);
         const preview = document.getElementById('previewValue');
@@ -414,5 +459,12 @@
 
         costInput?.addEventListener('input', updatePreview);
         updatePreview();
+
+        if (form && btn) {
+            form.addEventListener('submit', () => {
+                btn.textContent = btn.dataset.loading;
+                btn.disabled = true;
+            });
+        }
     </script>
 }

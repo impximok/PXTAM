@@ -549,6 +549,16 @@ namespace Invexaaa.Controllers
     .OrderBy(s => s.SupplierName)
     .ToList();
 
+            // 🔒 FORCE SUPPLIER SNAPSHOT FROM MASTER (UI-INDEPENDENT)
+            if (vm.SupplierID.HasValue)
+            {
+                vm.SupplierNameSnapshot = _context.Suppliers
+                    .Where(s => s.SupplierID == vm.SupplierID.Value)
+                    .Select(s => s.SupplierName)
+                    .FirstOrDefault();
+            }
+
+
             // 🔒 Validate ALL inventory IDs before processing (no partial success)
             foreach (var inventoryId in vm.InventoryIds)
             {
@@ -588,19 +598,6 @@ namespace Invexaaa.Controllers
             }
 
 
-
-
-            // 🔑 FORCE BASE UNIT FOR FIXED / WEIGHTED BEFORE VALIDATION
-            if (vm.CostingMethod == CostingMethod.Fixed ||
-                vm.CostingMethod == CostingMethod.WeightedAverage)
-            {
-                var baseUnit = vm.AvailableUnits.FirstOrDefault(u => u.IsBaseUnit);
-
-                if (baseUnit != null)
-                {
-                    vm.UnitConversionID = baseUnit.ItemUnitConversionID;
-                }
-            }
 
 
             if (!ModelState.IsValid)
@@ -653,26 +650,18 @@ namespace Invexaaa.Controllers
                     var inv = invData.Inventory;
                     var item = invData.Item;
 
-                    // 🔒 FORCE BASE UNIT FOR ACCOUNTING-SAFE METHODS
-                    int unitConversionIdToUse = vm.UnitConversionID
-     ?? throw new InvalidOperationException("Unit is required.");
-
-                    if (item.CostingMethod == CostingMethod.WeightedAverage ||
-                        item.CostingMethod == CostingMethod.Fixed)
+                    if (vm.UnitConversionID == null || vm.UnitConversionID <= 0)
                     {
-                        var baseUnit = vm.AvailableUnits!.First(u => u.IsBaseUnit);
-                        unitConversionIdToUse = baseUnit.ItemUnitConversionID;
+                        throw new InvalidOperationException("Unit is required.");
                     }
 
-
-                    // =========================
-                    // 1️⃣ CONVERT INPUT → BASE UNIT (MUST BE FIRST)
-                    // =========================
                     int inQty = ConvertToBaseUnit(
-    item.ItemID,
-    vm.InputQuantity,
-    unitConversionIdToUse
-);
+                        item.ItemID,
+                        vm.InputQuantity,
+                        vm.UnitConversionID.Value
+                    );
+
+
 
 
                     // =========================
@@ -711,6 +700,8 @@ namespace Invexaaa.Controllers
                     };
 
                     _context.StockBatches.Add(batch);
+                    await _context.SaveChangesAsync(); // ✅ FIX: generate BatchID here
+
 
                     // =========================
                     // 2️⃣ COSTING LOGIC

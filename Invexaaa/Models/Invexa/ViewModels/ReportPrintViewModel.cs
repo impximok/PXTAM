@@ -18,6 +18,9 @@ namespace Invexaaa.Models.ViewModels
         public List<ExpiryReportViewModel>? ExpiryReport { get; set; }
         public List<StockChartViewModel>? StockChartData { get; set; }
 
+        public List<StockTransactionHistoryViewModel>? StockMovementReport { get; set; }
+
+
         public DateTime GeneratedOn { get; set; }
         public string ScopeNote { get; set; } = "";
         public string? ChartNote { get; set; }

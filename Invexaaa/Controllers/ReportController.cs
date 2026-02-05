@@ -193,6 +193,56 @@ namespace Invexaaa.Controllers
                              ExpiryDate = b.BatchExpiryDate
                          }).ToList();
                     break;
+
+                // ================= STOCK MOVEMENT =================
+                case "StockMovement":
+
+                    vm.StockMovementReport =
+                        (from t in _context.StockTransactions
+                         join i in _context.Items on t.ItemID equals i.ItemID
+                         join u in _context.Users on t.UserID equals u.UserID
+                         join b in _context.StockBatches on t.BatchID equals b.BatchID into bj
+                         from batch in bj.DefaultIfEmpty()
+                         where
+                             (!startDate.HasValue || t.TransactionDate >= startDate) &&
+                             (!endDate.HasValue || t.TransactionDate <= endDate)
+                         orderby t.TransactionDate descending
+                         select new StockTransactionHistoryViewModel
+                         {
+                             TransactionDate = t.TransactionDate,
+                             ItemName = i.ItemName,
+                             BatchNumber = batch != null ? batch.BatchNumber : "-",
+
+                             TransactionType = t.TransactionType,
+                             TransactionQuantity = t.TransactionQuantity,
+                             UnitCost = t.UnitCost,
+
+                             SupplierName =
+                                 t.TransactionType == "IN"
+                                     ? batch.SupplierNameSnapshot
+                                     : null,
+
+                             LeadTimeDays =
+                                 t.TransactionType == "IN"
+                                     ? batch.LeadTimeDays
+                                     : null,
+
+                             ExpectedArrivalDate =
+                                 t.TransactionType == "IN"
+                                     ? batch.BatchReceivedDate.AddDays(batch.LeadTimeDays)
+                                     : null,
+
+                             CustomerName =
+                                 t.TransactionType == "OUT"
+                                     ? t.CustomerNameSnapshot
+                                     : null,
+
+                             TransactionRemark = t.TransactionRemark,
+                             UserName = u.UserFullName
+                         }).ToList();
+
+                    break;
+
             }
 
             return vm;
