@@ -604,9 +604,9 @@
         }
 
     /* ===============================
-           Subtle vertical column dividers
-           (matches monochrome system)
-        ================================ */
+               Subtle vertical column dividers
+               (matches monochrome system)
+            ================================ */
     .sys-table thead th,
     .sys-table tbody td {
         border-right: 1px solid #eef0f3; /* subtle thin line */
@@ -618,8 +618,8 @@
         }
 
     /* ===============================
-           Pager (monochrome, subtle)
-        ================================ */
+               Pager (monochrome, subtle)
+            ================================ */
     .pager {
         display: flex;
         align-items: center;
@@ -824,8 +824,8 @@
     }
 
     /* ===============================
-           Subtle vertical column separators
-        ================================ */
+               Subtle vertical column separators
+            ================================ */
 
     /* Header column separators */
     .sys-table thead th {
@@ -890,9 +890,9 @@
         overflow: auto;
     }
     /* ===============================
-           CS2 dropdown — NO SCROLLER
-           (match Maintain Supplier)
-        ================================ */
+               CS2 dropdown — NO SCROLLER
+               (match Maintain Supplier)
+            ================================ */
 
     /* completely remove scrolling */
     .cs2-menu {
@@ -905,6 +905,91 @@
         overflow: hidden !important;
         max-height: none !important;
     }
+    /* Locked pill in Actions — match Adjust button size */
+    .lock-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+        min-width: 180px;
+        max-width: 180px;
+        padding: 8px 24px; /* same “feel” as action-btn */
+        border-radius: 999px;
+        background: #f3f4f6;
+        border: 2px solid #e5e7eb; /* optional: keep it consistent thickness */
+        color: #9ca3af;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+        .lock-pill i {
+            font-size: 13px;
+            opacity: .85;
+        }
+    /* ===============================
+           System Alert (Error)
+           =============================== */
+    .sys-alert {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.45;
+        border: 1.5px solid transparent;
+    }
+
+        .sys-alert i {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Error variant */
+        .sys-alert.error {
+            background: #fef2f2; /* soft red */
+            border-color: #fecaca; /* muted red border */
+            color: #7f1d1d; /* dark red text */
+        }
+    /* Costing method pill (read-only badge, not input look) */
+    .cost-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        min-width: 140px;
+        padding: 0 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+        background: #fff;
+        border: 1.5px solid #e5e7eb;
+        color: #111;
+    }
+
+        /* variants */
+        .cost-pill.fixed {
+            border-color: #111;
+            color: #111;
+        }
+
+        .cost-pill.weighted {
+            border-color: #6b7280;
+            color: #374151;
+        }
+
+        .cost-pill.fifo {
+            border-color: #9ca3af;
+            color: #6b7280;
+        }
+
+        .cost-pill.unknown {
+            color: #9ca3af;
+        }
 
 </style>
 
@@ -912,14 +997,12 @@
 
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger" style="
-            margin-bottom:16px;
-            border-radius:12px;
-            font-size:14px;
-            font-weight:600;">
-            @TempData["Error"]
+        <div class="sys-alert error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>@TempData["Error"]</span>
         </div>
     }
+
 
     <div class="page-head">
         <div>
@@ -1032,9 +1115,10 @@
                         </th>
                         <th style="min-width:160px">Item Name</th>
                         <th style="min-width:160px">Category</th>
-                        <th style="width:190px">Available</th>
-                        <th style="width:190px">Status</th>
-                        <th style="width:150px">Updated</th>
+                        <th style="width:100px">Available</th>
+                        <th style="width:180px">Costing Method</th>
+                        <th style="width:160px">Status</th>
+                        <th style="width:120px">Updated</th>
                         <th style="width:200px">Actions</th>
                     </tr>
                 </thead>
@@ -1061,7 +1145,9 @@
                                 data-status="@s.StockStatus"
                                 data-name="@s.ItemName"
                                 data-category="@s.CategoryName"
-                                data-qty="@s.AvailableQuantity">
+                                data-qty="@s.AvailableQuantity"
+                                data-costing="@s.CostingMethod">
+
 
                                 <td>
                                     <input type="checkbox"
@@ -1081,6 +1167,23 @@
                                 <td>@s.CategoryName</td>
 
                                 <td><strong>@s.AvailableQuantity</strong></td>
+
+                                <td>
+                                    @{
+                                        var cm = (s.CostingMethod ?? "").Trim();
+                                        var display = string.IsNullOrWhiteSpace(cm) ? "—" : cm;
+
+                                        var costClass =
+                                        cm.Equals("Fixed", StringComparison.OrdinalIgnoreCase) ? "fixed" :
+                                        (cm.Equals("Weighted Average", StringComparison.OrdinalIgnoreCase) || cm.Equals("WeightedAverage", StringComparison.OrdinalIgnoreCase)) ? "weighted" :
+                                        cm.Equals("FIFO", StringComparison.OrdinalIgnoreCase) ? "fifo" :
+                                        "unknown";
+                                    }
+
+                                    <span class="cost-pill @costClass">@display</span>
+                                </td>
+
+
 
                                 <td>
                                     <span class="status-pill @statusClass">@s.StockStatus</span>
@@ -1406,25 +1509,34 @@
               .filter(c => !c.disabled);
           }
 
-          function syncBulkUI() {
-            const checks = getVisibleChecks();
-            const checked = checks.filter(c => c.checked);
+                 function syncBulkUI() {
+          const checks = getVisibleChecks();
+          const checked = checks.filter(c => c.checked);
 
-            bulkAddBtn.disabled = checked.length === 0;
-            bulkOutBtn.disabled = checked.length === 0;
-
-            if (!selectAll) return;
-
-            if (checks.length === 0) {
+          // no selection
+          if (checked.length === 0) {
+            bulkAddBtn.disabled = true;
+            bulkOutBtn.disabled = true;
+            if (selectAll) {
               selectAll.checked = false;
               selectAll.indeterminate = false;
-              return;
             }
+            return;
+          }
 
-            if (checked.length === 0) {
-              selectAll.checked = false;
-              selectAll.indeterminate = false;
-            } else if (checked.length === checks.length) {
+          // get costing methods from selected rows
+          const costingSet = new Set(
+            checked.map(c => c.closest("tr")?.dataset.costing?.trim())
+          );
+
+          const mixedCosting = costingSet.size > 1;
+
+          bulkAddBtn.disabled = mixedCosting;
+          bulkOutBtn.disabled = mixedCosting;
+
+          // header checkbox state
+          if (selectAll) {
+            if (checked.length === checks.length) {
               selectAll.checked = true;
               selectAll.indeterminate = false;
             } else {
@@ -1432,6 +1544,17 @@
               selectAll.indeterminate = true;
             }
           }
+
+          // optional UX hint
+          bulkAddBtn.title = mixedCosting
+            ? "Selected items must use the same costing method"
+            : "Stock In";
+
+          bulkOutBtn.title = mixedCosting
+            ? "Selected items must use the same costing method"
+            : "Stock Out";
+        }
+
 
           selectAll?.addEventListener("change", function () {
             getVisibleChecks().forEach(c => c.checked = this.checked);

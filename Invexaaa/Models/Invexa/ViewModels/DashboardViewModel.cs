@@ -58,19 +58,23 @@ namespace Invexaaa.Models.ViewModels
         public decimal SalesAmount { get; set; }
     }
 
+
+
     public class ReorderPlannerItemVm
     {
-        public int ItemID { get; set; }
-        public string ItemName { get; set; } = string.Empty;
+        public string ItemName { get; set; } = "";
 
         public int CurrentQty { get; set; }
+
         public int ReorderPoint { get; set; }
         public int SafetyStock { get; set; }
+
         public decimal AverageDailyDemand { get; set; }
 
+        public int TargetStock { get; set; }
         public int SuggestedOrderQty { get; set; }
-        public decimal UnitBuyPrice { get; set; }
-        public decimal EstimatedCost { get; set; }
-        public decimal? RunoutDays { get; set; } // optional
+
+        public decimal? RunoutDays { get; set; }
     }
+
 }

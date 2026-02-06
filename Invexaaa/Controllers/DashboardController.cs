@@ -80,8 +80,52 @@ namespace Invexaaa.Controllers
                 })
                 .ToList();
 
+            // ===============================
+            // REORDER PLANNER (DEMAND-BASED)
+            // ===============================
+            const int PLANNING_DAYS = 14;
+
+            model.ReorderPlanner =
+            (
+                from i in _context.Items
+                join inv in _context.Inventories
+                    on i.ItemID equals inv.ItemID
+                where i.ItemStatus == "Active"
+                      && i.AverageDailyDemand > 0
+                let targetStock =
+                    (int)Math.Ceiling(
+                        (i.AverageDailyDemand * PLANNING_DAYS) + i.SafetyStock
+                    )
+                let suggestedQty =
+                    targetStock - inv.InventoryTotalQuantity
+                select new ReorderPlannerItemVm
+                {
+                    ItemName = i.ItemName,
+
+                    CurrentQty = inv.InventoryTotalQuantity,
+
+                    ReorderPoint = i.ReorderPoint,
+                    SafetyStock = i.SafetyStock,
+                    AverageDailyDemand = i.AverageDailyDemand,
+
+                    TargetStock = targetStock,
+                    SuggestedOrderQty = suggestedQty > 0 ? suggestedQty : 0,
+
+                    RunoutDays =
+                        i.AverageDailyDemand > 0
+                            ? Math.Round(
+                                inv.InventoryTotalQuantity / i.AverageDailyDemand, 1)
+                            : null
+                }
+            )
+            .Where(x => x.SuggestedOrderQty > 0)
+            .OrderBy(x => x.RunoutDays)
+            .Take(10)
+            .ToList();
 
             return View(model);
+
+
         }
     }
 }

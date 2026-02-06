@@ -100,44 +100,42 @@ namespace Invexaaa.Controllers
                     var totalDays = (forecastEnd - forecastStart).Days;
                     if (totalDays <= 0) totalDays = 1;
 
-                    var usageData =
-                        from t in _context.StockTransactions
-                        where t.TransactionType == "OUT"
-                              && (!startDate.HasValue || t.TransactionDate >= forecastStart)
-                              && (!endDate.HasValue || t.TransactionDate <= forecastEnd)
-                        group t by t.ItemID into g
-                        select new
-                        {
-                            ItemID = g.Key,
-                            TotalUsed = g.Sum(x => x.TransactionQuantity)
-                        };
-
                     vm.DemandForecastReport =
-                        (from u in usageData
-                         join i in _context.Items on u.ItemID equals i.ItemID
-                         let avgDaily = (decimal)u.TotalUsed / totalDays
-                         select new DemandForecastReportViewModel
-                         {
-                             ItemID = i.ItemID,
-                             ItemName = i.ItemName,
-                             ItemStatus = i.ItemStatus,
+    (from i in _context.Items
+     join inv in _context.Inventories
+        on i.ItemID equals inv.ItemID into invj
+     from inventory in invj.DefaultIfEmpty()
+     let targetStock =
+        (int)Math.Ceiling(
+            (i.AverageDailyDemand * totalDays) + i.SafetyStock
+        )
+     let currentStock =
+        inventory != null ? inventory.InventoryTotalQuantity : 0
+     let reorderQty = targetStock - currentStock
+     where i.AverageDailyDemand > 0 && reorderQty > 0
+     orderby reorderQty descending
+     select new DemandForecastReportViewModel
+     {
+         ItemID = i.ItemID,
+         ItemName = i.ItemName,
+         ItemStatus = i.ItemStatus,
 
-                             Period = startDate.HasValue || endDate.HasValue
-                                 ? $"{forecastStart:yyyy-MM-dd} → {forecastEnd:yyyy-MM-dd}"
-                                 : "All historical data",
+         Period =
+             startDate.HasValue || endDate.HasValue
+                 ? $"{forecastStart:yyyy-MM-dd} → {forecastEnd:yyyy-MM-dd}"
+                 : "Dashboard-based demand",
 
-                             // ✅ NEW
-                             AverageDailyDemand = Math.Round(avgDaily, 2),
+         AverageDailyDemand = Math.Round(i.AverageDailyDemand, 2),
 
-                             ForecastQty = (int)Math.Ceiling(avgDaily * totalDays),
+         ForecastQty =
+             (int)Math.Ceiling(i.AverageDailyDemand * totalDays),
 
-                             RecommendedReorder =
-                                 (int)Math.Ceiling((avgDaily * totalDays) + i.SafetyStock)
-                         })
-                        .OrderByDescending(x => x.AverageDailyDemand)
-                        .ToList();
+         RecommendedReorder = reorderQty
+     }).ToList();
+
 
                     break;
+
 
 
 

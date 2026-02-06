@@ -734,64 +734,9 @@
                 </table>
             </div>
 
-            <!-- Extra mini cards BELOW stock list (Business + Action) -->
-            <div class="dash-insights" style="margin-top:14px;">
-                <div class="insight">
-                    <div class="insight-label">Today Sales</div>
-                    <div class="insight-value">RM @Model.TodaySales.ToString("0.00")</div>
-                    <div class="insight-meta">@Model.TodayOrders order(s) · Avg RM @Model.AvgOrderValueToday.ToString("0.00")</div>
-                </div>
+      
 
-                <div class="insight">
-                    <div class="insight-label">This Month Sales</div>
-                    <div class="insight-value">RM @Model.MonthSales.ToString("0.00")</div>
-                    <div class="insight-meta">Month-to-date</div>
-                </div>
-
-                <div class="insight">
-                    <div class="insight-label">Reorder Cost Est.</div>
-                    <div class="insight-value">RM @Model.TotalReorderCostEstimate.ToString("0.00")</div>
-                    <div class="insight-meta">Top suggested orders</div>
-                </div>
-            </div>
-
-            <!-- Top Selling -->
-            <div class="panel" style="margin-top:14px; padding:14px 14px;">
-                <div class="panel-head" style="margin-bottom:8px;">
-                    <h5 class="panel-title">Top Selling (Last 7 Days)</h5>
-                </div>
-
-                <div class="sys-table-wrap">
-                    <table class="sys-table">
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th style="width:120px;">Qty</th>
-                                <th style="width:160px;">Sales</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.TopSellingItems?.Any() == true)
-                            {
-                                foreach (var x in Model.TopSellingItems)
-                                {
-                                    <tr>
-                                        <td><strong>@x.ItemName</strong></td>
-                                        <td>@x.QtySold</td>
-                                        <td>RM @x.SalesAmount.ToString("0.00")</td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="3" style="color: var(--muted); font-weight:700;">No sales data in this period</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        
 
             <!-- Reorder Planner -->
             <div class="panel" style="margin-top:14px; padding:14px 14px;">
@@ -807,7 +752,7 @@
                                 <th style="width:90px;">Qty</th>
                                 <th style="width:110px;">Target</th>
                                 <th style="width:130px;">Suggest</th>
-                                <th style="width:150px;">Est. Cost</th>
+                                
                             </tr>
                         </thead>
                         <tbody>
@@ -815,33 +760,36 @@
                             {
                                 foreach (var r in Model.ReorderPlanner)
                                 {
-                                    var target = r.ReorderPoint + r.SafetyStock;
-
                                     <tr>
                                         <td>
                                             <strong>@r.ItemName</strong>
                                             <div style="font-size:12px; color:var(--muted); font-weight:700;">
-                                                ROP @r.ReorderPoint · SS @r.SafetyStock · ADD @r.AverageDailyDemand
+                                                Avg demand: @r.AverageDailyDemand.ToString("0.#") / day ·
+                                                Reorder point: @r.ReorderPoint ·
+                                                Safety stock: @r.SafetyStock
                                                 @if (r.RunoutDays.HasValue)
                                                 {
-                                                    <span> · ~@Math.Round(r.RunoutDays.Value, 1) days left</span>
+                                                    <span> · approx. @r.RunoutDays.Value.ToString("0.#") days left</span>
                                                 }
                                             </div>
+
                                         </td>
                                         <td>@r.CurrentQty</td>
-                                        <td>@target</td>
+                                        <td>@r.TargetStock</td>
                                         <td><strong>@r.SuggestedOrderQty</strong></td>
-                                        <td>RM @r.EstimatedCost.ToString("0.00")</td>
                                     </tr>
                                 }
                             }
                             else
                             {
                                 <tr>
-                                    <td colspan="5" style="color: var(--muted); font-weight:700;">No reorder suggestions</td>
+                                    <td colspan="4" style="color: var(--muted); font-weight:700;">
+                                        No reorder suggestions
+                                    </td>
                                 </tr>
                             }
                         </tbody>
+
                     </table>
                 </div>
             </div>

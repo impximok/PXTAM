@@ -180,28 +180,21 @@
     }
 
     .kpi {
-        border: 2px solid var(--border);
-        border-radius: 16px;
-        padding: 14px 14px 12px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 10px 12px;
         background: #fff;
     }
 
         .kpi .k {
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: .2px;
+            font-size: 11px;
+            letter-spacing: .3px;
         }
 
         .kpi .v {
-            margin-top: 6px;
-            font-size: 22px;
-            font-weight: 900;
-            letter-spacing: -.3px;
-            color: var(--text);
-            line-height: 1.1;
+            font-size: 20px;
         }
+
 
     /* ===== Tables (system) ===== */
     .table-shell {
@@ -725,18 +718,53 @@
     <!-- ================= DEMAND FORECAST ================= -->
     @if (Model.ReportType == "DemandForecast")
     {
-        <div class="sys-alert">
+        <div class="sys-alert" style="margin-bottom:10px;">
+
             <small>
-                Forecasts are based on <b>historical stock-out transactions</b> and represent
-                <b>operational inventory demand</b> (non-sales).
+                Forecasts are derived from the <b>same Average Daily Demand logic used on the Dashboard</b>,
+                ensuring consistency with reorder planning and run-out calculations.
             </small>
         </div>
+
+        var totalItems = Model.DemandForecastReport.Count;
+        var totalForecast = Model.DemandForecastReport.Sum(x => x.ForecastQty);
+
+        // ONLY items that actually need reorder
+        var totalReorder =
+        Model.DemandForecastReport
+        .Where(x => x.RecommendedReorder > 0)
+        .Sum(x => x.RecommendedReorder);
+
+        var highDemand = Model.DemandForecastReport.Count(x => x.AverageDailyDemand >= 5);
+
+
+        <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
+
+            <div class="kpi">
+                <div class="k">Items Forecasted</div>
+                <div class="v">@totalItems</div>
+            </div>
+
+            <div class="kpi">
+                <div class="k">Total Forecast Qty</div>
+                <div class="v">@totalForecast.ToString("N0")</div>
+            </div>
+
+            <div class="kpi">
+                <div class="k">Items Needing Reorder</div>
+                <div class="v">
+                    @Model.DemandForecastReport.Count(x => x.RecommendedReorder > 0)
+                </div>
+            </div>
+        </div>
+
+
 
         @if (Model.DemandForecastReport == null || !Model.DemandForecastReport.Any())
         {
             <div class="sys-alert">
-                <b>No stock-out activity found.</b>
-                <div class="text-muted">Try expanding the date range.</div>
+                <b>No demand data available.</b>
+                <div class="text-muted">Ensure items have Average Daily Demand configured.</div>
             </div>
         }
         else
@@ -744,11 +772,14 @@
             <div class="card-shell">
                 <div class="card-pad">
                     <div class="card-title">Demand Forecast Insights</div>
-                    <div class="card-desc">Daily demand, forecast quantity, and reorder suggestion.</div>
+                    <div class="card-desc">
+                        Dashboard-aligned demand, forecast quantity, and reorder recommendation.
+                    </div>
 
+                    <!-- ===== Charts ===== -->
                     <div class="chart-box sm mb-3">
                         <div class="chart-title">Average Daily Demand</div>
-                        <div class="chart-sub">Based on historical stock-out activity.</div>
+                        <div class="chart-sub">Operational demand used by the Dashboard.</div>
                         <canvas id="dailyDemandChart"></canvas>
                     </div>
 
@@ -762,31 +793,65 @@
                         </div>
                         <div class="col-lg-4">
                             <div class="chart-box">
-                                <div class="chart-title">Reorder Suggestion</div>
-                                <div class="chart-sub">Compare forecast vs recommended reorder.</div>
+                                <div class="chart-title">Reorder Recommendation</div>
+                                <div class="chart-sub">Forecast + safety stock.</div>
                                 <canvas id="reorderChart"></canvas>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
-            <div class="card-shell" style="margin-top: 14px;">
+            <div class="card-shell" style="margin-top:14px;">
                 <div class="card-pad">
-                    <div class="card-title">Detailed Forecast Breakdown</div>
-                    <div class="card-desc">Inactive items are shown in a muted row style.</div>
+                    <div class="card-title">Reorder Priority (Top 5)</div>
+                    <div class="card-desc">
+                        Items requiring the most urgent replenishment.
+                    </div>
 
                     <div class="table-shell">
                         <table class="sys-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 32%;">Item</th>
-                                    <th style="width: 12%;">Status</th>
-                                    <th style="width: 18%;">Period</th>
-                                    <th style="width: 14%;">Avg Daily</th>
-                                    <th style="width: 12%;">Forecast</th>
-                                    <th style="width: 12%;">Reorder</th>
+                                    <th>Item</th>
+                                    <th class="num">Avg Daily</th>
+                                    <th class="num">Reorder Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var x in Model.DemandForecastReport
+                                                        .OrderByDescending(x => x.RecommendedReorder)
+                                                        .Take(5))
+                                {
+                                    <tr>
+                                        <td class="td-item">@x.ItemName</td>
+                                        <td class="num">@x.AverageDailyDemand.ToString("N2")</td>
+                                        <td class="num">@x.RecommendedReorder.ToString("N0")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ===== Table ===== -->
+            <div class="card-shell" style="margin-top:14px;">
+                <div class="card-pad">
+                    <div class="card-title">Detailed Forecast Breakdown</div>
+                    <div class="card-desc">Inactive items are shown in muted style.</div>
+
+                    <div class="table-shell">
+                        <table class="sys-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:32%;">Item</th>
+                                    <th style="width:12%;">Status</th>
+                                    <th style="width:18%;">Period</th>
+                                    <th class="num" style="width:14%;">Avg Daily</th>
+                                    <th class="num" style="width:12%;">Forecast</th>
+                                    <th class="num" style="width:12%;">Reorder</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -800,21 +865,19 @@
                                             </span>
                                         </td>
                                         <td class="td-period">@d.Period</td>
-                                        <td>@d.AverageDailyDemand.ToString("N2")</td>
-                                        <td>@d.ForecastQty.ToString("N0")</td>
-                                        <td>@d.RecommendedReorder.ToString("N0")</td>
-
+                                        <td class="num">@d.AverageDailyDemand.ToString("N2")</td>
+                                        <td class="num">@d.ForecastQty.ToString("N0")</td>
+                                        <td class="num">@d.RecommendedReorder.ToString("N0")</td>
                                     </tr>
                                 }
                             </tbody>
                         </table>
                     </div>
-
-
                 </div>
             </div>
         }
     }
+
 
     <!-- ================= STOCK SUMMARY ================= -->
     @if (Model.ReportType == "Stock" && Model.StockSummary != null)
@@ -988,217 +1051,130 @@
 @if (Model.ReportType == "DemandForecast" && Model.DemandForecastReport != null && Model.DemandForecastReport.Any())
 {
     <script>
-            const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-                                                                            Model.DemandForecastReport.Select(x => (x.ItemName.Length > 12 ? x.ItemName.Substring(0, 12) + "…" : x.ItemName))
-                                            ));
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    Model.DemandForecastReport.Select(x =>
+                            x.ItemName.Length > 14 ? x.ItemName.Substring(0, 14) + "…" : x.ItemName
+                    )
+            ));
 
-    const daily = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.AverageDailyDemand)));
-    const forecast = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.ForecastQty)));
-    const reorder = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemandForecastReport.Select(x => x.RecommendedReorder)));
+    const daily = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.DemandForecastReport.Select(x => x.AverageDailyDemand)
+        ));
 
-            // Safe max calc (prevents weird scaling)
-            function maxOf(arr) {
-              const nums = (arr || []).map(x => Number(x) || 0);
-              return Math.max(0, ...nums);
-            }
+    const forecast = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.DemandForecastReport.Select(x => x.ForecastQty)
+        ));
 
-            function niceMax(maxVal) {
-              if (maxVal <= 0) return 10;
-              const pow = Math.pow(10, Math.floor(Math.log10(maxVal)));
-              return Math.ceil(maxVal / pow) * pow;
-            }
+    const reorder = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                Model.DemandForecastReport.Select(x => x.RecommendedReorder)
+        ));
 
-            const maxDaily = niceMax(maxOf(daily));
-            const maxForecast = niceMax(maxOf(forecast));
-            const maxReorder = niceMax(Math.max(maxOf(forecast), maxOf(reorder)));
+    function niceMax(arr) {
+        const max = Math.max(0, ...arr.map(x => Number(x) || 0));
+        if (max <= 0) return 10;
+        const p = Math.pow(10, Math.floor(Math.log10(max)));
+        return Math.ceil(max / p) * p;
+    }
 
-                    // ===== External tooltip (follows cursor + fade + pin on click) =====
-            const tooltipState = new WeakMap(); // chart -> { pinned: bool, lastModel: any }
+        const tooltipState = new WeakMap();
 
-            function getOrCreateTooltipEl(chart) {
-              let el = chart.canvas._invTooltip;
-              if (!el) {
-                el = document.createElement('div');
-                el.className = 'inv-tooltip';
+        function attachCursorTracker(chart) {
+            const canvas = chart.canvas;
+
+            canvas.addEventListener("mousemove", e => {
+                chart._lastEvent = { x: e.clientX, y: e.clientY };
+            });
+
+            canvas.addEventListener("click", () => {
+                const st = tooltipState.get(chart) || { pinned: false, last: null };
+                if (st.last) st.pinned = !st.pinned;
+                tooltipState.set(chart, st);
+                chart.update();
+            });
+        }
+
+        function externalTooltipHandler(ctx) {
+            const { chart, tooltip } = ctx;
+            let el = chart.canvas._invTooltip;
+
+            if (!el) {
+                el = document.createElement("div");
+                el.className = "inv-tooltip";
                 document.body.appendChild(el);
                 chart.canvas._invTooltip = el;
-              }
-              return el;
             }
 
-            function externalTooltipHandler(context) {
-              const { chart, tooltip } = context;
-              const el = getOrCreateTooltipEl(chart);
+            const st = tooltipState.get(chart) || { pinned: false, last: null };
+            tooltipState.set(chart, st);
 
-              const st = tooltipState.get(chart) || { pinned: false, lastModel: null };
-              tooltipState.set(chart, st);
-
-              // If no tooltip shown and not pinned -> hide
-              if (tooltip.opacity === 0 && !st.pinned) {
-                el.classList.remove('show');
+            if (tooltip.opacity === 0 && !st.pinned) {
+                el.classList.remove("show");
                 return;
-              }
-
-              // Update content when we have data (or keep last when pinned)
-              if (tooltip.opacity !== 0) {
-                st.lastModel = tooltip;
-              }
-              const model = st.lastModel;
-              if (!model) return;
-
-              const title = (model.title && model.title[0]) ? model.title[0] : '';
-              const bodyLines = (model.body || []).map(b => b.lines).flat();
-
-              // Build HTML (clean, no color boxes)
-              let html = `<div class="tt-title">${title}</div>`;
-              bodyLines.forEach(line => {
-                html += `<div class="tt-row">${line}</div>`;
-              });
-
-              // Optional extra hint
-              const hasReorder = bodyLines.some(l => l.toLowerCase().includes('recommended reorder'));
-              if (hasReorder) {
-                html += `<div class="tt-sub">Suggested restock quantity</div>`;
-              }
-
-              html += `<div class="tt-pin">${st.pinned ? 'Pinned (click chart to unpin)' : 'Click bar to pin'}</div>`;
-
-              el.innerHTML = html;
-
-              // Position under mouse cursor
-              const e = chart._lastEvent;
-              if (e) {
-                const offset = 14; // distance from cursor
-                el.style.left = (e.x + offset) + 'px';
-                el.style.top  = (e.y + offset) + 'px';
-              }
-
-              el.classList.add('show');
             }
 
-            // Track last mouse position so tooltip can follow cursor
-            function attachCursorTracker(chart) {
-              const canvas = chart.canvas;
+            if (tooltip.opacity !== 0) st.last = tooltip;
+            if (!st.last) return;
 
-              // Chart.js sends a "native" event wrapper; we’ll store screen coords in chart._lastEvent
-              canvas.addEventListener('mousemove', (ev) => {
-                chart._lastEvent = { x: ev.clientX, y: ev.clientY };
-              });
+            let html = `<div class="tt-title">${st.last.title[0]}</div>`;
+            st.last.body.forEach(b => html += `<div class="tt-row">${b.lines}</div>`);
+            html += `<div class="tt-pin">${st.pinned ? "Pinned" : "Click bar to pin"}</div>`;
 
-              // Pin toggle on click (click a bar -> pin / unpin)
-              canvas.addEventListener('click', () => {
-                const st = tooltipState.get(chart) || { pinned: false, lastModel: null };
-                // Only allow pin if tooltip currently has content
-                if (st.lastModel) {
-                  st.pinned = !st.pinned;
-                  tooltipState.set(chart, st);
-                  // Force redraw so external handler runs
-                  chart.update();
-                }
-              });
+            el.innerHTML = html;
+
+            if (chart._lastEvent) {
+                el.style.left = chart._lastEvent.x + 14 + "px";
+                el.style.top = chart._lastEvent.y + 14 + "px";
             }
 
-            const baseOptions = (yMax) => ({
-            responsive: true,
-            maintainAspectRatio: false,
+            el.classList.add("show");
+        }
 
-                    interaction: {
-              mode: 'index',
-              intersect: false
-            },
-
-            plugins: {
-              legend: {
-                labels: {
-                  boxWidth: 14,
-                  boxHeight: 10,
-                  font: { size: 12, weight: '600' }
-                }
-              },
-              tooltip: {
-                backgroundColor: '#ffffff',
-                titleColor: '#111827',
-                bodyColor: '#111827',
-                borderColor: '#e5e7eb',
-                position: 'nearest',
-                borderWidth: 1,
-                cornerRadius: 10,
-                padding: 12,
-                titleFont: { size: 13, weight: '800' },
-                bodyFont: { size: 13, weight: '500' },
-                displayColors: false,
-                callbacks: {
-                  title: (items) => items[0].label,
-                  label: (ctx) => {
-                    const value = Number(ctx.parsed.y || 0).toLocaleString();
-                    return `${ctx.dataset.label}: ${value}`;
-                  },
-                  afterLabel: (ctx) => {
-                    return ctx.dataset.label === 'Recommended Reorder'
-                      ? 'Suggested restock quantity'
-                      : '';
-                  }
-                }
-              }
-            },
-                      scales: {
-                x: {
-                  ticks: { maxRotation: 0, autoSkip: true },
-                  grid: { display: false }
+        function baseOptions(maxY) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: { enabled: false, external: externalTooltipHandler }
                 },
-                y: {
-                  beginAtZero: true,
-                  suggestedMax: yMax,
-                  ticks: { callback: (v) => Number(v).toLocaleString() },
-                  grid: { color: "rgba(0,0,0,0.06)" }
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: maxY,
+                        ticks: { callback: v => v.toLocaleString() }
+                    }
                 }
-              }
-            });
+            };
+        }
 
+        const dailyChart = new Chart(dailyDemandChart, {
+            type: "bar",
+            data: { labels, datasets: [{ label: "Avg Daily Demand", data: daily, borderRadius: 10 }] },
+            options: baseOptions(niceMax(daily))
+        });
+        attachCursorTracker(dailyChart);
 
+        const forecastChart = new Chart(forecastQtyChart, {
+            type: "bar",
+            data: { labels, datasets: [{ label: "Forecast Qty", data: forecast, borderRadius: 10 }] },
+            options: baseOptions(niceMax(forecast))
+        });
+        attachCursorTracker(forecastChart);
 
-            // ✅ 1) Avg Daily Demand
-            new Chart(document.getElementById('dailyDemandChart'), {
-              type: 'bar',
-              data: {
-                labels,
-                datasets: [{
-                  label: 'Avg Daily Demand',
-                  data: daily,
-                  borderRadius: 10
-                }]
-              },
-              options: baseOptions(maxDaily)
-            });
-
-            // ✅ 2) Forecast Qty
-            new Chart(document.getElementById('forecastQtyChart'), {
-              type: 'bar',
-              data: {
-                labels,
-                datasets: [{
-                  label: 'Forecast Qty',
-                  data: forecast,
-                  borderRadius: 10
-                }]
-              },
-              options: baseOptions(maxForecast)
-            });
-
-            // ✅ 3) Reorder Compare
-            new Chart(document.getElementById('reorderChart'), {
-              type: 'bar',
-              data: {
+        const reorderChart = new Chart(reorderChart, {
+            type: "bar",
+            data: {
                 labels,
                 datasets: [
-                  { label: 'Forecast', data: forecast, borderRadius: 10 },
-                  { label: 'Recommended Reorder', data: reorder, borderRadius: 10 }
+                    { label: "Forecast", data: forecast, borderRadius: 10 },
+                    { label: "Recommended Reorder", data: reorder, borderRadius: 10 }
                 ]
-              },
-              options: baseOptions(maxReorder)
-            });
+            },
+            options: baseOptions(niceMax([...forecast, ...reorder]))
+        });
+        attachCursorTracker(reorderChart);
     </script>
 }
+
 
 <script>
     (function () {

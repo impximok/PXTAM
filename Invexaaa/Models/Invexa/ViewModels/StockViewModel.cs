@@ -12,6 +12,8 @@ namespace Invexaaa.Models.ViewModels
 
         public string CategoryName { get; set; } = string.Empty;
 
+        public string CostingMethod { get; set; }  // e.g. "Fixed", "Weighted Average", "FIFO"
+
         public int AvailableQuantity { get; set; }
 
         public string StockStatus { get; set; } = "In Stock";

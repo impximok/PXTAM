@@ -1,5 +1,6 @@
 ﻿@model Invexaaa.Models.ViewModels.BulkMinusStockViewModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Invexaaa.Models.Invexa.Enums
 
 @{
     ViewData["Title"] = "Stock Out";
@@ -8,15 +9,14 @@
 
 @{
     bool isUnitLocked =
-        Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed
-     || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage;
+        Model.CostingMethod == CostingMethod.Fixed
+     || Model.CostingMethod == CostingMethod.WeightedAverage;
 }
-
 
 <style>
     /* ===============================
-               INVEXA · BLACK & WHITE SYSTEM
-            =============================== */
+                   INVEXA · BLACK & WHITE SYSTEM
+                =============================== */
     :root {
         --bg: #ffffff;
         --card: #ffffff;
@@ -26,7 +26,17 @@
         --soft: #f3f4f6;
         --shadow: 0 10px 24px rgba(0,0,0,.06);
         --radius: 18px;
+        --w-strong: 800;
+        --w-mid: 600;
+        --w-base: 500;
+        --fs-page: 34px;
+        --fs-section: 18px;
+        --fs-body: 14px;
+        --fs-meta: 13px;
+        --fs-help: 12px;
+        --focus: 0 0 0 4px rgba(17,17,17,.08);
         --danger: #dc2626;
+        --ok: #16a34a;
     }
 
     html, body, main,
@@ -36,7 +46,7 @@
     }
 
     /* Page wrapper */
-    .page-wrap {
+    .addstock-wrap {
         width: 100%;
         padding: 10px 18px 26px;
         max-width: 1100px;
@@ -49,24 +59,25 @@
         align-items: flex-end;
         justify-content: space-between;
         gap: 14px;
-        padding: 6px 2px 14px;
+        padding: 6px 2px 12px;
         border-bottom: 1px solid var(--border);
-        margin-bottom: 18px;
+        margin-bottom: 14px;
     }
 
-    .title {
-        font-weight: 800;
-        letter-spacing: .2px;
+    .page-title {
+        font-size: var(--fs-page);
+        font-weight: var(--w-strong);
         color: var(--text);
-        font-size: 34px;
         margin: 0;
         line-height: 1.1;
+        letter-spacing: .2px;
     }
 
-    .subtitle {
+    .page-subtitle {
         margin: 6px 0 0;
+        font-size: var(--fs-meta);
+        font-weight: var(--w-base);
         color: var(--muted);
-        font-size: 13px;
     }
 
     /* Card */
@@ -79,35 +90,112 @@
     }
 
     .inv-card__head {
-        padding: 14px 18px;
+        padding: 16px 18px;
         border-bottom: 1px solid var(--border);
         background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
     }
 
     .inv-card__title {
         margin: 0;
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 800;
         color: var(--text);
         letter-spacing: .2px;
+        line-height: 1.15;
     }
 
-    .inv-card__sub {
-        margin: 6px 0 0;
+    .card-subtitle {
+        margin: 0;
         font-size: 13px;
-        color: var(--muted);
+        font-weight: 500;
+        color: var(--text);
+        line-height: 1.55;
     }
 
     .inv-card__body {
         padding: 16px 18px 18px;
     }
 
-    /* Form grid */
+    /* ===== Invexa Section Header (same as Stock In) ===== */
+    .inv-head {
+        padding: 18px 18px 14px !important;
+        background: #fff;
+    }
+
+    .inv-head__row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .inv-head__left {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .inv-head__title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.15;
+    }
+
+    .inv-head__desc {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .inv-head__right {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .method-pill {
+        height: 30px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1.5px solid #111;
+        background: #fff;
+        font-size: 12px;
+        font-weight: 800;
+        color: #111;
+        letter-spacing: .2px;
+        white-space: nowrap;
+    }
+
+    @@media (max-width:768px) {
+        .inv-head__row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .inv-head__right {
+            margin-top: 6px;
+        }
+    }
+
+    /* Form grid (same rhythm as Stock In) */
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 14px 18px;
-        align-items: end;
+        column-gap: 22px;
+        row-gap: 22px;
+        align-items: start;
+    }
+
+    @@media (max-width:768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     .field {
@@ -115,63 +203,78 @@
         flex-direction: column;
     }
 
+    /* Labels (same pattern) */
     .inv-label {
-        font-size: 13px; /* ✅ smaller labels */
-        font-weight: 600;
-        color: #000;
-        letter-spacing: .25px;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
         margin-bottom: 6px;
+        font-size: 13px;
+        font-weight: var(--w-mid);
+        color: var(--text);
+    }
+
+    .label-main {
         display: inline-flex;
-        align-items: center;
-        gap: 3px;
+        align-items: baseline;
+        gap: 4px;
+    }
+
+    .label-meta {
+        font-size: var(--fs-help);
+        font-weight: var(--w-base);
+        color: var(--muted);
+        white-space: nowrap;
     }
 
     .req {
         color: var(--danger);
-        font-weight: 900;
+        font-weight: var(--w-strong);
+        font-size: 12px;
         line-height: 1;
     }
 
-    /* Inputs (system rules: default 2px border, focus 2px black) */
+    /* Inputs */
     .inv-input {
         border-radius: 14px !important;
         border: 2px solid var(--border) !important;
         background: #fff !important;
-        padding: 12px 12px !important;
+        padding: 10px 12px !important;
         font-size: 14px !important;
         color: var(--text) !important;
         box-shadow: none !important;
-        transition: border-color 160ms ease;
+        transition: border-color 160ms ease, box-shadow 160ms ease;
     }
 
         .inv-input:focus {
             border: 2px solid #111 !important;
             outline: none !important;
-            box-shadow: none !important;
         }
 
-        /* Unobtrusive validation adds this */
-        .input-validation-error,
-        .inv-input.input-validation-error {
-            border: 2px solid var(--danger) !important;
+        .inv-input::placeholder {
+            color: #9ca3af;
         }
 
-            .input-validation-error:focus,
-            .inv-input.input-validation-error:focus {
-                border: 2px solid var(--danger) !important;
-            }
-
-    /* Error text: not bold */
+    /* Validation */
+    .text-danger,
     .field-validation-error,
-    .text-danger {
+    span[data-valmsg-for] {
         display: block;
-        margin-top: 6px;
-        font-size: 12px;
-        font-weight: 500 !important;
+        margin-top: 6px !important;
+        font-size: var(--fs-help);
+        font-weight: var(--w-base) !important;
         color: var(--danger) !important;
+        line-height: 1.25;
+        padding-left: 2px;
     }
 
-    /* Actions (right aligned like your system) */
+    .input-validation-error,
+    .inv-input.input-validation-error {
+        border: 2px solid var(--danger) !important;
+    }
+
+    /* Actions */
     .actions {
         margin-top: 16px;
         padding-top: 14px;
@@ -187,29 +290,26 @@
         border-radius: 999px !important;
         padding: 10px 20px !important;
         font-size: 13px !important;
-        font-weight: 800 !important;
+        font-weight: var(--w-strong) !important;
         border: 2px solid #111 !important;
-        min-width: 170px;
+        min-width: 160px;
         height: 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        text-decoration: none !important;
         transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+        text-decoration: none !important;
         white-space: nowrap;
-        gap: 8px;
     }
 
-    /* Primary = Stock Out (danger style but same hover behavior) */
-    .pill-btn--danger {
-        background: #fff !important;
-        color: var(--danger) !important;
-        border-color: var(--danger) !important;
+    .pill-btn--primary {
+        background: #111 !important;
+        color: #fff !important;
     }
 
-        .pill-btn--danger:hover {
-            background: var(--danger) !important;
-            color: #fff !important;
+        .pill-btn--primary:hover {
+            background: #fff !important;
+            color: #111 !important;
             box-shadow: 0 4px 14px rgba(0,0,0,.10);
         }
 
@@ -224,11 +324,43 @@
             box-shadow: 0 4px 14px rgba(0,0,0,.10);
         }
 
-        .pill-btn:active,
-        .pill-btn--ghost:active,
-        .pill-btn--danger:active {
-            box-shadow: 0 2px 8px rgba(0,0,0,.16);
+    .pill-btn:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+        box-shadow: none !important;
+    }
+
+    @@media (max-width:768px) {
+        .pill-btn {
+            width: 100%;
         }
+    }
+
+    /* Preview card */
+    .preview-card {
+        overflow: hidden;
+    }
+
+    .preview-head {
+        padding: 16px 18px !important;
+        border-bottom: 1px solid var(--border);
+        background: #fff !important;
+    }
+
+    .preview-title .t {
+        font-size: 18px;
+        font-weight: var(--w-strong);
+        color: var(--text);
+        margin: 0;
+        line-height: 1.15;
+    }
+
+    .preview-title .s {
+        font-size: var(--fs-meta);
+        font-weight: var(--w-base);
+        color: var(--muted);
+        margin-top: 4px;
+    }
 
     /* Table */
     .inv-table {
@@ -237,237 +369,420 @@
     }
 
         .inv-table thead th {
-            font-size: 12px;
-            font-weight: 900;
-            letter-spacing: .35px;
+            background: var(--soft) !important;
+            color: var(--text) !important;
+            font-size: var(--fs-help) !important;
+            font-weight: var(--w-strong) !important;
             text-transform: uppercase;
-            color: #111827;
-            background: var(--soft);
+            letter-spacing: .25px;
             border-bottom: 1px solid var(--border) !important;
             padding: 12px 14px !important;
             white-space: nowrap;
         }
 
         .inv-table tbody td {
-            font-size: 14px;
-            color: #111827;
-            font-weight: 600;
+            font-size: var(--fs-body);
+            font-weight: var(--w-base);
+            color: var(--text);
             border-top: 1px solid #eef0f3 !important;
-            padding: 14px 14px !important;
+            padding: 16px 14px !important;
             vertical-align: middle;
         }
 
+        .inv-table tbody tr:nth-child(even) {
+            background: #fcfcfd;
+        }
+
         .inv-table tbody tr:hover {
-            background: #fafafa;
+            background: #f9fafb;
         }
 
     .mono-pill {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 30px;
-        min-width: 52px;
+        height: 32px;
+        min-width: 64px;
         padding: 0 12px;
         border-radius: 999px;
         border: 1.5px solid #d1d5db;
         background: #fff;
-        font-size: 12px;
-        font-weight: 800;
-        color: #111827;
+        font-size: var(--fs-help);
+        font-weight: var(--w-mid);
+        color: var(--text);
         white-space: nowrap;
     }
 
     .mono-pill--muted {
         background: #f3f4f6;
         border-color: #d1d5db;
-        color: #6b7280;
-        font-weight: 700;
+        color: var(--muted);
+        font-weight: var(--w-base);
     }
 
     .mono-pill--danger {
         background: #fff;
         border-color: var(--danger);
         color: var(--danger);
+        font-weight: var(--w-strong);
     }
 
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .form-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .pill-btn {
-            width: 100%;
-        }
-    }
-
-    .success-banner {
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        background: #fff;
-        padding: 14px 18px;
+    /* Success header (same as Stock In) */
+    .success-head {
+        padding: 16px 18px !important;
+        background: #fff !important;
+        border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 14px;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
     .success-left {
         display: flex;
-        gap: 12px;
         align-items: flex-start;
+        gap: 12px;
     }
 
     .success-icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 10px;
-        background: #16a34a;
-        color: #fff;
-        display: flex;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         font-weight: 900;
-        margin-top: 8px; /* tick lower */
-    }
-
-    .success-title {
-        font-weight: 800;
-        color: #111;
-    }
-
-    .success-sub {
-        font-size: 13px;
-        color: #000;
+        font-size: 14px;
+        background: var(--ok);
+        color: #fff;
+        line-height: 1;
         margin-top: 2px;
     }
 
-    .pill-btn--success {
-        background: #16a34a !important;
-        border: 2px solid #16a34a !important;
-        color: #fff !important;
-    }
-
-        .pill-btn--success:hover {
-            background: #fff !important;
-            color: #16a34a !important;
-        }
-
-    /* Preview Card (same system style as other panels) */
-    .preview-card {
-        margin-top: 18px;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        background: var(--card);
-        box-shadow: var(--shadow);
-        overflow: hidden;
-    }
-
-    /* Preview header bar */
-    .preview-header {
-        padding: 14px 18px;
-        border-bottom: 1px solid var(--border);
-        font-size: 18px;
-        font-weight: 800;
+    .success-title {
+        font-size: 16px;
+        font-weight: var(--w-strong);
         color: var(--text);
-        background: #fff;
+        line-height: 1.15;
     }
 
-    /* Preview card (same style as Stock In "Stock Preview") */
-    .preview-card {
-        margin-top: 18px;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        background: var(--card);
-        box-shadow: var(--shadow);
-        overflow: hidden;
-    }
-
-    .preview-head {
-        padding: 14px 18px;
-        border-bottom: 1px solid var(--border);
-        background: #fff;
-    }
-
-    .preview-title {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--text);
-        letter-spacing: .2px;
-    }
-
-    .preview-sub {
-        margin: 6px 0 0;
-        font-size: 13px;
+    .success-sub {
+        margin-top: 4px;
+        font-size: var(--fs-meta);
+        font-weight: var(--w-base);
         color: var(--muted);
+        line-height: 1.4;
     }
 
-    .success-banner {
-        border: 1px solid #e5e7eb;
-        border-radius: 18px;
+    /* ===== Custom Select (cs2) – same as Stock In ===== */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 8px 40px 8px 12px;
+        height: 42px;
         background: #fff;
-        padding: 14px 18px;
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 500;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        box-shadow: 0 10px 24px rgba(0,0,0,.06);
+        cursor: pointer;
+        position: relative;
+        transition: border-color 160ms ease, box-shadow 160ms ease;
     }
-    /* Primary black action button */
-    .pill-btn--primary {
-        background: #111 !important;
-        color: #fff !important;
+
+    .cs2-value {
+        flex: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .cs2-btn:focus,
+    .cs2.open .cs2-btn {
         border-color: #111 !important;
+        outline: none;
     }
 
+    .cs2-caret {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
 
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 9999;
+        display: none;
+        overflow: hidden;
+    }
 
-        .pill-btn--primary:disabled {
-            opacity: .4;
-            cursor: not-allowed;
-            box-shadow: none;
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+        .cs2-item:hover {
+            background: #f3f4f6;
         }
 
-    .pill-btn--ghost {
-        background: #fff !important;
-        color: #111 !important;
-        border: 2px solid #111 !important;
+    /* error: real select validation -> highlight button */
+    .real-select.input-validation-error + .cs2 .cs2-btn {
+        border-color: var(--danger) !important;
+        box-shadow: none !important;
+    }
+    /* ===== Locked / disabled unit field ===== */
+    .inv-input:disabled,
+    .inv-input[disabled] {
+        background: #f3f4f6 !important; /* soft gray */
+        color: #6b7280 !important; /* muted text */
+        border-color: #e5e7eb !important;
+        cursor: not-allowed;
+        opacity: 1; /* prevent browser default fade */
     }
 
-        .pill-btn--ghost:hover {
-            background: #111 !important;
-            color: #fff !important;
+        /* Remove focus / hover effects when disabled */
+        .inv-input:disabled:focus {
+            box-shadow: none !important;
+            border-color: #e5e7eb !important;
         }
 
-    .pill-btn--primary {
-        background: #111 !important;
-        color: #fff !important;
-        border: 2px solid #111 !important;
+    /* ===== Custom Select (cs2) ===== */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
     }
 
-        .pill-btn--primary:hover {
-            background: #fff !important;
-            color: #111 !important;
-            border-color: #111 !important;
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 8px 40px 8px 12px;
+        height: 42px;
+        background: #fff;
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .cs2-value {
+        flex: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .cs2-btn:focus,
+    .cs2.open .cs2-btn {
+        border-color: #111 !important;
+        outline: none;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 9999;
+        display: none;
+        overflow: hidden;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+        .cs2-item:hover {
+            background: #f3f4f6;
+        }
+
+    /* Validation: highlight cs2 when real select has error */
+    .real-select.input-validation-error + .cs2 .cs2-btn {
+        border-color: var(--danger) !important;
+        box-shadow: none !important;
+    }
+
+    /* ===== Locked styling ===== */
+    .cs2.is-locked .cs2-btn {
+        background: #f3f4f6 !important;
+        border-color: #e5e7eb !important;
+        color: #6b7280 !important;
+        cursor: not-allowed;
+        box-shadow: none !important;
+    }
+
+    .cs2.is-locked .cs2-caret {
+        border-right-color: #9ca3af;
+        border-bottom-color: #9ca3af;
+    }
+
+    .cs2.is-locked .cs2-menu {
+        display: none !important;
+    }
+    /* ===== Costing method pill (final) ===== */
+    .method-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1.5px solid #111;
+        background: #fff;
+        font-size: 12px;
+        font-weight: 800;
+        color: #111;
+        letter-spacing: .2px;
+        white-space: nowrap;
+        /* prevents flex shrink issues */
+        flex: 0 0 auto;
+    }
+
+    /* If long enum text happens, still looks nice */
+    .method-pill {
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Mobile: pill sits nicely under title */
+    @@media (max-width:768px) {
+        .inv-head__right {
+            width: 100%;
+        }
+
+        .method-pill {
+            height: 32px;
+            padding: 0 14px;
+            max-width: 100%;
+        }
+    }
+
+    .inline-warn {
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #fecaca;
+        background: #fff5f5;
+        color: #991b1b;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+        .inline-warn .icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            background: #dc2626;
+            color: #fff;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
 </style>
 
-<div class="page-wrap">
+<div class="addstock-wrap">
 
     <!-- Header -->
     <div class="page-head">
         <div>
-            <h1 class="title">Stock Out</h1>
-            <p class="subtitle">
-                Deduct stock from selected items. Costing follows item method (FIFO / Average / Fixed).
-            </p>
-
+            <h1 class="page-title">Stock Out</h1>
+            <p class="page-subtitle">Deduct quantity from selected items. Preview updates live.</p>
         </div>
     </div>
 
     <form asp-action="MinusStockBatchBulk" method="post" novalidate>
+
+        <input type="hidden" asp-for="CostingMethod" />
+
         @Html.AntiForgeryToken()
 
         @foreach (var id in Model.InventoryIds)
@@ -475,73 +790,86 @@
             <input type="hidden" name="InventoryIds" value="@id" />
         }
 
-        <!-- ENTRY CARD -->
+        <!-- FORM CARD -->
         <div class="inv-card">
-            <div class="inv-card__head">
-                <h2 class="inv-card__title">Stock Out Entry</h2>
-                <p class="inv-card__sub">Enter quantity and reason. Preview updates live.</p>
-                <div class="alert alert-info" style="margin-top:10px">
-                    <strong>Costing Method:</strong>
-                    <span class="badge bg-primary">
-                        @Model.CostingMethod
-                    </span>
+
+            <!-- ✅ Same header component as Stock In -->
+            <div class="inv-card__head inv-head">
+                <div class="inv-head__row">
+                    <div class="inv-head__left">
+                        <h2 class="inv-head__title">Stock Deduction</h2>
+
+                        <p class="inv-head__desc">
+                            @if (Model.CostingMethod == CostingMethod.FIFO)
+                            {
+                                <span><b>FIFO</b> costing is applied automatically. Stock is deducted from <b>oldest batches</b> first.</span>
+                            }
+                            else if (Model.CostingMethod == CostingMethod.WeightedAverage)
+                            {
+                                <span><b>Weighted Average</b> costing is applied automatically. Unit cost follows the <b>current average</b>.</span>
+                            }
+                            else if (Model.CostingMethod == CostingMethod.Fixed)
+                            {
+                                <span><b>Fixed</b> costing is applied automatically. Unit cost uses <b>standard cost</b>.</span>
+                            }
+                        </p>
+                    </div>
+
+                    <div class="inv-head__right">
+                        @{
+                            string methodText =
+                            Model.CostingMethod == CostingMethod.WeightedAverage ? "Weighted Average" :
+                            Model.CostingMethod == CostingMethod.Fixed ? "Fixed" :
+                            "FIFO";
+                        }
+
+                        <span class="method-pill" title="@methodText">@methodText</span>
+                    </div>
+
                 </div>
-
-
-                <div class="val-summary" style="margin-top:10px">
-                    <strong>Costing Method Notice</strong>
-                    <ul>
-                        @if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.FIFO)
-                        {
-                            <li>
-                                Unit cost is taken from the <b>oldest available batches</b> (FIFO).
-                            </li>
-                        }
-                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage)
-                        {
-                            <li>
-                                Unit cost is taken from the <b>current average cost</b>.
-                            </li>
-                        }
-                        else if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed)
-                        {
-                            <li>
-                                Unit cost is taken from the <b>inventory standard cost</b>.
-                            </li>
-                        }
-                    </ul>
-
-                </div>
-
             </div>
+            @if (!Model.HasAnyStock)
+            {
+                <div class="inline-warn" style="margin-bottom:16px;">
+                    <div class="icon">!</div>
+                    <div class="msg">
+                        No stock is available for deduction.<br />
+                        Please stock in this item before performing stock out.
+                    </div>
+                </div>
+            }
+
+
 
             <div class="inv-card__body">
                 <div class="form-grid">
+
+                    <!-- Quantity -->
                     <div class="field">
                         <div class="inv-label">
-                            Quantity to Deduct (per item) <span class="req">*</span>
+                            <span class="label-main">Quantity to Deduct <span class="req">*</span></span>
                         </div>
-
                         <input asp-for="InputQuantity"
                                type="number"
                                min="1"
-                               class="form-control inv-input"
+                               class="form-control inv-input js-int"
                                id="qtyInput"
                                placeholder="e.g. 3" />
 
                         <span asp-validation-for="InputQuantity" class="text-danger"></span>
-
                     </div>
 
+                    <!-- Unit -->
                     <div class="field">
                         <div class="inv-label">
-                            Unit <span class="req">*</span>
+                            <span class="label-main">Unit <span class="req">*</span></span>
+                            <span class="label-meta">@((isUnitLocked) ? "Locked by costing" : "")</span>
                         </div>
 
+                        <!-- real select (binds to model) -->
                         <select asp-for="UnitConversionID"
-                                class="form-control inv-input"
-                                id="unitSelect"
-                                disabled="@(isUnitLocked ? "disabled" : null)">
+                                class="real-select You DO NOT disable"
+                                id="unitSelect">
 
 
                             <option value="">-- Select Unit --</option>
@@ -553,16 +881,37 @@
                                     @unit.UnitName @(unit.IsBaseUnit ? "(Base)" : "")
                                 </option>
                             }
-
                         </select>
+
+                        <!-- custom UI -->
+                        <div class="cs2 @(isUnitLocked ? "is-locked" : "")" data-select="unitSelect">
+                            <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="cs2-value">-- Select Unit --</span>
+                                <span class="cs2-caret"></span>
+                            </button>
+
+                            <div class="cs2-menu" role="listbox">
+                                <button type="button" class="cs2-item" data-value="">-- Select Unit --</button>
+                                @foreach (var unit in Model.AvailableUnits)
+                                {
+                                    <button type="button"
+                                            class="cs2-item"
+                                            data-value="@unit.ItemUnitConversionID"
+                                            data-multiplier="@unit.BaseUnitMultiplier">
+                                        @unit.UnitName @(unit.IsBaseUnit ? "(Base)" : "")
+                                    </button>
+                                }
+                            </div>
+                        </div>
 
                         <span asp-validation-for="UnitConversionID" class="text-danger"></span>
                     </div>
 
 
+                    <!-- Reason -->
                     <div class="field">
                         <div class="inv-label">
-                            Reason <span class="req">*</span>
+                            <span class="label-main">Reason <span class="req">*</span></span>
                         </div>
 
                         <input asp-for="StockOutRemark"
@@ -572,30 +921,49 @@
                         <span asp-validation-for="StockOutRemark" class="text-danger"></span>
                     </div>
 
+                    <!-- Customer -->
                     <div class="field">
                         <div class="inv-label">
-                            Customer (optional)
+                            <span class="label-main">Customer</span>
+                            <span class="label-meta">Optional</span>
                         </div>
 
+                        <!-- real select (binds to model) -->
                         <select asp-for="CustomerID"
-                                class="form-control inv-input"
+                                class="real-select"
                                 id="customerSelect">
-
                             <option value="">-- Select Customer --</option>
                             @foreach (var c in Model.Customers)
                             {
-                                <option value="@c.CustomerID">
-                                    @c.CustomerName
-                                </option>
+                                <option value="@c.CustomerID">@c.CustomerName</option>
                             }
                         </select>
+
+                        <!-- custom UI -->
+                        <div class="cs2" data-select="customerSelect">
+                            <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="cs2-value">-- Select Customer --</span>
+                                <span class="cs2-caret"></span>
+                            </button>
+
+                            <div class="cs2-menu" role="listbox">
+                                <button type="button" class="cs2-item" data-value="">-- Select Customer --</button>
+                                @foreach (var c in Model.Customers)
+                                {
+                                    <button type="button" class="cs2-item" data-value="@c.CustomerID">@c.CustomerName</button>
+                                }
+                            </div>
+                        </div>
 
                         <span asp-validation-for="CustomerID" class="text-danger"></span>
                     </div>
 
+
+                    <!-- Customer snapshot -->
                     <div class="field">
                         <div class="inv-label">
-                            Customer Name (fallback)
+                            <span class="label-main">Customer Name (fallback)</span>
+                            <span class="label-meta">Used when no customer</span>
                         </div>
 
                         <input asp-for="CustomerNameSnapshot"
@@ -603,10 +971,8 @@
                                id="customerSnapshot"
                                placeholder="e.g. Walk-in customer, Order #1234" />
 
-
                         <span asp-validation-for="CustomerNameSnapshot" class="text-danger"></span>
                     </div>
-
 
                 </div>
 
@@ -614,8 +980,6 @@
                     <button type="submit" class="pill-btn pill-btn--primary">
                         Confirm
                     </button>
-
-
 
                     <a asp-action="StockIndex" class="pill-btn pill-btn--ghost">
                         Cancel
@@ -626,115 +990,74 @@
 
         @if (!Model.ShowSummary)
         {
-            <!-- LIVE PREVIEW (BEFORE CONFIRM) -->
-            <div class="preview-card">
+            <!-- Preview -->
+            <div class="inv-card mt-4 preview-card">
                 <div class="preview-head">
-                    <h2 class="preview-title">Live Stock Out Preview</h2>
-                    <p class="preview-sub">Check stock levels before confirming deduction.</p>
+                    <div class="preview-title">
+                        <div class="t">Stock Preview</div>
+                        <div class="s">Check stock levels before confirming deduction.</div>
+                    </div>
                 </div>
 
-                <table class="table inv-table mb-0">
-                    <thead>
-                        <tr>
-                            <th style="width:55%">Item</th>
-                            <th style="width:20%">Current</th>
-                            <th style="width:25%">After Deduction</th>
-                        </tr>
-                    </thead>
-                    <tbody id="previewBody">
-                        @foreach (var p in Model.PreviewItems)
-                        {
-                            <tr data-available="@p.AvailableQuantity">
-                                <td>@p.ItemName</td>
-                                <td>
-                                    <span class="mono-pill">@p.AvailableQuantity</span>
-                                </td>
-                                <td class="afterQty">
-                                    <span class="mono-pill mono-pill--muted">–</span>
-                                </td>
+                <div class="inv-card__body" style="padding:0;">
+                    <table class="table inv-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:55%">Item</th>
+                                <th style="width:20%">Current</th>
+                                <th style="width:25%">After Deduction</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody id="previewBody">
+                            @foreach (var p in Model.PreviewItems)
+                            {
+                                <tr data-available="@p.AvailableQuantity">
+                                    <td>@p.ItemName</td>
+                                    <td><span class="mono-pill">@p.AvailableQuantity</span></td>
+                                    <td class="afterQty"><span class="mono-pill mono-pill--muted">–</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         }
         else
         {
-            <!-- SUCCESS (REPLACES PREVIEW) -->
-            <div class="success-banner mt-4">
-                <div class="success-left">
-                    <div class="success-icon">✓</div>
-                    <div>
-                        <div class="success-title">Stock Out Successful</div>
-                        <div class="success-sub">
-                            @{
-                                var names = (Model.PreviewItems ?? new()).Select(x => x.ItemName).ToList();
-                                var count = names.Count;
+            <!-- Success -->
+            <div class="inv-card mt-4">
+                <div class="success-head">
+                    <div class="success-left">
+                        <span class="success-icon">✓</span>
+                        <div>
+                            <div class="success-title">Stock Out Successful</div>
+                            <div class="success-sub">
+                                @{
+                                    var names = (Model.PreviewItems ?? new()).Select(x => x.ItemName).ToList();
+                                    var count = names.Count;
 
-                                if (count == 1)
-                                {
-                                    <text>
-                                        Deducted <b>@Model.InputQuantity</b> unit(s) from <b>@names[0]</b> with reason <b>@Model.StockOutRemark</b>.
-                                    </text>
+                                    if (count == 1)
+                                    {
+                                        <text>
+                                            Deducted <b>@Model.InputQuantity</b> unit(s) from <b>@names[0]</b> with reason <b>@Model.StockOutRemark</b>.
+                                        </text>
+                                    }
+                                    else
+                                    {
+                                        <text>
+                                            Deducted <b>@Model.InputQuantity</b> unit(s) from <b>@count</b> item(s) with reason <b>@Model.StockOutRemark</b>.
+                                        </text>
+                                    }
                                 }
-                                else
-                                {
-                                    <text>
-                                        Deducted <b>@Model.InputQuantity</b> unit(s) from <b>@count</b> item(s) with reason <b>@Model.StockOutRemark</b>.
-                                    </text>
-                                }
-                            }
+                            </div>
                         </div>
-
                     </div>
+
+                    <a asp-action="StockIndex" class="pill-btn pill-btn--ghost">Back to Stock</a>
                 </div>
 
-                <a asp-action="StockIndex" class="pill-btn pill-btn--ghost">
-                    Back to Stock
-                </a>
             </div>
-            @if (Model.FifoConsumptions != null && Model.FifoConsumptions.Any())
-            {
-                <div class="inv-card mt-4">
-                    <div class="inv-card__head">
-                        <h2 class="inv-card__title">FIFO Batch Consumption</h2>
-                        <p class="inv-card__sub">
-                            Stock was deducted using FIFO (oldest batch first).
-                        </p>
-                    </div>
-
-                    <div class="inv-card__body p-0">
-                        <table class="table inv-table mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Batch</th>
-                                    <th>Expiry Date</th>
-                                    <th>Quantity Used</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var row in Model.FifoConsumptions)
-                                {
-                                    <tr>
-                                        <td>@row.BatchNumber</td>
-                                        <td>@row.ExpiryDate.ToString("dd MMM yyyy")</td>
-                                        <td>
-                                            <span class="mono-pill">
-                                                @row.QuantityConsumed
-                                            </span>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            }
-
-
         }
-
-
 
     </form>
 </div>
@@ -743,32 +1066,18 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        // =========================
-        // ELEMENTS
-        // =========================
         const qtyInput = document.getElementById("qtyInput");
         const unitSelect = document.getElementById("unitSelect");
         const confirmBtn = document.querySelector(".pill-btn--primary");
 
-        // =========================
-        // HELPERS
-        // =========================
         function getBaseQty() {
             const qty = Number(qtyInput.value);
             const selected = unitSelect.options[unitSelect.selectedIndex];
             const multiplier = Number(selected?.dataset.multiplier);
-
             if (!qty || !multiplier) return 0;
             return qty * multiplier;
         }
 
-        function setAfterCell(afterCell, html) {
-            afterCell.innerHTML = html;
-        }
-
-        // =========================
-        // LIVE PREVIEW
-        // =========================
         function updatePreview() {
             const tbody = document.getElementById("previewBody");
             if (!tbody) return;
@@ -780,50 +1089,20 @@
                 const afterCell = row.querySelector(".afterQty");
 
                 if (!baseQty) {
-                    setAfterCell(afterCell,
-                        `<span class="mono-pill mono-pill--muted">–</span>`);
+                    afterCell.innerHTML = `<span class="mono-pill mono-pill--muted">–</span>`;
                     return;
                 }
 
                 const remaining = available - baseQty;
 
                 if (remaining < 0) {
-                    setAfterCell(afterCell,
-                        `<span class="mono-pill mono-pill--danger">Insufficient</span>`);
+                    afterCell.innerHTML = `<span class="mono-pill mono-pill--danger">Insufficient</span>`;
                 } else {
-                    setAfterCell(afterCell,
-                               `<span class="mono-pill">${remaining} base units</span>`
-        );
+                    afterCell.innerHTML = `<span class="mono-pill">${remaining} base units</span>`;
                 }
             });
         }
 
-        // =========================
-        // CONFIRM BUTTON LOGIC
-        // =========================
-                function toggleConfirm() {
-            const hasQty = Number(qtyInput.value) > 0;
-            const hasUnit = unitSelect.disabled || unitSelect.value !== "";
-
-
-            let sufficient = true;
-
-            document.querySelectorAll("#previewBody tr").forEach(row => {
-                const available = parseInt(row.dataset.available, 10);
-                const baseQty = getBaseQty();
-
-                if (baseQty && available - baseQty < 0) {
-                    sufficient = false;
-                }
-            });
-
-            confirmBtn.disabled = !(hasQty && hasUnit && sufficient);
-        }
-
-
-        // =========================
-        // EVENTS
-        // =========================
         qtyInput.addEventListener("input", () => {
             updatePreview();
             toggleConfirm();
@@ -834,15 +1113,7 @@
             toggleConfirm();
         });
 
-        // =========================
-        // INITIAL STATE
-        // =========================
-        updatePreview();
-        toggleConfirm();
-
-                // =========================
-        // CUSTOMER FIELD SYNC
-        // =========================
+        // Customer field sync
         const customerSelect = document.getElementById("customerSelect");
         const customerSnapshot = document.getElementById("customerSnapshot");
 
@@ -855,10 +1126,120 @@
             }
         }
 
-        customerSelect.addEventListener("change", syncCustomerFields);
+        customerSelect?.addEventListener("change", syncCustomerFields);
         syncCustomerFields();
 
+                // Auto-clear quantity on focus
+        qtyInput.addEventListener("focus", () => {
+            if (qtyInput.value === "0") {
+                qtyInput.value = "";
+            }
+        });
+        function setupCS2(cs) {
+            const selectId = cs.dataset.select;
+            const real = document.getElementById(selectId);
+            if (!real) return;
+
+            const btn = cs.querySelector(".cs2-btn");
+            const valueEl = cs.querySelector(".cs2-value");
+            const items = Array.from(cs.querySelectorAll(".cs2-item"));
+
+            const isLocked = cs.classList.contains("is-locked") || real.disabled;
+
+            const setActive = (val) => {
+                const found = items.find(i => String(i.dataset.value) === String(val));
+                valueEl.textContent = found ? found.textContent.trim() : (items[0]?.textContent.trim() || "");
+            };
+
+            const open = () => {
+                if (isLocked) return;
+                document.querySelectorAll(".cs2.open").forEach(o => {
+                    if (o !== cs) {
+                        o.classList.remove("open");
+                        o.querySelector(".cs2-btn")?.setAttribute("aria-expanded", "false");
+                    }
+                });
+                cs.classList.add("open");
+                btn.setAttribute("aria-expanded", "true");
+            };
+
+            const close = () => {
+                cs.classList.remove("open");
+                btn.setAttribute("aria-expanded", "false");
+            };
+
+            // initial
+            setActive(real.value);
+
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isLocked) return;
+                cs.classList.contains("open") ? close() : open();
+            });
+
+            items.forEach(i => {
+                i.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (isLocked) return;
+
+                    real.value = i.dataset.value ?? "";
+                    real.dispatchEvent(new Event("change", { bubbles: true }));
+                    real.dispatchEvent(new Event("blur", { bubbles: true }));
+
+                    setActive(real.value);
+                    close();
+                });
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!e.target.closest(".cs2") && cs.classList.contains("open")) close();
+            });
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && cs.classList.contains("open")) close();
+            });
+
+            // keep UI synced if value changes from code
+            real.addEventListener("change", () => setActive(real.value));
+        }
+
+        // init all cs2
+        document.querySelectorAll(".cs2[data-select]").forEach(setupCS2);
+
+                function getBaseQty() {
+            const qty = Number(qtyInput.value);
+            const selected = unitSelect.options[unitSelect.selectedIndex];
+            const multiplier = Number(selected?.dataset.multiplier || 1);
+
+            if (!qty) return 0;
+            return qty * multiplier;
+        }
+                function setupIntInput(el) {
+            if (!el) return;
+
+            // Clear when focused and value is 0
+            el.addEventListener("focus", () => {
+                if (el.value === "0") el.value = "";
+            });
+
+            // Block invalid keys (letters, e/E, +, -, .)
+            el.addEventListener("keydown", (e) => {
+                const blocked = ["e", "E", "+", "-", ".", ","];
+                if (blocked.includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+
+            // Sanitize pasted input (digits only)
+            el.addEventListener("input", () => {
+                el.value = el.value.replace(/[^\d]/g, "");
+            });
+
+            // Prevent mouse wheel from changing value
+            el.addEventListener("wheel", () => el.blur());
+        }
+
     </script>
-
-
 }

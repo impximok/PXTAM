@@ -31,9 +31,13 @@ namespace Invexaaa.Models.ViewModels
         public decimal StandardUnitCost { get; set; }    // For Fixed Costing
         public decimal TotalStockValue { get; set; }     // Qty × unit cost
 
+       
+
 
         public int CurrentBalance { get; set; }
         public List<ItemBatchViewModel> Batches { get; set; }
+
+        public List<ItemUnitConversion> Units { get; set; } = new();
 
     }
 }

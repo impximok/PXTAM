@@ -207,7 +207,63 @@
                         Derived units are converted automatically during stock in/out.
                     </div>
 
-                    <div class="sectionHead">
+                    <div class="infoGrid" style="margin-top:10px;">
+
+                        @{
+                            var baseUnit = Model.Units.FirstOrDefault(u => u.IsBaseUnit);
+                            var derivedUnits = Model.Units.Where(u => !u.IsBaseUnit).ToList();
+                        }
+
+                        @if (baseUnit != null)
+                        {
+                            <div class="infoRow">
+                                <div class="infoLabel">
+                                    @baseUnit.UnitName
+                                    <span class="pill" style="margin-left:6px;">BASE</span>
+                                </div>
+                                <div class="infoValue">
+                                    Used for stock & costing
+                                </div>
+                            </div>
+                        }
+
+                        @foreach (var u in derivedUnits)
+                        {
+                            bool isReferenceOnly =
+                            Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed
+                            || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage;
+
+                            <div class="infoRow @(isReferenceOnly ? "unit-disabled" : "")">
+                                <div class="infoLabel">
+                                    @u.UnitName
+
+                                    @if (isReferenceOnly)
+                                    {
+                                        <span class="pill pill--inactive" style="margin-left:6px;">
+                                            Reference only
+                                        </span>
+                                    }
+                                </div>
+                                <div class="infoValue">
+                                    1 @u.UnitName = @u.BaseUnitMultiplier @baseUnit?.UnitName
+                                </div>
+                            </div>
+                        }
+
+
+                        @if (!derivedUnits.Any())
+                        {
+                            <div class="infoRow">
+                                <div class="infoLabel">Derived Units</div>
+                                <div class="infoValue">None</div>
+                            </div>
+                        }
+
+                    </div>
+
+
+
+                    <div class="sectionHead" style="margin-top:18px;">
                         <div class="sectionTitle">Batch Information</div>
                         <div class="subText">@(Model.Batches?.Count ?? 0) batch(es)</div>
                     </div>
@@ -738,6 +794,79 @@
         font-size: .82rem;
         font-weight: 600;
         color: #374151;
+    }
+
+    /* ===============================
+       UNIT DISPLAY (Item Detail)
+    =============================== */
+
+    .units-box {
+        margin-top: 10px;
+        display: grid;
+        gap: 10px;
+    }
+
+    /* Base unit card */
+    .unit-base-card {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: #fff;
+    }
+
+    .unit-base-name {
+        font-size: .95rem;
+        font-weight: 900;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .unit-base-desc {
+        margin-top: 4px;
+        font-size: .82rem;
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    /* Derived units */
+    .unit-derived-list {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .unit-derived-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding: 10px 14px;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .unit-derived-row:last-child {
+            border-bottom: none;
+        }
+
+    .unit-derived-name {
+        font-size: .9rem;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .unit-derived-convert {
+        font-size: .85rem;
+        font-weight: 700;
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    /* ===== Reference-only derived units ===== */
+    .unit-disabled {
+        opacity: 0.55;
     }
 
 

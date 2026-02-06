@@ -9,21 +9,28 @@
 
 <style>
     /* ===============================
-                   INVEXA · BLACK & WHITE SYSTEM
-                =============================== */
+               INVEXA · BLACK & WHITE SYSTEM
+            =============================== */
     :root {
         --bg: #ffffff;
         --card: #ffffff;
         --text: #111827;
         --muted: #6b7280;
         --border: #e6e7eb;
-        --soft: #f9fafb;
+        --soft: #f3f4f6;
         --shadow: 0 10px 24px rgba(0,0,0,.06);
         --radius: 18px;
-        --fs-title: 34px;
-        --fs-label: 13px;
+        --w-strong: 800;
+        --w-mid: 600;
+        --w-base: 500;
+        --fs-page: 34px;
+        --fs-section: 18px;
         --fs-body: 14px;
+        --fs-meta: 13px;
+        --fs-help: 12px;
         --focus: 0 0 0 4px rgba(17,17,17,.08);
+        --danger: #dc2626;
+        --ok: #16a34a;
     }
 
     html, body, main,
@@ -46,24 +53,25 @@
         align-items: flex-end;
         justify-content: space-between;
         gap: 14px;
-        padding: 6px 2px 14px;
+        padding: 6px 2px 12px;
         border-bottom: 1px solid var(--border);
-        margin-bottom: 18px;
+        margin-bottom: 14px;
     }
 
     .page-title {
-        font-weight: 800;
-        letter-spacing: .2px;
+        font-size: var(--fs-page);
+        font-weight: var(--w-strong);
         color: var(--text);
-        font-size: var(--fs-title);
         margin: 0;
         line-height: 1.1;
+        letter-spacing: .2px;
     }
 
     .page-subtitle {
         margin: 6px 0 0;
+        font-size: var(--fs-meta);
+        font-weight: var(--w-base);
         color: var(--muted);
-        font-size: 13px;
     }
 
     /* Card */
@@ -76,120 +84,203 @@
     }
 
     .inv-card__head {
-        padding: 14px 18px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
+        padding: 16px 18px;
         border-bottom: 1px solid var(--border);
-        background: linear-gradient(#fff, #fff);
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
     }
 
     .inv-card__title {
-        font-weight: 800;
+        font-size: var(--fs-section);
+        font-weight: var(--w-strong);
         color: var(--text);
         margin: 0;
-        font-size: 14px;
-        letter-spacing: .2px;
+    }
+
+    .card-subtitle {
+        margin: 0;
+        font-size: var(--fs-meta);
+        font-weight: var(--w-base);
+        color: var(--muted);
+        line-height: 1.4;
     }
 
     .inv-card__body {
-        padding: 18px;
+        padding: 16px 18px 18px;
     }
 
-    /* Form labels */
+    /* Form grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 18px;
+        align-items: end;
+    }
+
+    @@media (max-width:768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Labels */
     .inv-label {
-        font-size: var(--fs-label);
-        font-weight: 800;
-        color: #374151;
-        letter-spacing: .35px;
+        font-size: 13px;
+        font-weight: var(--w-mid);
+        color: var(--text);
         margin-bottom: 6px;
         display: flex;
-        align-items: center;
+        align-items: baseline;
         gap: 8px;
     }
 
     .hint {
-        font-weight: 700;
-        font-size: 12px;
+        font-size: var(--fs-help);
+        font-weight: var(--w-base);
         color: var(--muted);
-        text-transform: none;
-        letter-spacing: 0;
     }
 
-    /* Inputs (default) */
+    .req {
+        color: var(--danger);
+        font-weight: var(--w-strong);
+        margin-left: 2px;
+    }
+
+    /* Inputs */
     .inv-input {
         border-radius: 14px !important;
-        border: 2px solid var(--border) !important; /* ✅ default 2px */
+        border: 2px solid var(--border) !important;
         background: #fff !important;
-        padding: 12px 12px !important;
+        padding: 10px 12px !important;
         font-size: 14px !important;
         color: var(--text) !important;
         box-shadow: none !important;
         transition: border-color 160ms ease;
     }
 
-        /* Focus: 2px solid black, no lift, no glow */
         .inv-input:focus {
-            border: 2px solid #111 !important; /* ✅ focus 2px black */
+            border: 2px solid #111 !important;
             outline: none !important;
             box-shadow: none !important;
         }
-
-        /* Invalid input border red (client-side unobtrusive validation) */
-        .input-validation-error,
-        .inv-input.input-validation-error {
-            border: 2px solid #dc2626 !important; /* ✅ red border */
-        }
-
-            /* Optional: keep red border even when focused */
-            .input-validation-error:focus,
-            .inv-input.input-validation-error:focus {
-                border: 2px solid #dc2626 !important;
-            }
-
 
         .inv-input::placeholder {
             color: #9ca3af;
         }
 
-    /* Validation style (boost visibility) */
-    .field-validation-error,
-    .text-danger {
-        font-size: 12px;
-        font-weight: 700;
+    /* Validation */
+    .text-danger,
+    .field-validation-error {
+        display: block;
+        margin-top: 6px;
+        font-size: var(--fs-help);
+        font-weight: var(--w-base) !important;
+        color: var(--danger) !important;
     }
+
+    .input-validation-error,
+    .inv-input.input-validation-error {
+        border: 2px solid var(--danger) !important;
+    }
+
+        .input-validation-error:focus,
+        .inv-input.input-validation-error:focus {
+            border: 2px solid var(--danger) !important;
+        }
 
     /* Actions */
     .actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
         margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        align-items: center;
+        flex-wrap: wrap;
     }
 
     .pill-btn {
         border-radius: 999px !important;
-        padding: 10px 18px !important;
+        padding: 10px 20px !important;
         font-size: 13px !important;
-        font-weight: 800 !important;
+        font-weight: var(--w-strong) !important;
         border: 2px solid #111 !important;
-        background: #111 !important;
-        color: #fff !important;
-        text-decoration: none !important;
+        min-width: 160px;
+        height: 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 40px;
-        min-width: 150px;
-        transition: transform 160ms ease, background-color 180ms ease, color 180ms ease;
+        transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+        text-decoration: none !important;
         white-space: nowrap;
     }
 
+    .pill-btn {
+        background: #111 !important;
+        color: #fff !important;
+    }
+
+        .pill-btn:hover {
+            background: #fff !important;
+            color: #111 !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,.10);
+        }
 
     .pill-btn--ghost {
         background: #fff !important;
         color: #111 !important;
+    }
+
+        .pill-btn--ghost:hover {
+            background: #111 !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,.10);
+        }
+
+    .pill-btn:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+        box-shadow: none !important;
+    }
+
+    @@media (max-width:768px) {
+        .pill-btn {
+            width: 100%;
+        }
+    }
+
+    /* Preview card */
+    .preview-card {
+        overflow: hidden;
+    }
+
+    .preview-head {
+        padding: 16px 18px !important;
+        border-bottom: 1px solid var(--border);
+        background: #fff !important;
+    }
+
+    .preview-title .t {
+        font-size: 18px;
+        font-weight: var(--w-strong);
+        color: var(--text);
+        margin: 0;
+        line-height: 1.15;
+    }
+
+    .preview-title .s {
+        font-size: var(--fs-meta);
+        font-weight: var(--w-base);
+        color: var(--muted);
+        margin-top: 4px;
     }
 
     /* Table */
@@ -199,12 +290,12 @@
     }
 
         .inv-table thead th {
-            font-size: 12px;
-            font-weight: 900;
-            letter-spacing: .35px;
+            background: var(--soft) !important;
+            color: var(--text) !important;
+            font-size: var(--fs-help) !important;
+            font-weight: var(--w-strong) !important;
             text-transform: uppercase;
-            color: #374151;
-            background: var(--soft);
+            letter-spacing: .25px;
             border-bottom: 1px solid var(--border) !important;
             padding: 12px 14px !important;
             white-space: nowrap;
@@ -212,467 +303,49 @@
 
         .inv-table tbody td {
             font-size: var(--fs-body);
+            font-weight: var(--w-base);
             color: var(--text);
-            border-top: 1px solid #f1f2f4 !important;
-            padding: 12px 14px !important;
+            border-top: 1px solid #eef0f3 !important;
+            padding: 16px 14px !important;
             vertical-align: middle;
         }
 
-        .inv-table tbody tr:hover {
+        .inv-table tbody tr:nth-child(even) {
             background: #fcfcfd;
         }
 
-    .mono-pill {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 30px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1.5px solid var(--border);
-        background: #fff;
-        font-size: 12px;
-        font-weight: 800;
-        color: #111;
-        white-space: nowrap;
-    }
-
-    .mono-pill--muted {
-        color: #6b7280;
-        border-style: dashed;
-    }
-
-    /* Layout helpers */
-    .grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-    }
-
-    @@media (max-width: 768px) {
-        .grid-2 {
-            grid-template-columns: 1fr;
-        }
-
-        .pill-btn {
-            width: 100%;
-        }
-    }
-
-    /* Summary banner feel */
-    .success-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        font-weight: 900;
-        color: #111;
-    }
-
-    /* Card title inside header */
-    .inv-card__head--stacked {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-    }
-
-    .card-title {
-        margin: 0;
-        font-size: 22px;
-        font-weight: 800;
-        color: var(--text);
-        letter-spacing: .2px;
-    }
-
-    .card-subtitle {
-        margin: 0;
-        font-size: 13px;
-        color: var(--muted);
-        line-height: 1.4;
-    }
-
-    .text-danger {
-        display: block;
-        margin-top: 6px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    /* Tighten card spacing */
-    .inv-card__head {
-        padding: 14px 18px !important;
-    }
-
-    .inv-card__body {
-        padding: 16px 18px 18px !important;
-    }
-
-    /* Better form layout rhythm */
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px 18px;
-        align-items: end;
-    }
-
-    /* Wrap each field block */
-    .field {
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Less air between label and input */
-    .inv-label {
-        margin-bottom: 6px !important;
-    }
-
-    /* Actions: anchor + divider so it feels “intentional” */
-    .actions {
-        margin-top: 16px;
-        padding-top: 14px;
-        border-top: 1px solid var(--border);
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end; /* 🔥 move buttons right */
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
-
-
-    /* Optional: make save more “primary” */
-    .pill-btn {
-        min-width: 170px;
-    }
-
-    /* Mobile */
-    @@media (max-width:768px) {
-        .form-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .pill-btn {
-            width: 100%;
-        }
-    }
-
-    /* Preview card: flush table look */
-    .inv-card__body--flush {
-        padding: 0 !important;
-    }
-
-    /* Table spacing + subtle grid */
-    .inv-table thead th {
-        padding: 12px 14px !important;
-    }
-
-    .inv-table tbody td {
-        padding: 14px 14px !important;
-    }
-
-    /* Hover feel */
-    .inv-table tbody tr:hover {
-        background: #fafafa;
-    }
-
-    /* Make the pills align nicer */
-    .mono-pill {
-        height: 30px;
-        min-width: 44px;
-        justify-content: center;
-    }
-
-    .mono-pill--muted {
-        border-style: dashed;
-    }
-
-    .page-head {
-        margin-bottom: 14px !important;
-        padding-bottom: 12px !important;
-    }
-
-    .page-title {
-        margin-bottom: 6px !important;
-    }
-
-    /* Base pill button (shared behavior) */
-    .pill-btn {
-        border-radius: 999px !important;
-        padding: 10px 20px !important;
-        font-size: 13px !important;
-        font-weight: 800 !important;
-        border: 2px solid #111 !important;
-        min-width: 160px;
-        height: 40px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
-    }
-
-    /* === SAVE (primary) === */
-    .pill-btn {
-        background: #111 !important;
-        color: #fff !important;
-    }
-
-        /* Hover → invert (NO lift) */
-        .pill-btn:hover {
-            background: #fff !important;
-            color: #111 !important;
-            box-shadow: 0 4px 14px rgba(0,0,0,.10);
-        }
-
-    /* === CANCEL (ghost) === */
-    .pill-btn--ghost {
-        background: #fff !important;
-        color: #111 !important;
-    }
-
-        /* Hover → invert (same behavior) */
-        .pill-btn--ghost:hover {
-            background: #111 !important;
-            color: #fff !important;
-            box-shadow: 0 4px 14px rgba(0,0,0,.10);
-        }
-
-        /* Active press (subtle, no movement) */
-        .pill-btn:active,
-        .pill-btn--ghost:active {
-            box-shadow: 0 2px 8px rgba(0,0,0,.16);
-        }
-
-    /* Preview card header: stronger */
-    .inv-card__head {
-        background: #fff;
-        border-bottom: 1px solid var(--border);
-    }
-
-    /* Table header row: higher contrast */
-    .inv-table thead th {
-        background: #f3f4f6 !important; /* slightly darker than --soft */
-        color: #111827 !important;
-        font-weight: 900 !important;
-        letter-spacing: .35px;
-        border-bottom: 1px solid var(--border) !important;
-    }
-
-    /* Body text: a bit stronger */
-    .inv-table tbody td {
-        color: #111827 !important;
-        font-weight: 600;
-    }
-    /* Add gentle row separators */
-    .inv-table tbody tr {
-        border-top: 1px solid #eef0f3;
-    }
-
         .inv-table tbody tr:hover {
-            background: #fafafa;
+            background: #f9fafb;
         }
 
-    .mono-pill {
-        border: 1.5px solid #d1d5db; /* darker border */
-        color: #111827;
-        background: #fff;
-        font-weight: 800;
-    }
-
-    /* Muted pill should still be readable */
-    .mono-pill--muted {
-        border-style: solid; /* ❌ remove dashed */
-        border-color: #cbd5e1;
-        background: #f9fafb;
-        color: #374151;
-    }
-
-    /* Summary box inside card */
-    .val-summary {
-        margin: 0 0 14px;
-        padding: 10px 12px;
-        border: 1px solid #fecaca;
-        background: #fff;
-        border-radius: 12px;
-    }
-
-        /* Remove default ul spacing */
-        .val-summary ul {
-            margin: 0;
-            padding-left: 18px;
-        }
-
-    /* Error text: NOT bold */
-    .field-validation-error,
-    .text-danger {
-        font-weight: 500 !important;
-        font-size: 12px;
-        margin-top: 6px;
-    }
-
-    /* Required field indicator */
-    .req {
-        color: #dc2626; /* system red */
-        font-weight: 800;
-        margin-left: 1px;
-        line-height: 1;
-    }
-
-
-    /* === Typography System (simplified) === */
-    :root {
-        --w-strong: 800;
-        --w-mid: 600;
-        --w-base: 500;
-        --fs-page: 34px;
-        --fs-section: 16px;
-        --fs-body: 14px;
-        --fs-meta: 13px;
-        --fs-help: 12px;
-    }
-
-    /* Page */
-    .page-title {
-        font-size: var(--fs-page);
-        font-weight: var(--w-strong);
-        color: var(--text);
-        margin: 0;
-    }
-
-    .page-subtitle {
-        font-size: var(--fs-meta);
-        font-weight: var(--w-base);
-        color: var(--muted);
-        margin: 6px 0 0;
-    }
-
-    /* Card header */
-    .inv-card__title {
-        font-size: var(--fs-section);
-        font-weight: var(--w-mid);
-        color: var(--text);
-        margin: 0;
-    }
-
-    .card-subtitle {
-        font-size: var(--fs-meta);
-        font-weight: var(--w-base);
-        color: var(--muted);
-        margin: 0;
-    }
-
-    /* Field label */
-    .inv-label {
-        font-size: var(--fs-body);
-        font-weight: var(--w-mid);
-        color: var(--text);
-        letter-spacing: 0; /* remove noisy tracking */
-        margin-bottom: 8px !important;
-    }
-
-    /* Table headers */
-    .inv-table thead th {
-        font-size: var(--fs-help);
-        font-weight: var(--w-mid);
-        color: var(--text);
-        text-transform: uppercase;
-        letter-spacing: .25px;
-    }
-
-    /* Table body */
-    .inv-table tbody td {
-        font-size: var(--fs-body);
-        font-weight: var(--w-base);
-        color: var(--text);
-    }
-
-    /* Pills */
-    .mono-pill {
-        font-size: var(--fs-help);
-        font-weight: var(--w-mid);
-        color: var(--text);
-    }
-
-    /* Validation text */
-    .text-danger,
-    .field-validation-error {
-        font-size: var(--fs-help);
-        font-weight: var(--w-base) !important;
-    }
-
-    /* Section title (Stock Entry) */
-    .inv-card__title {
-        font-size: 20px; /* ⬆ slightly bigger */
-        font-weight: 700;
-        color: var(--text);
-    }
-
-    /* Field labels */
-    .inv-label {
-        font-size: 13px; /* ⬇ slightly smaller */
-        font-weight: 600;
-        color: var(--text);
-        margin-bottom: 6px !important;
-    }
-
-        /* Required asterisk stays subtle */
-        .inv-label .req {
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-    .success-line {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--text);
-    }
-
-        .success-line strong {
-            font-weight: 700;
-        }
-    /* ===== Preview polish ===== */
-    .preview-card {
-        overflow: hidden;
-    }
-
-    .preview-head {
-        background: #fff !important;
-        padding: 16px 18px !important;
-    }
-
-    .preview-title .t {
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--text);
-        margin: 0;
-        line-height: 1.15;
-    }
-
-    .preview-title .s {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--muted);
-        margin-top: 4px;
-    }
-
-    /* tighter table */
-    .preview-table thead th {
-        background: #f3f4f6 !important;
-        color: #111827 !important;
-        font-size: 12px !important;
-        font-weight: 800 !important;
-    }
-
-    .preview-table tbody td {
-        padding: 16px 14px !important;
-    }
-
-    /* alignment */
-    .preview-table .col-mid {
+    .col-mid {
         text-align: center;
         width: 220px;
     }
 
-    /* item cell looks more “system” */
+    .mono-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        min-width: 64px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1.5px solid #d1d5db;
+        background: #fff;
+        font-size: var(--fs-help);
+        font-weight: var(--w-mid);
+        color: var(--text);
+        white-space: nowrap;
+    }
+
+    .mono-pill--muted {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+        color: var(--muted);
+        font-weight: var(--w-base);
+    }
+
     .item-cell {
         display: flex;
         align-items: center;
@@ -681,34 +354,20 @@
 
     .item-name {
         font-size: 14px;
-        font-weight: 700;
+        font-weight: var(--w-mid);
         color: var(--text);
     }
 
-    /* subtle zebra + hover */
-    .preview-table tbody tr:nth-child(even) {
-        background: #fcfcfd;
-    }
-
-    .preview-table tbody tr:hover {
-        background: #f9fafb;
-    }
-
-    /* pills more consistent */
-    .preview-table .mono-pill {
-        height: 32px;
-        min-width: 64px;
-        border-radius: 999px;
-    }
-    /* ===== Success banner polish ===== */
-    .success-card {
-        overflow: hidden;
-    }
-
+    /* Success banner */
     .success-head {
         padding: 16px 18px !important;
         background: #fff !important;
+        border-bottom: 1px solid var(--border);
+        display: flex;
         align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
     .success-left {
@@ -726,56 +385,711 @@
         justify-content: center;
         font-weight: 900;
         font-size: 14px;
-        background: #16a34a;
+        background: var(--ok);
         color: #fff;
         line-height: 1;
-        margin-top: 8px;
+        margin-top: 2px;
     }
 
     .success-title {
         font-size: 16px;
-        font-weight: 800;
+        font-weight: var(--w-strong);
         color: var(--text);
         line-height: 1.15;
     }
 
     .success-sub {
         margin-top: 4px;
+        font-size: var(--fs-meta);
+        font-weight: var(--w-base);
+        color: var(--muted);
+    }
+    /* ===== Invexa Section Header (Stock Entry) ===== */
+    .inv-head {
+        padding: 18px 18px 14px !important;
+        background: #fff;
+    }
+
+    .inv-head__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    .inv-head__titleRow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+    }
+
+    .inv-head__title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: .2px;
+        line-height: 1.15;
+    }
+
+    /* costing pill */
+    .method-pill {
+        display: inline-flex;
+        align-items: center;
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #fff;
+        font-size: 12px;
+        font-weight: 800;
+        color: #111;
+        letter-spacing: .2px;
+    }
+
+    /* main description line */
+    .inv-head__desc {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+        line-height: 1.55;
+    }
+
+    /* secondary helper line */
+    .inv-head__hint {
+        margin: 8px 0 0;
         font-size: 13px;
         font-weight: 500;
         color: var(--muted);
+        line-height: 1.45;
     }
 
-    .success-btn {
-        min-width: 160px;
+    /* subtle divider feel (cleaner than a hard border) */
+    .inv-card__head.inv-head {
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+    /* Header row layout */
+    .inv-head__row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
     }
 
-    /* reduce empty feeling */
-    .success-text b {
-        color: var(--text);
+    /* Left content */
+    .inv-head__left {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    /* Title */
+    .inv-head__title {
+        margin: 0;
+        font-size: 20px;
         font-weight: 800;
+        color: var(--text);
+        line-height: 1.15;
     }
 
-    .preview-item::before {
-        content: "•";
-        margin-right: 8px;
-        color: #9ca3af;
+    /* Description */
+    .inv-head__desc {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        line-height: 1.5;
     }
 
-    .preview-item {
+    /* Right area */
+    .inv-head__right {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    /* Costing pill */
+    .method-pill {
+        height: 30px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1.5px solid #111;
+        background: #fff;
+        font-size: 12px;
+        font-weight: 800;
+        color: #111;
+        letter-spacing: .2px;
+        white-space: nowrap;
+    }
+
+    /* Mobile: pill drops below title */
+    @@media (max-width:768px) {
+        .inv-head__row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .inv-head__right {
+            margin-top: 6px;
+        }
+    }
+
+    .sys-pill {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: 999px;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        font-size: 11px;
         font-weight: 700;
-        color: #111827;
+        color: #374151;
     }
 
-    .mono-pill--muted {
+    .inv-input[readonly] {
+        background: #f9fafb !important;
+        color: #6b7280 !important;
+        cursor: not-allowed;
+    }
+
+    .form-grid {
+        column-gap: 22px !important;
+        row-gap: 8px !important;
+    }
+
+    .req {
+        margin-left: 3px;
+        font-size: 12px;
+    }
+    /* Align form fields vertically */
+    .field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Input wrapper */
+    .field-input {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Reserve space for helper / hint text */
+    .field-help {
+        min-height: 18px; /* key line */
+        margin-top: 6px;
+        font-size: 13px;
+        color: var(--muted);
+    }
+    /* Make label = left title + right hint (no wrapping) */
+    .inv-label {
+        display: grid !important;
+        grid-template-columns: auto 1fr;
+        align-items: baseline;
+        column-gap: 10px;
+        margin-bottom: 6px;
+    }
+
+        /* left text */
+        .inv-label .label-main {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        /* right hint pinned to the right */
+        .inv-label .label-meta {
+            justify-self: end;
+            white-space: nowrap; /* key: prevents wrap */
+            font-size: var(--fs-help);
+            font-weight: var(--w-base);
+            color: var(--muted);
+        }
+    /* ===== Form rhythm & alignment (Invexa) ===== */
+
+    /* Make grid spacing calmer */
+    .form-grid {
+        column-gap: 22px !important;
+        row-gap: 8px !important;
+        align-items: start !important;
+    }
+
+    /* Each field gets consistent vertical rhythm */
+    .field {
+        gap: 2px;
+    }
+
+    /* Label row: title on left, meta on right */
+    .inv-label {
+        display: flex !important;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 0 !important;
+    }
+
+    /* Left label group */
+    .label-main {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    /* Right meta (one line, muted) */
+    .label-meta {
+        font-size: var(--fs-help);
+        font-weight: var(--w-base);
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    /* Input wrapper */
+    .field-input {
+        gap: 6px;
+    }
+
+    /* Reserve helper space so rows align even if some have no helper */
+    .field-help {
+        min-height: 12px;
+        margin: 0;
+        font-size: var(--fs-help);
+        color: var(--muted);
+    }
+
+    /* Make sys pill smaller + less noisy */
+    .sys-pill {
+        height: 20px;
+        padding: 0 8px;
+        font-size: 11px;
+        border-radius: 999px;
         background: #f3f4f6;
-        border-color: #d1d5db;
-        color: #6b7280;
-        font-weight: 700;
+        border: 1px solid #e5e7eb;
     }
 
-    .preview-row {
-        background: #fafafa;
+    /* Supplier fallback hint should NOT sit before title */
+    .inv-label .hint {
+        margin-left: 8px;
+    }
+
+    .inv-label {
+        margin-bottom: 2px !important;
+    }
+    /* ===== Custom Select (cs2) – same as Inventory Overview ===== */
+    .real-select {
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 1px !important;
+        height: 1px !important;
+    }
+
+    .cs2 {
+        position: relative;
+    }
+
+    .cs2-btn {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 8px 40px 8px 12px;
+        height: 42px; /* tighter for your form */
+        background: #fff;
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cs2-value {
+        flex: 1;
+        text-align: left;
+    }
+
+    .cs2-btn:focus,
+    .cs2.open .cs2-btn {
+        border-color: #111 !important;
+        outline: none;
+    }
+
+    .cs2-caret {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid #111;
+        border-bottom: 2px solid #111;
+        transform: translateY(-50%) rotate(45deg);
+        pointer-events: none;
+    }
+
+    .cs2-menu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 8px);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px;
+        z-index: 9999;
+        display: none;
+        overflow: hidden;
+    }
+
+    .cs2.open .cs2-menu {
+        display: block;
+    }
+
+    .cs2-item {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 2px 0;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+        .cs2-item:hover {
+            background: #f3f4f6;
+        }
+
+    .label-main {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px; /* controls the spacing between "Unit" and "*" */
+    }
+
+    .req {
+        margin-left: 2px !important; /* prevent your old margin pushing it */
+        font-size: 12px;
+        line-height: 1;
+    }
+    /* ===== Hover helper (Unit Cost) ===== */
+    .hover-help {
+        position: relative;
+    }
+
+    .hover-tip {
+        position: absolute;
+        left: 0;
+        top: calc(100% + 6px);
+        background: #111;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 6px 10px;
+        border-radius: 8px;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateY(-4px);
+        pointer-events: none;
+        transition: opacity 120ms ease, transform 120ms ease;
+        z-index: 20;
+    }
+
+        /* Arrow */
+        .hover-tip::before {
+            content: "";
+            position: absolute;
+            top: -5px;
+            left: 14px;
+            width: 8px;
+            height: 8px;
+            background: #111;
+            transform: rotate(45deg);
+        }
+
+    /* Show on hover */
+    .hover-help:hover .hover-tip {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    /* ===== Validation spacing fix ===== */
+
+    /* remove huge gap for errors */
+    .field-help {
+        min-height: 0 !important;
+    }
+
+    /* error sits tight under the input */
+    .field .text-danger,
+    .field .field-validation-error {
+        margin-top: 4px !important;
+        line-height: 1.25;
+    }
+
+    /* If you keep helper text, hide it when there is an error */
+    .field.has-error .field-help {
+        display: none !important;
+    }
+    /* when real select has error, highlight the cs2 button */
+    .real-select.input-validation-error + .cs2 .cs2-btn {
+        border-color: var(--danger) !important;
+    }
+
+    /* show focus style too */
+    .real-select:focus + .cs2 .cs2-btn,
+    .cs2.open .cs2-btn {
+        border-color: #111 !important;
+    }
+    /* ===== FINAL Form System (keep only this) ===== */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 22px;
+        row-gap: 22px; /* ✅ your row-gap 2px is too tight */
+        align-items: start;
+    }
+
+    @@media (max-width:768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .inv-label {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 6px;
+    }
+
+    .label-main {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+    }
+
+    .req {
+        margin-left: 0 !important;
+        font-size: 12px;
+        line-height: 1;
+    }
+
+    .label-meta {
+        font-size: var(--fs-help);
+        font-weight: var(--w-base);
+        color: var(--muted);
+        white-space: nowrap;
+    }
+
+    .field-input {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    /* ✅ Do NOT reserve space unless you really need it */
+    .field-help {
+        display: none;
+    }
+
+    /* Validation tight + consistent */
+    .field .text-danger,
+    .field .field-validation-error {
+        margin-top: 4px !important;
+        line-height: 0.5;
+    }
+    /* ✅ Error message spacing (slightly more breathing room) */
+    .field .text-danger,
+    .field .field-validation-error,
+    span[data-valmsg-for] {
+        margin-top: 6px !important; /* was ~4-6px */
+        line-height: 0.5;
+    }
+
+        /* Optional: if you want a tiny gap after the error too */
+        .field .text-danger:empty,
+        .field .field-validation-error:empty {
+            margin-top: 0 !important;
+        }
+
+    /* Make error feel attached to the field */
+    .field .text-danger,
+    .field .field-validation-error {
+        padding-left: 2px; /* tiny alignment polish */
+    }
+
+    .field .text-danger,
+    .field .field-validation-error {
+        margin-top: 4px !important;
+        line-height: 0.5;
+    }
+
+    /* Readonly/Locked field look */
+    .inv-input.is-locked {
+        background: #f3f4f6 !important;
+        color: #6b7280 !important;
+        border-color: #e5e7eb !important;
+        cursor: not-allowed !important;
+    }
+
+    .inv-input.is-locked {
+        background: #f3f4f6 !important;
+        color: #6b7280 !important;
+        border-color: #e5e7eb !important;
+        cursor: not-allowed !important;
+    }
+    /* Locked input look */
+    .inv-input.is-locked {
+        background: #f3f4f6 !important;
+        color: #6b7280 !important;
+        border-color: #e5e7eb !important;
+        cursor: not-allowed !important;
+    }
+
+    /* Inline warning box (clean + compact) */
+    .inline-warn {
+        margin-top: 8px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid #fecaca;
+        background: #fff5f5;
+        color: #991b1b;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        line-height: 1.35;
+    }
+
+        .inline-warn .icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            background: #dc2626;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+            flex: 0 0 auto;
+            margin-top: 1px;
+        }
+
+        .inline-warn .msg {
+            flex: 1;
+        }
+    /* ===== Hover info (Unit – costing rule) ===== */
+    .unit-hover {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        /* small info dot */
+        .unit-hover .info-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1.5px solid #d1d5db;
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: help;
+            background: #fff;
+        }
+
+        /* tooltip bubble */
+        .unit-hover .hover-tip {
+            position: absolute;
+            left: 0;
+            top: calc(100% + 8px);
+            max-width: 320px;
+            background: #111;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.45;
+            padding: 10px 12px;
+            border-radius: 10px;
+            opacity: 0;
+            transform: translateY(-4px);
+            pointer-events: none;
+            transition: opacity 120ms ease, transform 120ms ease;
+            z-index: 30;
+        }
+
+            /* arrow */
+            .unit-hover .hover-tip::before {
+                content: "";
+                position: absolute;
+                top: -5px;
+                left: 16px;
+                width: 8px;
+                height: 8px;
+                background: #111;
+                transform: rotate(45deg);
+            }
+
+        /* show on hover */
+        .unit-hover:hover .hover-tip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* tooltip bubble (right-aligned so it won't cut off on the right edge) */
+        .unit-hover .hover-tip {
+            position: absolute;
+            right: 0; /* ✅ anchor to the right */
+            left: auto;
+            top: calc(100% + 10px);
+            max-width: 340px;
+            background: #111;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.45;
+            padding: 10px 12px;
+            border-radius: 10px;
+            opacity: 0;
+            transform: translateY(-4px);
+            pointer-events: none;
+            transition: opacity 120ms ease, transform 120ms ease;
+            z-index: 9999;
+            white-space: normal; /* ✅ allow wrap */
+        }
+
+            /* arrow (move it near the right side) */
+            .unit-hover .hover-tip::before {
+                content: "";
+                position: absolute;
+                top: -5px;
+                right: 18px; /* ✅ arrow aligns under the pill/info icon */
+                width: 8px;
+                height: 8px;
+                background: #111;
+                transform: rotate(45deg);
+            }
+    /* Locked Unit input – same as Unit Cost */
+    .inv-input.is-locked {
+        background: #f9fafb !important; /* ✅ same as Unit Cost */
+        color: #6b7280 !important; /* ✅ same text color */
+        border: 2px solid #e6e7eb !important;
+        cursor: not-allowed !important;
     }
 
 </style>
@@ -790,36 +1104,33 @@
         </div>
     </div>
 
-
-
-
     <!-- FORM CARD -->
     <div class="inv-card">
+        <div class="inv-card__head inv-head">
+            <div class="inv-head__top">
+                <div class="inv-head__left">
+                    <div class="inv-head__titleRow">
+                        <h2 class="inv-head__title">Stock Entry</h2>
+                    </div>
 
-        <div class="inv-card__head inv-card__head--stacked">
-            <h2 class="inv-card__title">Stock Entry</h2>
-            <p class="card-subtitle" style="margin-top:6px">
-                <b>@Model.CostingMethod</b> costing is applied automatically.
+                    <p class="inv-head__desc">
+                        @if (Model.CostingMethod == CostingMethod.WeightedAverage || Model.CostingMethod == CostingMethod.Fixed)
+                        {
+                            <span><b>@Model.CostingMethod</b> costing is applied automatically. Quantity is converted to <b>base unit</b> for accounting.</span>
+                        }
+                        else
+                        {
+                            <span><b>FIFO</b> costing is applied automatically. Cost is recorded per batch.</span>
+                        }
+                    </p>
 
-                @if (Model.CostingMethod == CostingMethod.WeightedAverage ||
-                                Model.CostingMethod == CostingMethod.Fixed)
-                {
-                    <span>
-                        Quantity is converted to <b>base unit</b> for accounting.
+                </div>
+                <div class="inv-head__right">
+                    <span class="method-pill">
+                        @Model.CostingMethod
                     </span>
-                }
-                else
-                {
-                    <span>
-                        Cost is recorded per batch (FIFO).
-                    </span>
-                }
-            </p>
-
-
-
-            
-            <p class="card-subtitle">Enter quantity and expiry date for the selected items.</p>
+                </div>
+            </div>
         </div>
 
 
@@ -838,53 +1149,89 @@
                     <!-- Quantity -->
                     <div class="field">
                         <div class="inv-label">
-                            Quantity to Add <span class="req">*</span>
+                            <span class="label-main">Quantity to Add <span class="req">*</span></span>
+                            <span class="label-meta"></span>
                         </div>
 
-                        <input asp-for="InputQuantity"
-                               type="number"
-                               min="1"
-                               class="form-control inv-input"
-                               placeholder="e.g. 10" />
-                        <span asp-validation-for="InputQuantity" class="text-danger"></span>
+                        <div class="field-input">
+                            <input asp-for="InputQuantity"
+                                   type="number"
+                                   min="1"
+                                   step="1"
+                                   class="form-control inv-input js-int"
+                                   placeholder="e.g. 10" />
 
+                            <span asp-validation-for="InputQuantity" class="text-danger"></span>
+                        </div>
                     </div>
 
+
+                    <!-- Unit -->
                     <div class="field">
+                        @{
+                            var isLocked = Model.CostingMethod == CostingMethod.WeightedAverage
+                            || Model.CostingMethod == CostingMethod.Fixed;
+
+                            var hasBase = Model.AvailableUnits.Any(u => u.IsBaseUnit);
+                            var baseUnit = hasBase ? Model.AvailableUnits.First(u => u.IsBaseUnit) : null;
+
+                            var showHoverWarn = isLocked && !hasBase;
+                        }
+
                         <div class="inv-label">
-                            Unit <span class="req">*</span>
-                            <span class="hint">
-                                @(Model.CostingMethod == CostingMethod.WeightedAverage ||
-                                                                Model.CostingMethod == CostingMethod.Fixed
-                                                                ? "Locked to base unit"
-                                                                : "Auto-converted to base unit")
+                            <span class="label-main">
+                                Unit <span class="req">*</span>
                             </span>
+
+                            @if (showHoverWarn)
+                            {
+                                <span class="unit-hover">
+                                    <span class="sys-pill">Base unit · locked</span>
+                                    <span class="info-dot">i</span>
+
+                                    <span class="hover-tip">
+                                        This item uses <b>@Model.CostingMethod</b> costing, so Unit must be a
+                                        <b>Base Unit</b>. Please set a base unit in Unit Setup before adding stock.
+                                    </span>
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="sys-pill">Base unit</span>
+                            }
                         </div>
 
-                    
+                        @if (isLocked)
+                        {
+                            <!-- Locked mode: always show grey textbox -->
+                            <input type="text"
+                                   class="form-control inv-input is-locked"
+                                   value="@(hasBase ? $"{baseUnit.UnitName} (Base)" : "Not configured (Base unit missing)")"
+                                   readonly
+                                   tabindex="-1" />
 
-                        <div class="field">
-                            <div class="inv-label">
-                                Unit <span class="req">*</span>
-                                <span class="hint">
-                                    Converted to base unit automatically
-                                </span>
-                            </div>
-
-                            @if (!Model.AvailableUnits.Any(u => u.IsBaseUnit))
+                            @* If base exists, still submit the required UnitConversionID *@
+                            @if (hasBase)
+                            {
+                                <input type="hidden" asp-for="UnitConversionID" value="@baseUnit.ItemUnitConversionID" />
+                            }
+                        }
+                        else
+                        {
+                            @if (!hasBase)
                             {
                                 <div class="text-danger">
-                                    ⚠ This item has no base unit defined.
-                                    Please set a base unit before adding stock.
+                                    ⚠ This item has no base unit defined. Please set a base unit before adding stock.
                                 </div>
                             }
                             else
                             {
+                                <!-- real select (binds to model) -->
                                 <select asp-for="UnitConversionID"
-                                        class="form-control inv-input"
+                                        class="real-select"
+                                        id="unitSelect"
                                         required>
                                     <option value="">-- Select Unit --</option>
-
                                     @foreach (var u in Model.AvailableUnits)
                                     {
                                         <option value="@u.ItemUnitConversionID">
@@ -893,147 +1240,170 @@
                                     }
                                 </select>
 
+                                <!-- custom UI -->
+                                <div class="cs2" data-select="unitSelect">
+                                    <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                                        <span class="cs2-value">-- Select Unit --</span>
+                                        <span class="cs2-caret"></span>
+                                    </button>
+
+                                    <div class="cs2-menu" role="listbox">
+                                        <button type="button" class="cs2-item" data-value="">-- Select Unit --</button>
+                                        @foreach (var u in Model.AvailableUnits)
+                                        {
+                                            <button type="button" class="cs2-item" data-value="@u.ItemUnitConversionID">
+                                                @u.UnitName @(u.IsBaseUnit ? "(Base)" : $"(×{u.BaseUnitMultiplier})")
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+
                                 <span asp-validation-for="UnitConversionID" class="text-danger"></span>
                             }
-                        </div>
+                        }
+                    </div>
 
 
 
                     <!-- Expiry -->
                     <div class="field">
                         <div class="inv-label">
-                            Expiry Date <span class="req">*</span>
+                            <span class="label-main">Expiry Date <span class="req">*</span></span>
+                            <span class="label-meta"></span>
                         </div>
 
-                        <input asp-for="ExpiryDate"
-                               type="date"
-                               class="form-control inv-input"
-                               min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
-                        <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                        <div class="field-input">
+                            <input asp-for="ExpiryDate"
+                                   type="date"
+                                   class="form-control inv-input"
+                                   min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
+
+                            <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                        </div>
                     </div>
 
+
+
+                    <!-- Unit Cost -->
                     <div class="field">
                         <div class="inv-label">
-                            Unit Cost
-                            @if (!Model.IsUnitCostLocked)
-                            {
-                                <span class="req">*</span>
-                            }
-                            <span class="hint">
-                                @(Model.IsUnitCostLocked
-                                                                ? "Locked by system costing"
-                                                                : "Required for FIFO costing")
-                            </span>
+                            <span class="label-main">Unit Cost</span>
                         </div>
 
-                        @if (Model.IsUnitCostLocked)
-                        {
+                        <div class="field-input hover-help">
                             <input asp-for="UnitCost"
-                                   type="number"
-                                   step="0.0001"
-                                   class="form-control inv-input"
-                                   placeholder="Calculated by system"
-                                   readonly tabindex="-1" />
+                                   class="form-control inv-input @(Model.CostingMethod != CostingMethod.FIFO ? "is-locked" : "")"
+                                   readonly="@(Model.CostingMethod != CostingMethod.FIFO)"
+                                   placeholder="@(Model.CostingMethod == CostingMethod.FIFO ? "Enter unit cost" : "Calculated by system")" />
 
-                            <div class="hint" style="margin-top:6px;">
+                            <div class="hover-tip">
                                 @if (Model.CostingMethod == CostingMethod.Fixed)
                                 {
-                                    <span>Uses <b>Standard Cost</b> defined in inventory.</span>
+                                    <span>
+                                        Uses <b>Standard Unit Cost</b> defined in inventory.
+                                    </span>
                                 }
-                                else
+                                else if (Model.CostingMethod == CostingMethod.WeightedAverage)
                                 {
-                                    <span>Uses current <b>Weighted Average Cost</b>.</span>
+                                    <span>
+                                        Uses current <b>Average Unit Cost</b> calculated from stock.
+                                    </span>
+                                }
+                                else if (Model.CostingMethod == CostingMethod.FIFO)
+                                {
+                                    <span>
+                                        Unit cost is recorded per batch (FIFO).
+                                    </span>
                                 }
                             </div>
-                        }
-                        else
-                        {
-                            <input asp-for="UnitCost"
-                                   type="number"
-                                   step="0.0001"
-                                   min="0.01"
-                                   class="form-control inv-input"
-                                   placeholder="e.g. 5.2500" />
-
-                            <span asp-validation-for="UnitCost" class="text-danger"></span>
-                        }
+                        </div>
                     </div>
 
 
 
-                    <!-- Supplier (from master) -->
+                    <!-- Supplier -->
                     <div class="field">
                         <div class="inv-label">
                             Supplier <span class="hint">(optional)</span>
                         </div>
 
+                        <!-- real select -->
                         <select asp-for="SupplierID"
-                                class="form-control inv-input"
+                                class="real-select"
                                 id="supplierSelect">
                             <option value="">-- Select Supplier --</option>
                             @foreach (var s in Model.Suppliers)
                             {
-                                <option value="@s.SupplierID">
-                                    @s.SupplierName
-                                </option>
+                                <option value="@s.SupplierID">@s.SupplierName</option>
                             }
                         </select>
+
+                        <!-- custom UI -->
+                        <div class="cs2" data-select="supplierSelect">
+                            <button type="button" class="cs2-btn" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="cs2-value">-- Select Supplier --</span>
+                                <span class="cs2-caret"></span>
+                            </button>
+
+                            <div class="cs2-menu" role="listbox">
+                                <button type="button" class="cs2-item" data-value="">-- Select Supplier --</button>
+                                @foreach (var s in Model.Suppliers)
+                                {
+                                    <button type="button" class="cs2-item" data-value="@s.SupplierID">@s.SupplierName</button>
+                                }
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Supplier fallback -->
+
                     <div class="field">
                         <div class="inv-label">
-                            Supplier Name (fallback)
+                            <span class="label-main">Supplier Name (fallback)</span>
+                            <span class="label-meta">Used when no supplier</span>
                         </div>
 
-                        <!-- Visible (display only) -->
-                        <input type="text"
-                               class="form-control inv-input"
-                               id="supplierSnapshotDisplay"
-                               placeholder="e.g. Walk-in supplier, Cash purchase"
-                               readonly />
-
-                        <!-- Hidden (actual bound value) -->
-                        <input type="hidden"
-                               asp-for="SupplierNameSnapshot"
-                               id="supplierSnapshot" />
-
+                        <div class="field-input">
+                            <input type="text"
+                                   class="form-control inv-input"
+                                   id="supplierSnapshotDisplay"
+                                   placeholder="e.g. Walk-in supplier, Cash purchase" />
+                            <div class="field-help"></div>
+                            <input type="hidden" asp-for="SupplierNameSnapshot" id="supplierSnapshot" />
+                        </div>
                     </div>
-
 
                     <!-- Lead Time -->
                     <div class="field">
                         <div class="inv-label">
-                            Lead Time (days)
-                            <span class="hint">For forecasting</span>
+                            <span class="label-main">Lead Time (days)</span>
+                            <span class="label-meta">Forecasting</span>
                         </div>
 
-                        <input asp-for="LeadTimeDays"
-                               type="number"
-                               min="0"
-                               class="form-control inv-input"
-                               placeholder="e.g. 7" />
+                        <div class="field-input">
+                            <input asp-for="LeadTimeDays"
+                                   type="number"
+                                   min="0"
+                                   step="1"
+                                   class="form-control inv-input js-int"
+                                   placeholder="e.g. 7" />
+                            <div class="field-help"></div>
+                        </div>
                     </div>
 
                 </div>
 
-
-                @if ((Model.CostingMethod == CostingMethod.Fixed ||
-                                Model.CostingMethod == CostingMethod.WeightedAverage)
-                                && !Model.HasBaseUnit)
+                @if ((Model.CostingMethod == CostingMethod.Fixed || Model.CostingMethod == CostingMethod.WeightedAverage) && !Model.HasBaseUnit)
                 {
                     <div class="text-danger" style="margin-top:12px;">
-                        ⚠ This item uses <b>@Model.CostingMethod</b> costing.
-                        A base unit is required before stock can be added.
+                        ⚠ This item uses <b>@Model.CostingMethod</b> costing. A base unit is required before stock can be added.
                         Please fix unit setup first.
                     </div>
                 }
 
-
-
                 <div class="actions">
                     <button type="submit"
                             class="pill-btn"
+                            id="confirmBtn"
                             disabled="@(!Model.CanSubmit)">
                         Confirm
                     </button>
@@ -1048,14 +1418,14 @@
     @if (!Model.ShowSummary)
     {
         <div class="inv-card mt-4 preview-card">
-            <div class="inv-card__head preview-head">
+            <div class="preview-head">
                 <div class="preview-title">
                     <div class="t">Stock Preview</div>
                     <div class="s">Check quantity & expiry before saving.</div>
                 </div>
             </div>
 
-            <div class="inv-card__body inv-card__body--flush">
+            <div class="inv-card__body" style="padding:0;">
                 <table class="table inv-table preview-table mb-0">
                     <thead>
                         <tr>
@@ -1073,12 +1443,8 @@
                                         <div class="item-name">@item.ItemName</div>
                                     </div>
                                 </td>
-                                <td class="col-mid">
-                                    <span class="mono-pill preview-qty">–</span>
-                                </td>
-                                <td class="col-mid">
-                                    <span class="mono-pill mono-pill--muted preview-expiry">Not selected</span>
-                                </td>
+                                <td class="col-mid"><span class="mono-pill preview-qty">–</span></td>
+                                <td class="col-mid"><span class="mono-pill mono-pill--muted preview-expiry">Not selected</span></td>
                             </tr>
                         }
                     </tbody>
@@ -1087,18 +1453,16 @@
         </div>
     }
 
-
-
     @if (Model.ShowSummary && Model.SummaryRows.Any())
     {
         var first = Model.SummaryRows.First();
         var isBulk = Model.SummaryRows.Count > 1;
 
-        <div class="inv-card mt-4 success-card">
-            <div class="inv-card__head success-head">
+        <div class="inv-card mt-4">
+            <div class="success-head">
                 <div class="success-left">
                     <span class="success-icon">✓</span>
-                    <div class="success-text">
+                    <div>
                         <div class="success-title">Stock Added Successfully</div>
 
                         @if (!isBulk)
@@ -1116,15 +1480,12 @@
                     </div>
                 </div>
 
-                <a asp-action="StockIndex" class="pill-btn pill-btn--ghost success-btn">
-                    Back to Stock
-                </a>
+                <a asp-action="StockIndex" class="pill-btn pill-btn--ghost">Back to Stock</a>
             </div>
 
-            @* Show table ONLY when bulk *@
             @if (isBulk)
             {
-                <div class="inv-card__body p-0">
+                <div class="inv-card__body" style="padding:0;">
                     <table class="table inv-table mb-0">
                         <thead>
                             <tr>
@@ -1149,22 +1510,19 @@
         </div>
     }
 
-
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-
-                const isLockedUnit = @(
-            (Model.CostingMethod == CostingMethod.WeightedAverage ||
-              Model.CostingMethod == CostingMethod.Fixed).ToString().ToLower()
+        const isLockedUnit = @(
+            (Model.CostingMethod == CostingMethod.WeightedAverage || Model.CostingMethod == CostingMethod.Fixed)
+            .ToString().ToLower()
         );
 
         const qtyInput = document.querySelector('[name="InputQuantity"]');
-
-        const unitSelect = document.querySelector('[name="UnitConversionID"]');
+        const unitSelect = document.getElementById('unitSelect'); // only exists when unlocked
 
         const expiryInput = document.querySelector('[name="ExpiryDate"]');
 
@@ -1175,31 +1533,36 @@
             return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
         }
 
+        function getMultiplierFromUnitText(unitText) {
+            // supports "(×12)" etc
+            const match = unitText.match(/×\s*([\d.]+)/);
+            return match ? parseFloat(match[1]) : 1;
+        }
+
         function updatePreview() {
-            const qty = qtyInput?.value?.trim();
-            const expiryRaw = expiryInput?.value?.trim();
-            const expiryNice = formatExpiry(expiryRaw);
+            const qtyRaw = qtyInput?.value?.trim();
+            const qty = qtyRaw ? parseFloat(qtyRaw) : null;
+
+            const expiryNice = formatExpiry(expiryInput?.value?.trim());
+        const unitText = unitSelect?.selectedOptions?.[0]?.text?.trim() || 'Base';
+
+
+            const multiplier = getMultiplierFromUnitText(unitText);
+            const baseQty = qty != null ? qty * multiplier : null;
 
             document.querySelectorAll('#previewBody tr').forEach(row => {
                 const qtyEl = row.querySelector('.preview-qty');
                 const expEl = row.querySelector('.preview-expiry');
 
-                        const unitText = unitSelect?.selectedOptions[0]?.text || '';
-                const multiplierMatch = unitText.match(/×(\d+)/);
-        const multiplier = multiplierMatch ? parseInt(multiplierMatch[1]) : 1;
-
-        const baseQty = qty ? qty * multiplier : null;
-
-        if (qtyEl) {
-                qtyEl.innerText = qty
-        ? (isLockedUnit
-            ? `${baseQty} (base unit)`
-            : `${qty} ${unitText}${baseQty > qty ? ` → ${baseQty} pcs` : ''}`)
-        : '–';
-
-        }
-
-
+                if (qtyEl) {
+                    if (qty != null && !isNaN(qty)) {
+                        qtyEl.innerText = isLockedUnit
+                            ? `${baseQty} (base unit)`
+                            : `${qty} ${unitText}${multiplier > 1 ? ` → ${baseQty} base` : ''}`;
+                    } else {
+                        qtyEl.innerText = '–';
+                    }
+                }
 
                 if (expEl) {
                     if (expiryNice) {
@@ -1215,22 +1578,31 @@
 
         updatePreview();
         qtyInput?.addEventListener('input', updatePreview);
+
+                // ✅ Live validate Quantity field (shows error immediately)
+        if (window.jQuery) {
+          $("[name='InputQuantity']").on("input blur", function () {
+            $(this).valid();
+          });
+        }
+
         expiryInput?.addEventListener('change', updatePreview);
         unitSelect?.addEventListener('change', updatePreview);
 
-                const supplierSelect = document.getElementById("supplierSelect");
-                const supplierSnapshot = document.getElementById("supplierSnapshot"); // hidden
-        const supplierSnapshotDisplay = document.getElementById("supplierSnapshotDisplay"); // visible
+        // Supplier sync
+        const supplierSelect = document.getElementById("supplierSelect");
+        const supplierSnapshot = document.getElementById("supplierSnapshot");
+        const supplierSnapshotDisplay = document.getElementById("supplierSnapshotDisplay");
 
+        function syncSupplierFields() {
+            if (!supplierSelect || !supplierSnapshot || !supplierSnapshotDisplay) return;
 
-                        function syncSupplierFields() {
             const selectedOption = supplierSelect.options[supplierSelect.selectedIndex];
 
             if (supplierSelect.value) {
                 const name = selectedOption.text.trim();
-
-                supplierSnapshot.value = name;              // 🔒 bound
-                supplierSnapshotDisplay.value = name;       // 👁 display
+                supplierSnapshot.value = name;
+                supplierSnapshotDisplay.value = name;
                 supplierSnapshotDisplay.readOnly = true;
             } else {
                 supplierSnapshot.value = "";
@@ -1239,14 +1611,127 @@
             }
         }
 
-
-        supplierSelect.addEventListener("change", syncSupplierFields);
+        supplierSelect?.addEventListener("change", syncSupplierFields);
         syncSupplierFields();
 
+                function setupIntInput(el) {
+          if (!el) return;
 
-        supplierSelect.addEventListener("change", syncSupplierFields);
-        syncSupplierFields();
+          // Auto clear when user focuses the field and it’s "0"
+          el.addEventListener("focus", () => {
+            if (el.value === "0") el.value = "";
+          });
+
+          // Prevent invalid keys: letters including e/E, plus/minus, etc.
+          el.addEventListener("keydown", (ev) => {
+            const blocked = ["e", "E", "+", "-", ".", ","];
+            if (blocked.includes(ev.key)) ev.preventDefault();
+          });
+
+          // Hard sanitize: remove anything not digit (covers paste too)
+          el.addEventListener("input", () => {
+            el.value = el.value.replace(/[^\d]/g, "");
+          });
+
+          // Optional: block mouse wheel changing numbers accidentally
+          el.addEventListener("wheel", () => el.blur());
+        }
+
+        document.querySelectorAll(".js-int").forEach(setupIntInput);
 
 
+                function setupCS2(cs) {
+          const selectId = cs.dataset.select;
+          const real = document.getElementById(selectId);
+          if (!real) return;
+
+          const btn = cs.querySelector(".cs2-btn");
+          const valueEl = cs.querySelector(".cs2-value");
+          const items = Array.from(cs.querySelectorAll(".cs2-item"));
+          const menu = cs.querySelector(".cs2-menu");
+          if (!btn || !menu) return;
+
+          const setActive = (val) => {
+            const found = items.find(i => String(i.dataset.value) === String(val));
+            valueEl.textContent = found ? found.textContent : (items[0]?.textContent || "");
+          };
+
+          const open = () => {
+            document.querySelectorAll(".cs2.open").forEach(o => {
+              if (o !== cs) {
+                o.classList.remove("open");
+                o.querySelector(".cs2-btn")?.setAttribute("aria-expanded", "false");
+              }
+            });
+            cs.classList.add("open");
+            btn.setAttribute("aria-expanded", "true");
+          };
+
+          const close = () => {
+            cs.classList.remove("open");
+            btn.setAttribute("aria-expanded", "false");
+          };
+
+          setActive(real.value);
+
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            cs.classList.contains("open") ? close() : open();
+          });
+
+          items.forEach(i => {
+            i.addEventListener("click", (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              real.value = i.dataset.value ?? "";
+              real.dispatchEvent(new Event("change", { bubbles: true }));
+              real.dispatchEvent(new Event("blur", { bubbles: true })); // ✅ add this
+              setActive(real.value);
+              close();
+            });
+          });
+
+          document.addEventListener("click", (e) => {
+            if (!e.target.closest(".cs2") && cs.classList.contains("open")) close();
+          });
+
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && cs.classList.contains("open")) close();
+          });
+
+          // Keep UI synced if value changes from code
+          real.addEventListener("change", () => setActive(real.value));
+        }
+
+        document.querySelectorAll(".cs2[data-select]").forEach(setupCS2);
+
+                (() => {
+            const form = document.querySelector("form[asp-action='AddStockBatch']");
+            const btn = document.getElementById("confirmBtn");
+
+            if (!form || !btn) return;
+
+            form.addEventListener("submit", (e) => {
+                // Let MVC validation run first
+                if (!form.checkValidity()) return;
+
+                // Change button state
+                btn.disabled = true;
+                btn.textContent = "Confirming…";
+                btn.classList.add("is-loading");
+            });
+        })();
+
+                document.addEventListener("DOMContentLoaded", () => {
+          const form = document.querySelector("form[asp-action='AddStockBatch']");
+          const btn = form?.querySelector("button[type='submit']");
+          if (!form || !btn) return;
+
+          form.addEventListener("submit", () => {
+            btn.disabled = true;
+            btn.textContent = "Confirming...";
+          });
+        });
     </script>
 }

@@ -150,6 +150,7 @@ namespace Invexaaa.Controllers
          CreatedDate = i.ItemCreatedDate,
          ImageUrl = i.ItemImageUrl,
 
+
          ItemBarcode = i.ItemBarcode,
 
          // ============================
@@ -190,6 +191,12 @@ namespace Invexaaa.Controllers
     })
     .ToList();
 
+            // 🔥 ADD THIS
+            item.Units = _context.ItemUnitConversions
+                .Where(u => u.ItemID == id)
+                .OrderByDescending(u => u.IsBaseUnit)
+                .ThenBy(u => u.UnitName)
+                .ToList();
 
             return View("ItemDetail", item);
         }
@@ -357,10 +364,14 @@ namespace Invexaaa.Controllers
             var item = _context.Items.Find(id);
             if (item == null) return NotFound();
 
+            bool hasStock = _context.Inventories
+        .Any(i => i.ItemID == id && i.InventoryTotalQuantity > 0);
+
             var vm = new ItemFormViewModel
             {
                 Item = item,
                 Categories = _context.Categories.ToList(),
+                HasStock = hasStock
 
             };
 
@@ -372,46 +383,80 @@ namespace Invexaaa.Controllers
         [HttpPost("EditItem/{id}")]
         [ValidateAntiForgeryToken]
         public IActionResult EditItem(ItemFormViewModel model)
-
         {
             if (!ModelState.IsValid)
             {
-                // 🔴 IMPORTANT: reload dropdown data
                 model.Categories = _context.Categories.ToList();
-
                 return View(model);
             }
 
             var item = _context.Items.Find(model.Item.ItemID);
-            if (item == null) return NotFound();
+            if (item == null)
+                return NotFound();
 
-            var oldCategoryId = item.CategoryID;
-
-            // 🔒 BLOCK CATEGORY CHANGE IF STOCK EXISTS
+            // =====================================================
+            // INVENTORY SNAPSHOT (AUTHORITATIVE)
+            // =====================================================
             var inventoryQty = _context.Inventories
                 .Where(i => i.ItemID == item.ItemID)
                 .Select(i => i.InventoryTotalQuantity)
                 .FirstOrDefault();
 
-            if (inventoryQty > 0 && item.CategoryID != model.Item.CategoryID)
-            {
-                ModelState.AddModelError("",
-                    "Cannot change category because costing method is locked once stock exists.");
+            bool hasStock = inventoryQty > 0;
 
+            int originalCategoryId = item.CategoryID;
+            string originalUom = item.ItemUnitOfMeasure?.Trim().ToLower();
+
+            // =====================================================
+            // 🔒 CATEGORY LOCK (SERVER-SIDE, ANTI-TAMPER)
+            // =====================================================
+            if (hasStock && model.Item.CategoryID != originalCategoryId)
+            {
+                ModelState.AddModelError(
+                    "Item.CategoryID",
+                    "Category is locked because stock exists."
+                );
+
+                model.Item.CategoryID = originalCategoryId;
                 model.Categories = _context.Categories.ToList();
+                model.HasStock = true;
                 return View(model);
             }
 
-            if (item == null) return NotFound();
+            // =====================================================
+            // 🔒 BASE UNIT LOCK (SERVER-SIDE, ANTI-TAMPER)
+            // =====================================================
+            var normalizedUom = model.Item.ItemUnitOfMeasure?.Trim().ToLower();
 
-            // ✅ Update fields
+            if (hasStock && normalizedUom != originalUom)
+            {
+                ModelState.AddModelError(
+                    "Item.ItemUnitOfMeasure",
+                    "Unit is locked because stock exists."
+                );
+
+                model.Item.ItemUnitOfMeasure = originalUom;
+                model.Categories = _context.Categories.ToList();
+                model.HasStock = true;
+                return View(model);
+            }
+
+            // =====================================================
+            // BASIC ITEM FIELDS (ALWAYS SAFE)
+            // =====================================================
             item.ItemName = model.Item.ItemName;
             item.ItemDescription = model.Item.ItemDescription;
-            item.ItemUnitOfMeasure = model.Item.ItemUnitOfMeasure;
-            item.CategoryID = model.Item.CategoryID;
+            item.ItemBuyPrice = model.Item.ItemBuyPrice;
+            item.ItemSellPrice = model.Item.ItemSellPrice;
+            item.ItemReorderLevel = model.Item.ItemReorderLevel;
+            item.SafetyStock = model.Item.SafetyStock;
+            item.ReorderPoint = model.Item.ReorderPoint;
+            item.AverageDailyDemand = model.Item.AverageDailyDemand;
 
-            // 🔒 RE-APPLY COSTING METHOD IF CATEGORY CHANGED AND NO STOCK EXISTS
-            if (inventoryQty == 0 && oldCategoryId != model.Item.CategoryID)
+            // =====================================================
+            // CATEGORY + COSTING (ONLY IF NO STOCK)
+            // =====================================================
+            if (!hasStock && originalCategoryId != model.Item.CategoryID)
             {
                 var newCategory = _context.Categories
                     .FirstOrDefault(c => c.CategoryID == model.Item.CategoryID);
@@ -423,31 +468,41 @@ namespace Invexaaa.Controllers
                     return View(model);
                 }
 
+                item.CategoryID = newCategory.CategoryID;
                 item.CostingMethod = newCategory.CostingMethod;
             }
 
+            // =====================================================
+            // UNIT + BASE UNIT SYNC (ONLY IF NO STOCK)
+            // =====================================================
+            if (!hasStock && !string.IsNullOrWhiteSpace(normalizedUom))
+            {
+                item.ItemUnitOfMeasure = normalizedUom;
 
+                var baseUnit = _context.ItemUnitConversions
+                    .FirstOrDefault(u =>
+                        u.ItemID == item.ItemID &&
+                        u.IsBaseUnit);
 
-            item.ItemBuyPrice = model.Item.ItemBuyPrice;
-            item.ItemSellPrice = model.Item.ItemSellPrice;
-            item.ItemReorderLevel = model.Item.ItemReorderLevel;
-            item.SafetyStock = model.Item.SafetyStock;
-            item.ReorderPoint = model.Item.ReorderPoint;
-            item.AverageDailyDemand = model.Item.AverageDailyDemand;
+                if (baseUnit != null)
+                {
+                    baseUnit.UnitName = normalizedUom;
+                    baseUnit.BaseUnitMultiplier = 1;
+                }
+            }
 
-            // ❗ DO NOT TOUCH barcode
-            // ❗ DO NOT TOUCH ItemID
+            // =====================================================
+            // IMAGE UPDATE (UNCHANGED FROM YOUR VERSION)
+            // =====================================================
+            var uploadsFolder = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot/uploads/items");
 
-            // ================= IMAGE UPDATE =================
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/items");
             Directory.CreateDirectory(uploadsFolder);
 
-            // helper to delete old file safely
             void DeleteOldImageIfAny(string? url)
             {
                 if (string.IsNullOrWhiteSpace(url)) return;
-
-                // don't delete your system default image
                 if (url.Contains("/images/items/item-default.png")) return;
 
                 var oldPath = Path.Combine(
@@ -460,7 +515,6 @@ namespace Invexaaa.Controllers
                     System.IO.File.Delete(oldPath);
             }
 
-            // A) Edited image from canvas (base64)
             if (!string.IsNullOrWhiteSpace(model.EditedImageData))
             {
                 var base64 = model.EditedImageData;
@@ -478,28 +532,27 @@ namespace Invexaaa.Controllers
                 DeleteOldImageIfAny(item.ItemImageUrl);
                 item.ItemImageUrl = $"/uploads/items/{fileName}";
             }
-            // B) Normal upload file (if your Edit page has <input type="file" ...>)
             else if (model.ImageFile != null && model.ImageFile.Length > 0)
             {
                 var ext = Path.GetExtension(model.ImageFile.FileName);
                 var fileName = $"item_{item.ItemID}_{Guid.NewGuid():N}{ext}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    model.ImageFile.CopyTo(stream);
-                }
+                using var stream = new FileStream(filePath, FileMode.Create);
+                model.ImageFile.CopyTo(stream);
 
                 DeleteOldImageIfAny(item.ItemImageUrl);
                 item.ItemImageUrl = $"/uploads/items/{fileName}";
             }
 
-
-
+            // =====================================================
+            // SAVE
+            // =====================================================
             _context.SaveChanges();
-
             return RedirectToAction("ItemIndex");
         }
+
+
 
         // SOFT DELETE = DEACTIVATE
         [Authorize(Roles = "Admin,Manager")]
@@ -1069,6 +1122,78 @@ namespace Invexaaa.Controllers
             TempData["Success"] = "Unit deleted successfully.";
             return RedirectToAction("Units", new { itemId });
         }
+
+        // =====================================================
+        // ADD UNIT (AJAX)
+        // =====================================================
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPost("AddUnitAjax")]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddUnitAjax(ItemUnitsViewModel vm)
+        {
+            var unitName = vm.NewUnitName?.Trim().ToLower();
+
+            if (string.IsNullOrWhiteSpace(unitName))
+                return BadRequest("Unit name required");
+
+            if (vm.NewBaseUnitMultiplier < 1)
+                return BadRequest("Invalid multiplier");
+
+            bool exists = _context.ItemUnitConversions.Any(u =>
+                u.ItemID == vm.ItemID &&
+                u.UnitName.ToLower() == unitName);
+
+            if (exists)
+                return Conflict("Duplicate unit");
+
+            var unit = new ItemUnitConversion
+            {
+                ItemID = vm.ItemID,
+                UnitName = unitName,
+                BaseUnitMultiplier = vm.NewBaseUnitMultiplier,
+                IsBaseUnit = false
+            };
+
+            _context.ItemUnitConversions.Add(unit);
+            _context.SaveChanges();
+
+            return Json(new
+            {
+                id = unit.ItemUnitConversionID,
+                name = unit.UnitName,
+                multiplier = unit.BaseUnitMultiplier,
+                isBaseUnit = unit.IsBaseUnit
+            });
+        }
+
+        // =====================================================
+        // DELETE UNIT (AJAX)
+        // =====================================================
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPost("DeleteUnitAjax")]
+        public IActionResult DeleteUnitAjax([FromBody] int unitId)
+        {
+            var unit = _context.ItemUnitConversions
+                .FirstOrDefault(u => u.ItemUnitConversionID == unitId);
+
+            if (unit == null)
+                return NotFound();
+
+            if (unit.IsBaseUnit)
+                return BadRequest("Base unit locked");
+
+            bool hasStock = _context.Inventories
+                .Any(i => i.ItemID == unit.ItemID && i.InventoryTotalQuantity > 0);
+
+            if (hasStock)
+                return BadRequest("Stock exists");
+
+            _context.ItemUnitConversions.Remove(unit);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
 
     }
 }

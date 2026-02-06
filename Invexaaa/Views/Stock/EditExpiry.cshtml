@@ -6,68 +6,348 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4" style="max-width: 520px;">
+<style>
+    /* ===============================
+               INVEXA · BLACK & WHITE SYSTEM
+               =============================== */
+    :root {
+        --bg: #ffffff;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --soft: #f6f7f9;
+        --shadow: 0 10px 24px rgba(0,0,0,.06);
+        --radius: 18px;
+        --focus: 0 0 0 4px rgba(17,17,17,.08);
+        --danger: #ef4444;
+    }
 
-    <h4 class="fw-semibold mb-3">Edit Expiry Date</h4>
+    html, body, main,
+    .container-fluid, .content, .content-body,
+    .app-content, .app-wrapper {
+        background: #ffffff !important;
+    }
 
-    <div class="alert alert-light border text-muted small">
-        Changing the expiry date affects inventory alerts and reports.
-        Please provide a valid reason.
+    .page-wrap {
+        min-height: calc(100vh - 120px);
+        display: grid;
+        place-items: center;
+        align-items: start;
+        padding: 22px 16px 28px;
+        padding-top: 18px;
+        background: var(--bg);
+    }
+
+    .card-clean {
+        width: min(820px, 100%); /* a bit wider so it breathes */
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .card-head {
+        padding: 16px 22px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .title-wrap h1 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 900;
+        letter-spacing: -.02em;
+        color: var(--text);
+    }
+
+    .title-wrap p {
+        margin: 6px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.35;
+    }
+
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--soft);
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .card-body {
+        padding: 22px 22px 8px;
+    }
+
+    /* Grid system */
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px 18px;
+    }
+
+    @@media (max-width: 640px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Sections */
+    .section {
+        margin-top: 5px;
+    }
+
+        .section + .section {
+            margin-top: 18px;
+        }
+
+    .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 22px 0 0;
+    }
+
+    .field label {
+        font-size: 14px; /* +1 */
+        font-weight: 900;
+        color: var(--text);
+        margin: 0 0 8px;
+    }
+
+
+    .in {
+        width: 100%;
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--text);
+        background: #fff;
+        outline: none;
+    }
+
+        .in:focus {
+            border-color: #111827;
+        }
+
+    textarea.in {
+        resize: vertical;
+        min-height: 110px; /* more room */
+    }
+
+    .req {
+        color: var(--danger);
+        font-weight: 900;
+        margin-left: 4px;
+    }
+
+    /* Reference blocks */
+    .ref-block {
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px 16px;
+    }
+
+    .ref-label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--muted);
+        letter-spacing: .02em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .ref-value {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.3;
+        word-break: break-word;
+    }
+
+    /* Footer */
+    .card-foot {
+        padding: 14px 22px 18px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .divider {
+        margin: 16px 0 0;
+    }
+    /* ===============================
+               INVEXA · BUTTONS (INVERT HOVER)
+               =============================== */
+    .btn-invexa {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-size: 13px; /* smaller text */
+        font-weight: 800; /* still strong, less shouty */
+        border: 2px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        text-decoration: none;
+        transition: transform .12s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+    }
+
+        .btn-invexa:hover {
+            background: #111827; /* invert */
+            border-color: #111827;
+            color: #fff;
+            text-decoration: none;
+        }
+
+    .btn-primary-invexa {
+        background: #111827;
+        border-color: #111827;
+        color: #fff;
+    }
+
+        .btn-primary-invexa:hover {
+            background: #fff; /* invert */
+            border-color: #111827;
+            color: #111827;
+        }
+
+        .btn-primary-invexa:focus,
+        .btn-invexa:focus {
+            outline: none;
+        }
+
+    .field label {
+        font-size: 13px;
+    }
+
+    .btn-invexa {
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .card-head {
+        gap: 8px; /* was 12px */
+    }
+
+    /* ===============================
+           INVEXA · VALIDATION STYLE
+           =============================== */
+
+    .val-summary {
+        display: none;
+        margin-bottom: 14px;
+        padding: 12px 14px;
+        border: 1px solid #fecaca;
+        background: #fff5f5;
+        border-radius: 14px;
+        color: #7f1d1d;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .field .val-msg {
+        display: block;
+        margin-top: 8px;
+        font-size: 12px;
+        color: #b91c1c;
+        font-weight: 700;
+    }
+
+    /* Red border on invalid */
+    .in.input-validation-error {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 4px rgba(239,68,68,.12);
+    }
+
+    .field .val-msg {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #b91c1c;
+        font-weight: 800;
+    }
+
+</style>
+
+<div class="page-wrap">
+    <div class="card-clean">
+
+        <div class="card-head">
+            <div class="title-wrap">
+                <h1>Edit Expiry Date</h1>
+                <p>Update batch expiry to keep alerts & reports accurate. A reason is required for audit trail.</p>
+            </div>
+
+        </div>
+
+        <div class="card-body">
+            <form asp-action="EditExpiry" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="BatchID" value="@Model.BatchID" />
+
+                <!-- Reference section -->
+                <div class="grid section">
+                    <div class="ref-block">
+                        <div class="ref-label">Item</div>
+                        <div class="ref-value">@ViewBag.ItemName</div>
+                    </div>
+
+                    <div class="ref-block">
+                        <div class="ref-label">Batch Number</div>
+                        <div class="ref-value">@Model.BatchNumber</div>
+                    </div>
+                </div>
+
+                <!-- Inputs -->
+                <div class="grid section">
+                    <div class="field">
+                        <label>Expiry Date <span class="req">*</span></label>
+                        <input type="date"
+                               name="BatchExpiryDate"
+                               value="@Model.BatchExpiryDate.ToString("yyyy-MM-dd")"
+                               class="in"
+                               required />
+                    </div>
+
+                    <div class="field">
+                        <label>Reason <span class="req">*</span></label>
+                        <textarea name="Reason"
+                                  class="in"
+                                  rows="3"
+                                  placeholder="Required"
+                                  required></textarea>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="card-foot">
+                    <a asp-controller="ExpiryTracking"
+                       asp-action="ExpiryTrackingIndex"
+                       class="btn-invexa">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn-invexa btn-primary-invexa">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
     </div>
-
-    <form asp-action="EditExpiry" method="post">
-        @Html.AntiForgeryToken()
-
-        <!-- REQUIRED -->
-        <input type="hidden" name="BatchID" value="@Model.BatchID" />
-
-        <!-- ITEM NAME (FROM ViewBag, NOT Model.Item) -->
-        <div class="mb-3">
-            <label class="form-label">Item</label>
-            <input class="form-control"
-                   value="@ViewBag.ItemName"
-                   disabled />
-        </div>
-
-        <!-- BATCH NUMBER -->
-        <div class="mb-3">
-            <label class="form-label">Batch Number</label>
-            <input class="form-control"
-                   value="@Model.BatchNumber"
-                   disabled />
-        </div>
-
-        <!-- EXPIRY DATE -->
-        <div class="mb-3">
-            <label class="form-label">Expiry Date</label>
-            <input type="date"
-                   name="BatchExpiryDate"
-                   value="@Model.BatchExpiryDate.ToString("yyyy-MM-dd")"
-                   class="form-control"
-                   required />
-        </div>
-
-        <!-- REASON -->
-        <div class="mb-3">
-            <label class="form-label">Reason</label>
-            <textarea name="Reason"
-                      class="form-control"
-                      rows="3"
-                      required></textarea>
-        </div>
-
-        <div class="d-flex justify-content-end gap-2">
-            <a asp-controller="ExpiryTracking"
-               asp-action="ExpiryTrackingIndex"
-               class="btn btn-outline-secondary">
-                Cancel
-            </a>
-
-            <button type="submit"
-                    class="btn btn-dark">
-                Save Changes
-            </button>
-        </div>
-    </form>
-
 </div>
