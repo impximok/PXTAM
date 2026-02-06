@@ -7,144 +7,365 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container" style="max-width:900px">
+<style>
+    :root {
+        --border: #e6e6e6;
+        --muted: #7a7a7a;
+        --text: #111;
+        --bg: #fff;
+        --soft: #fafafa;
+        --radius: 16px;
+        --danger: #dc2626;
+    }
+
+    /* FORCE WHITE BACKGROUND */
+    html, body, main, .container, .container-fluid {
+        background: #fff !important;
+    }
+
+    /* PAGE */
+    .units-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px 18px;
+    }
+
+    /* HEADER */
+    .units-header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+        .units-header h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+    .units-sub {
+        margin-top: 6px;
+        font-size: .9rem;
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    /* GRID */
+    .units-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+    }
+
+    @@media (max-width: 900px) {
+        .units-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* CARD / BOX (MATCH ITEM DETAIL PANEL) */
+    .unit-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 10px 28px rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+
+        .unit-card h5 {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: .9rem;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .unit-card .card-body {
+            padding: 14px 16px 16px;
+        }
+
+    /* UNIT ROWS */
+    .unit-row {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 12px;
+        padding: 12px 0;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .unit-row:last-child {
+            border-bottom: none;
+        }
+
+    .unit-name {
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .unit-meta {
+        font-size: .85rem;
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    .unit-base {
+        font-size: .72rem;
+        font-weight: 900;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #fff;
+    }
+
+    /* FORM */
+    .form-label {
+        font-size: .85rem;
+        font-weight: 700;
+        color: var(--muted);
+    }
+
+    .form-control {
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        padding: .6rem .75rem;
+        font-size: .9rem;
+    }
+
+        .form-control:focus {
+            border-color: #111;
+            box-shadow: none;
+        }
+
+    /* BUTTONS */
+    .btn-dark {
+        margin-top: 6px;
+        border-radius: 999px;
+        padding: 6px 16px;
+        font-size: .8rem;
+        font-weight: 900;
+        background: #111;
+        border: none;
+    }
+
+        .btn-dark:hover {
+            background: #000;
+        }
+
+    .btn-outline-danger {
+        border-radius: 999px;
+        padding: 3px 10px;
+        font-size: .75rem;
+        font-weight: 800;
+    }
+
+    .btn-disabled {
+        opacity: .45;
+        pointer-events: none;
+    }
+
+    /* WARNING */
+    .unit-warning {
+        grid-column: 1 / -1;
+        border: 1px dashed var(--border);
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: var(--soft);
+        font-size: .85rem;
+        font-weight: 600;
+        color: #374151;
+    }
+</style>
+
+<div class="units-page">
 
     <!-- HEADER -->
-    <div class="mb-4">
-        <h2 style="font-weight:800">Units & Conversion</h2>
-        <div style="color:#6b7280">
+    <div class="units-header">
+        <h2>Units & Conversion</h2>
+        <div class="units-sub">
             Item: <b>@Model.ItemName</b> · Costing: <b>@Model.CostingMethod</b>
         </div>
     </div>
 
-    <!-- COSTING WARNING -->
-    @if (Model.CostingMethod == CostingMethod.Fixed ||
-        Model.CostingMethod == CostingMethod.WeightedAverage)
-    {
-        <div class="alert alert-warning">
-            <b>Important:</b> This item uses <b>@Model.CostingMethod</b> costing.
-            A <b>base unit is mandatory</b>, and units cannot be removed once stock exists.
-        </div>
-    }
-    else
-    {
-        <div class="alert alert-info">
-            FIFO allows multiple units. Quantities will be converted to the base unit internally.
-        </div>
-    }
+    <div class="units-grid">
 
-    <!-- UNIT TABLE -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <b>Defined Units</b>
-        </div>
+        @if (Model.CostingMethod != CostingMethod.FIFO)
+        {
+            <div class="unit-warning">
+                <strong>Reference-only units</strong><br />
+                This item uses <b>@Model.CostingMethod</b> costing.
+                Derived units are for reference and display only.
+                All stock in/out and adjustments are recorded using the base unit.
+            </div>
+        }
 
-        <div class="card-body p-0">
-            <table class="table mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Unit Name</th>
-                        <th>Multiplier → Base</th>
-                        <th>Type</th>
-                        <th style="width:120px">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var u in Model.Units)
-                    {
-                        <tr>
-                            <td>@u.UnitName</td>
-                            <td>@u.BaseUnitMultiplier</td>
-                            <td>
-                                @if (u.IsBaseUnit)
-                                {
-                                    <span class="badge bg-dark">Base Unit</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Derived</span>
-                                }
-                            </td>
-                            <td>
-                                @if (u.IsBaseUnit)
-                                {
-                                    <span class="text-muted">Locked</span>
-                                }
-                                else if (Model.HasStock)
-                                {
-                                    <span class="text-muted">In use</span>
-                                }
-                                else
-                                {
-                                    <form asp-action="DeleteUnit"
-                                          asp-controller="Item"
-                                          method="post"
-                                          class="d-inline">
-                                        <input type="hidden" name="unitId" value="@u.ItemUnitConversionID" />
-                                        <input type="hidden" name="itemId" value="@Model.ItemID" />
-                                        <button class="btn btn-sm btn-outline-danger"
-                                                onclick="return confirm('Delete this unit?')">
-                                            Delete
-                                        </button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
 
-    <!-- ADD UNIT -->
-    <div class="card">
-        <div class="card-header">
-            <b>Add Unit</b>
+        <!-- UNIT LIST -->
+        <div class="unit-card">
+            <h5>Defined Units</h5>
+            <div class="card-body" id="unitList">
+                @foreach (var u in Model.Units)
+                {
+                    <div class="unit-row" data-name="@u.UnitName.ToLower()">
+                        <div class="unit-name">@u.UnitName</div>
+                        <div class="unit-meta">× @u.BaseUnitMultiplier</div>
+                        <div>
+                            @if (u.IsBaseUnit)
+                            {
+                                <span class="unit-base">Base</span>
+                            }
+                            else if (!Model.HasStock)
+                            {
+                                <button class="btn btn-outline-danger delete-btn"
+                                        data-id="@u.ItemUnitConversionID">
+                                    Delete
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="unit-meta">Locked</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
 
-        <div class="card-body">
-            <form asp-action="AddUnit" asp-controller="Item" method="post">
-                @Html.AntiForgeryToken()
+        <!-- ADD UNIT -->
+        <div class="unit-card">
+            <h5>Add Unit</h5>
+            <div class="card-body">
+                <form id="addUnitForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ItemID" value="@Model.ItemID" />
 
-                <input type="hidden" name="ItemID" value="@Model.ItemID" />
-
-                <div class="row g-3">
-
-                    <div class="col-md-4">
+                    <div class="mb-3">
                         <label class="form-label">Unit Name</label>
-                        <input name="NewUnitName"
-                               class="form-control"
-                               placeholder="e.g. kg, pack"
-                               required />
+                        <input id="unitName"
+                               name="NewUnitName"
+                               class="form-control" />
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label">Multiplier to Base</label>
-                        <input name="NewBaseUnitMultiplier"
+                    <div class="mb-3">
+                        <label class="form-label">Multiplier → Base</label>
+                        <input id="multiplier"
+                               name="NewBaseUnitMultiplier"
                                type="number"
                                min="1"
-                               class="form-control"
-                               placeholder="e.g. 1000"
-                               required />
+                               class="form-control" />
                     </div>
 
-                    <div class="col-md-4 d-flex align-items-end">
-                       
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <button class="btn btn-dark">
+                    <button id="submitBtn" class="btn btn-dark btn-disabled">
                         Add Unit
                     </button>
-                    <a asp-action="ItemDetail"
-                       asp-route-id="@Model.ItemID"
-                       class="btn btn-outline-secondary ms-2">
-                        Back to Item
-                    </a>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
 
+    </div>
 </div>
+
+<template id="unitRowTemplate">
+    <div class="unit-row" data-name="">
+        <div class="unit-name"></div>
+        <div class="unit-meta"></div>
+        <div class="action"></div>
+    </div>
+</template>
+
+<script>
+    (() => {
+
+        const unitName = document.getElementById("unitName");
+        const multiplier = document.getElementById("multiplier");
+        const submitBtn = document.getElementById("submitBtn");
+        const list = document.getElementById("unitList");
+        const template = document.getElementById("unitRowTemplate");
+
+        const normalize = v =>
+            v.trim().toLowerCase()
+             .replace("pieces", "pcs")
+             .replace("piece", "pcs")
+             .replace("kilogram", "kg")
+             .replace("gram", "g");
+
+        const exists = name =>
+            [...list.children].some(r => r.dataset.name === name);
+
+        function validate() {
+            const name = normalize(unitName.value);
+            const qty = parseInt(multiplier.value);
+            const ok = name && qty >= 1 && !exists(name);
+            submitBtn.classList.toggle("btn-disabled", !ok);
+            return ok;
+        }
+
+        unitName.addEventListener("input", () => {
+            unitName.value = normalize(unitName.value);
+            validate();
+        });
+
+        multiplier.addEventListener("keydown", e => {
+            if (["e", "E", "+", "-", "."].includes(e.key)) e.preventDefault();
+        });
+
+        multiplier.addEventListener("input", () => {
+            multiplier.value = multiplier.value.replace(/\D/g, "");
+            validate();
+        });
+
+        document.getElementById("addUnitForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            if (!validate()) return;
+
+            const res = await fetch("@Url.Action("AddUnitAjax", "Item")", {
+                method: "POST",
+                body: new FormData(e.target)
+            });
+
+            if (!res.ok) {
+                alert(await res.text());
+                return;
+            }
+
+            const data = await res.json();
+
+            const row = template.content.cloneNode(true);
+            const el = row.querySelector(".unit-row");
+
+            el.dataset.name = data.name;
+            el.querySelector(".unit-name").textContent = data.name;
+            el.querySelector(".unit-meta").textContent = "× " + data.multiplier;
+
+            el.querySelector(".action").innerHTML = `
+                <button class="btn btn-outline-danger delete-btn"
+                        data-id="${data.id}">
+                    Delete
+                </button>`;
+
+            list.appendChild(row);
+
+            unitName.value = "";
+            multiplier.value = "";
+            submitBtn.classList.add("btn-disabled");
+        });
+
+        document.addEventListener("click", async e => {
+            if (!e.target.classList.contains("delete-btn")) return;
+            if (!confirm("Delete unit?")) return;
+
+            const id = e.target.dataset.id;
+
+            const res = await fetch("@Url.Action("DeleteUnitAjax", "Item")", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(id)
+            });
+
+            if (res.ok) e.target.closest(".unit-row").remove();
+        });
+
+    })();
+</script>

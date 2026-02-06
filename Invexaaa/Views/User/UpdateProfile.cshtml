@@ -62,8 +62,9 @@
                     <input type="file"
                            id="cameraInput"
                            accept="image/*"
-                           capture="environment"
+                           capture
                            class="file-input-hidden" />
+
 
                     <div id="dropzone" class="dropzone" tabindex="0">
                         <div class="dz-main">
@@ -121,7 +122,14 @@
                 <!-- Circle preview -->
                 <div class="editor-stage">
                     <div class="editor-circle">
+                        <video id="cameraVideo"
+                               autoplay
+                               playsinline
+                               class="hidden"
+                               style="width:100%; height:100%; object-fit:cover;"></video>
+
                         <canvas id="editorCanvas" width="420" height="420"></canvas>
+
                         <div class="circle-guide"></div>
                     </div>
                 </div>
@@ -156,200 +164,282 @@
         (() => {
             const $ = id => document.getElementById(id);
 
-            const fileInput   = $('fileInput');
+            const fileInput = $('fileInput');
             const cameraInput = $('cameraInput');
-            const browseBtn   = $('browseBtn');
-            const cameraBtn   = $('cameraButton');
-            const dropzone    = $('dropzone');
+            const browseBtn = $('browseBtn');
+            const cameraBtn = $('cameraButton');
+            const dropzone = $('dropzone');
 
-            const avatar      = $('avatarPreview');
-            const fileName    = $('fileName');
-            const captured    = $('capturedData');
+            const avatar = $('avatarPreview');
+            const fileName = $('fileName');
+            const captured = $('capturedData');
 
-            const modal   = $('editorModal');
-            const closeBtn= $('editorClose');
-            const canvas  = $('editorCanvas');
-            const zoomEl  = $('zoom');
-            const useBtn  = $('useImage');
-            const rotL    = $('rotateLeft');
-            const rotR    = $('rotateRight');
-        // ✅ circle radius ratio (smaller = tighter crop)
-        // 0.42 was too big. Try 0.38 to match your guide.
-        const CIRCLE_R = 0.38;
-
-            if (!fileInput || !browseBtn || !dropzone || !avatar || !fileName || !captured) return;
-
+            const modal = $('editorModal');
+            const closeBtn = $('editorClose');
+            const canvas = $('editorCanvas');
             const ctx = canvas.getContext('2d');
+            const video = $('cameraVideo');
+
+            const zoomEl = $('zoom');
+            const useBtn = $('useImage');
+            const rotL = $('rotateLeft');
+            const rotR = $('rotateRight');
+
+            const CIRCLE_R = 0.38;
+
             let img = new Image();
             let imgLoaded = false;
-
             let scale = 1;
             let rotation = 0;
             let offsetX = 0;
             let offsetY = 0;
             let dragging = false;
-            let lastX = 0, lastY = 0;
+            let lastX = 0;
+            let lastY = 0;
 
-            const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+            let cameraStream = null;
 
-            const openEditor = () => {
+            /* ================= OPEN / CLOSE ================= */
+
+            function openEditor() {
                 modal.classList.remove('hidden');
-                modal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
-                zoomEl.value = '1';
-                scale = 1; rotation = 0; offsetX = 0; offsetY = 0;
+                zoomEl.value = 1;
+                        scale = 1;
+        rotation = 0;
+        offsetX = 0;
+        offsetY = 0;
+
                 draw();
                 updateZoomFill();
-            };
+            }
 
-            const closeEditor = () => {
+            function closeEditor() {
                 modal.classList.add('hidden');
-                modal.setAttribute('aria-hidden', 'true');
                 document.body.style.overflow = '';
-            };
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(t => t.stop());
+                    cameraStream = null;
+                }
+                video.classList.add('hidden');
+                canvas.classList.remove('hidden');
+            }
 
-            const draw = () => {
+            /* ================= DRAW ================= */
+
+            function draw() {
                 if (!imgLoaded) return;
-                const w = canvas.width, h = canvas.height;
-                ctx.clearRect(0,0,w,h);
+
+                const w = canvas.width;
+                const h = canvas.height;
+
+                ctx.clearRect(0, 0, w, h);
                 ctx.fillStyle = '#fff';
-                ctx.fillRect(0,0,w,h);
+                ctx.fillRect(0, 0, w, h);
 
                 ctx.save();
-                ctx.translate(w/2 + offsetX, h/2 + offsetY);
+                ctx.translate(w / 2 + offsetX, h / 2 + offsetY);
                 ctx.rotate(rotation);
                 ctx.scale(scale, scale);
 
-                const base = Math.max(w/img.width, h/img.height);
-                const s = base;
-                ctx.drawImage(img, -img.width*s/2, -img.height*s/2, img.width*s, img.height*s);
+                const base = Math.max(w / img.width, h / img.height);
+                ctx.drawImage(
+                    img,
+                    -img.width * base / 2,
+                    -img.height * base / 2,
+                    img.width * base,
+                    img.height * base
+                );
                 ctx.restore();
 
-                // dim outside circle + ring
                 ctx.save();
                 ctx.fillStyle = 'rgba(0,0,0,0.35)';
                 ctx.beginPath();
-                ctx.rect(0,0,w,h);
+                ctx.rect(0, 0, w, h);
                 ctx.arc(w / 2, h / 2, w * CIRCLE_R, 0, Math.PI * 2, true);
                 ctx.fill('evenodd');
-
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(w / 2, h / 2, w * CIRCLE_R, 0, Math.PI * 2);
-                ctx.stroke();
                 ctx.restore();
-            };
+            }
 
-            const exportCroppedCircle = () => {
+            /* ================= EXPORT ================= */
+
+            function exportCircle() {
                 const out = document.createElement('canvas');
-                out.width = 320; out.height = 320;
+                out.width = out.height = 320;
                 const octx = out.getContext('2d');
 
-                octx.fillStyle = '#fff';
-                octx.fillRect(0,0,out.width,out.height);
-
                 octx.save();
-                octx.translate(out.width/2 + (offsetX*(out.width/canvas.width)),
-                               out.height/2 + (offsetY*(out.height/canvas.height)));
+                octx.translate(out.width / 2 + offsetX * (out.width / canvas.width),
+                               out.height / 2 + offsetY * (out.height / canvas.height));
                 octx.rotate(rotation);
                 octx.scale(scale, scale);
 
-                const base = Math.max(out.width/img.width, out.height/img.height);
-                const s = base;
-                octx.drawImage(img, -img.width*s/2, -img.height*s/2, img.width*s, img.height*s);
+                const base = Math.max(out.width / img.width, out.height / img.height);
+                octx.drawImage(
+                    img,
+                    -img.width * base / 2,
+                    -img.height * base / 2,
+                    img.width * base,
+                    img.height * base
+                );
                 octx.restore();
 
                 const masked = document.createElement('canvas');
-                masked.width = out.width; masked.height = out.height;
+                masked.width = masked.height = out.width;
                 const mctx = masked.getContext('2d');
 
-                mctx.save();
                 mctx.beginPath();
                 mctx.arc(out.width / 2, out.height / 2, out.width * CIRCLE_R, 0, Math.PI * 2);
-
                 mctx.clip();
-                mctx.drawImage(out,0,0);
-                mctx.restore();
+                mctx.drawImage(out, 0, 0);
 
                 return masked.toDataURL('image/png');
-            };
+            }
 
-            const loadToEditor = (file) => {
+            /* ================= LOAD IMAGE ================= */
+
+            function loadFile(file) {
                 if (!file) return;
                 fileName.textContent = file.name;
 
                 const reader = new FileReader();
-                reader.onload = ev => {
+                reader.onload = e => {
                     img = new Image();
-                    img.onload = () => { imgLoaded = true; openEditor(); };
-                    img.src = ev.target.result;
+                    img.onload = () => {
+                        imgLoaded = true;
+                        openEditor();
+                    };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
-            };
-
-            // ✅ Upload / camera / dropzone
-            browseBtn.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', e => loadToEditor(e.target.files?.[0]));
-
-            if (cameraBtn && cameraInput) {
-                cameraBtn.addEventListener('click', () => cameraInput.click());
-                cameraInput.addEventListener('change', e => loadToEditor(e.target.files?.[0]));
             }
 
-            dropzone.addEventListener('click', () => fileInput.click());
-            dropzone.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
-            });
+            /* ================= EVENTS ================= */
 
-            dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('is-dragging'); });
-            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragging'));
-            dropzone.addEventListener('drop', (e) => {
+            browseBtn.onclick = () => fileInput.click();
+            fileInput.onchange = e => loadFile(e.target.files[0]);
+
+            dropzone.onclick = () => fileInput.click();
+            dropzone.ondrop = e => {
                 e.preventDefault();
-                dropzone.classList.remove('is-dragging');
-                loadToEditor(e.dataTransfer.files?.[0]);
-            });
+                loadFile(e.dataTransfer.files[0]);
+            };
+            dropzone.ondragover = e => e.preventDefault();
 
-            // ✅ editor controls
-            zoomEl.addEventListener('input', () => { scale = parseFloat(zoomEl.value); draw(); updateZoomFill(); });
-            rotL.addEventListener('click', () => { rotation -= Math.PI/2; draw(); });
-            rotR.addEventListener('click', () => { rotation += Math.PI/2; draw(); });
+            cameraBtn.onclick = async () => {
+                const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+                if (isMobile) {
+                    cameraInput.click();
+                    return;
+                }
 
-            // ✅ zoom fill %
-            const updateZoomFill = () => {
-                const min = parseFloat(zoomEl.min);
-                const max = parseFloat(zoomEl.max);
-                const val = parseFloat(zoomEl.value);
-                const percent = ((val - min) / (max - min)) * 100;
-                zoomEl.style.setProperty('--percent', `${percent}%`);
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = cameraStream;
+                video.classList.remove('hidden');
+                canvas.classList.add('hidden');
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
             };
 
-            // drag reposition
-            canvas.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
-            window.addEventListener('mouseup', () => dragging = false);
-            window.addEventListener('mousemove', (e) => {
-                if (!dragging) return;
-                offsetX = clamp(offsetX + (e.clientX-lastX), -220, 220);
-                offsetY = clamp(offsetY + (e.clientY-lastY), -220, 220);
-                lastX = e.clientX; lastY = e.clientY;
+            zoomEl.oninput = () => {
+                scale = parseFloat(zoomEl.value);
                 draw();
-            });
+                updateZoomFill();
+            };
 
-            useBtn.addEventListener('click', () => {
-                const dataUrl = exportCroppedCircle();
-                avatar.src = dataUrl;
-                captured.value = dataUrl;
-                closeEditor();
-                fileInput.value = '';
-                cameraInput.value = '';
-            });
+            rotL.onclick = () => { rotation -= Math.PI / 2; draw(); };
+            rotR.onclick = () => { rotation += Math.PI / 2; draw(); };
 
-            closeBtn.addEventListener('click', closeEditor);
-            modal.addEventListener('click', (e) => { if (e.target === modal) closeEditor(); });
-            window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeEditor(); });
+            canvas.onmousedown = e => {
+                dragging = true;
+                lastX = e.clientX;
+                lastY = e.clientY;
+            };
+            window.onmouseup = () => dragging = false;
+            window.onmousemove = e => {
+                if (!dragging) return;
+                offsetX += e.clientX - lastX;
+                offsetY += e.clientY - lastY;
+                lastX = e.clientX;
+                lastY = e.clientY;
+                draw();
+            };
+        useBtn.onclick = () => {
 
+            // ================= CAMERA MODE =================
+            if (cameraStream) {
+
+                if (video.videoWidth === 0 || video.videoHeight === 0) {
+                    alert('Camera not ready yet. Please wait a moment.');
+                    return;
+                }
+
+                // Offscreen capture canvas
+                const snapCanvas = document.createElement('canvas');
+                snapCanvas.width = 420;
+                snapCanvas.height = 420;
+                const snapCtx = snapCanvas.getContext('2d');
+
+                const vw = video.videoWidth;
+                const vh = video.videoHeight;
+
+                const coverScale = Math.max(
+                    snapCanvas.width / vw,
+                    snapCanvas.height / vh
+                );
+
+                const sw = vw * coverScale;
+                const sh = vh * coverScale;
+                const dx = (snapCanvas.width - sw) / 2;
+                const dy = (snapCanvas.height - sh) / 2;
+
+                snapCtx.drawImage(video, dx, dy, sw, sh);
+
+                // Reset editor state
+                imgLoaded = false;
+                scale = 1;
+                rotation = 0;
+                offsetX = 0;
+                offsetY = 0;
+
+                img = new Image();
+                        img.onload = () => {
+            imgLoaded = true;
+
+            video.classList.add('hidden');
+            canvas.classList.remove('hidden');
+
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(t => t.stop());
+                cameraStream = null;
+            }
+
+            openEditor();   // 🔥 THIS WAS MISSING
+        };
+
+
+                img.src = snapCanvas.toDataURL('image/png');
+                return;
+            }
+
+            // ================= FILE MODE =================
+            const data = exportCircle();
+            avatar.src = data;
+            captured.value = data;
+            closeEditor();
+        };
+
+
+            closeBtn.onclick = closeEditor;
+            modal.onclick = e => e.target === modal && closeEditor();
+
+            function updateZoomFill() {
+                const p = ((zoomEl.value - zoomEl.min) / (zoomEl.max - zoomEl.min)) * 100;
+                zoomEl.style.setProperty('--percent', p + '%');
+            }
         })();
     </script>
+
 
 
 

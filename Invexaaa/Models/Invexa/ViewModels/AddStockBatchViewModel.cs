@@ -13,12 +13,9 @@ namespace Invexaaa.Models.ViewModels
         [MinLength(1, ErrorMessage = "No inventory items selected.")]
         public List<int> InventoryIds { get; set; } = new();
 
-
-
         // =========================
         // COSTING & SUPPLIER (STOCK IN)
         // =========================
-        
         public decimal? UnitCost { get; set; }
 
         public int? SupplierID { get; set; }
@@ -29,21 +26,25 @@ namespace Invexaaa.Models.ViewModels
         public List<Supplier> Suppliers { get; set; } = new();
 
         [Range(0, 365)]
-        public int LeadTimeDays { get; set; }
-
+        public int? LeadTimeDays { get; set; }
 
         [Required(ErrorMessage = "Expiry date is required")]
         [DataType(DataType.Date)]
         public DateTime? ExpiryDate { get; set; }
 
-        [Required]
-        public int InputQuantity { get; set; }
-
-        
+        [Required(ErrorMessage = "Quantity is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
+        public int? InputQuantity { get; set; }
 
         // calculated (not user input)
         public int BaseQuantity { get; set; }
+
+        [Required(ErrorMessage = "Unit is required")]
         public int? UnitConversionID { get; set; }
+
+        public List<ItemUnitConversion>? AvailableUnits { get; set; }
+
+        public CostingMethod CostingMethod { get; set; }
 
         // UI-only guard (no DB)
         public bool HasBaseUnit { get; set; }
@@ -59,14 +60,8 @@ namespace Invexaaa.Models.ViewModels
             CostingMethod == CostingMethod.Fixed ||
             CostingMethod == CostingMethod.WeightedAverage;
 
-        public List<ItemUnitConversion>? AvailableUnits { get; set; }
-
-
-        public CostingMethod CostingMethod { get; set; }
-
-        // ✅ UI helper (NO DB column, NO migration)
+        // UI helper (NO DB column, NO migration)
         public bool IsFixedCosting => CostingMethod == CostingMethod.Fixed;
-
         public bool IsWeightedAverage => CostingMethod == CostingMethod.WeightedAverage;
 
         // =========================
@@ -78,7 +73,6 @@ namespace Invexaaa.Models.ViewModels
         // RESULT SUMMARY (AFTER SAVE)
         // =========================
         public bool ShowSummary { get; set; } = false;
-
         public List<AddStockBatchSummaryRow> SummaryRows { get; set; } = new();
 
         // =========================
@@ -104,18 +98,15 @@ namespace Invexaaa.Models.ViewModels
                 );
             }
 
-            // Fixed / WeightedAverage must NOT accept manual unit cost
-            // ✅ Allow UnitCost to exist, but ignore it for Fixed / WeightedAverage
-            if (CostingMethod == CostingMethod.FIFO && UnitCost == null)
+            // Fixed/WeightedAverage requires base unit setup
+            if ((CostingMethod == CostingMethod.Fixed || CostingMethod == CostingMethod.WeightedAverage) && !HasBaseUnit)
             {
                 yield return new ValidationResult(
-                    "Unit cost is required for FIFO costing.",
-                    new[] { nameof(UnitCost) }
+                    "Base unit is required for Fixed / Weighted Average costing. Please fix unit setup first.",
+                    new[] { nameof(UnitConversionID) }
                 );
             }
-
         }
-
     }
 
     // 🔵 Live preview row

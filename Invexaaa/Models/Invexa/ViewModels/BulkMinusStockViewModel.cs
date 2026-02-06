@@ -51,6 +51,8 @@ namespace Invexaaa.Models.ViewModels
         public List<FifoConsumptionRow> FifoConsumptions { get; set; } = new();
 
         public CostingMethod CostingMethod { get; set; }
+        public bool HasAnyStock { get; set; }
+
     }
 
     public class BulkMinusPreviewRow
