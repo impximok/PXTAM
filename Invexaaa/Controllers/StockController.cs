@@ -119,6 +119,12 @@ namespace Invexaaa.Controllers
             if (inventoryData == null)
                 return NotFound();
 
+            // 🔒 Determine base unit once
+            var baseUnitId = _context.ItemUnitConversions
+                .Where(u => u.ItemID == inventoryData.ItemID && u.IsBaseUnit)
+                .Select(u => (int?)u.ItemUnitConversionID)
+                .FirstOrDefault();
+
             var batches = _context.StockBatches
                 .Where(b => b.ItemID == inventoryData.ItemID)
                 .OrderBy(b => b.BatchExpiryDate)
@@ -127,9 +133,17 @@ namespace Invexaaa.Controllers
                     BatchID = b.BatchID,
                     BatchNumber = b.BatchNumber,
                     BatchExpiryDate = b.BatchExpiryDate,
-                    AvailableQuantity = b.BatchQuantity
+                    AvailableQuantity = b.BatchQuantity,
+
+                    // 🔥 THIS IS THE KEY FIX
+                    UnitConversionID =
+                        (inventoryData.CostingMethod == CostingMethod.Fixed ||
+                         inventoryData.CostingMethod == CostingMethod.WeightedAverage)
+                            ? baseUnitId ?? 0
+                            : 0
                 })
                 .ToList();
+
 
             var vm = new AdjustStockByBatchViewModel
             {
@@ -161,16 +175,26 @@ namespace Invexaaa.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AdjustStockByBatch(AdjustStockByBatchViewModel vm)
         {
-            var actualMethod = _context.Items
+            void Fail(string code, string message)
+            {
+                ModelState.AddModelError("", $"[{code}] {message}");
+            }
+
+            // ✅ SOURCE OF TRUTH: always rehydrate costing method from DB
+            vm.CostingMethod = _context.Items
                 .Where(i => i.ItemID == vm.ItemID)
                 .Select(i => i.CostingMethod)
                 .First();
+            ModelState.Remove(nameof(vm.CostingMethod));
 
-            if (actualMethod != vm.CostingMethod)
+            // 🔥 CLEAR INVALID UNIT MODELSTATE (disabled selects post empty)
+            for (int i = 0; i < vm.Batches.Count; i++)
             {
-                ModelState.AddModelError("", "Costing method mismatch. Please reload the page.");
-                return View(vm);
+                ModelState.Remove($"Batches[{i}].UnitConversionID");
             }
+
+
+            var actualMethod = vm.CostingMethod;
 
             if (IsItemInactive(vm.ItemID))
             {
@@ -178,31 +202,7 @@ namespace Invexaaa.Controllers
                 return RedirectToAction("ItemDetail", "Item", new { id = vm.ItemID });
             }
 
-            if (!ModelState.IsValid)
-            {
-                vm.Batches = _context.StockBatches
-                    .Where(b => b.ItemID == vm.ItemID)
-                    .OrderBy(b => b.BatchExpiryDate)
-                    .Select(b => new AdjustStockBatchRowViewModel
-                    {
-                        BatchID = b.BatchID,
-                        BatchNumber = b.BatchNumber,
-                        BatchExpiryDate = b.BatchExpiryDate,
-                        AvailableQuantity = b.BatchQuantity
-                    })
-                    .ToList();
-
-                vm.AvailableUnits = _context.ItemUnitConversions
-                    .Where(u => u.ItemID == vm.ItemID)
-                    .OrderByDescending(u => u.IsBaseUnit)
-                    .ToList();
-
-                vm.Customers = _context.Customers
-                    .OrderBy(c => c.CustomerName)
-                    .ToList();
-
-                return View(vm);
-            }
+            
 
             if (string.IsNullOrWhiteSpace(vm.StockOutRemark))
             {
@@ -279,7 +279,7 @@ namespace Invexaaa.Controllers
                     var item = _context.Items.First(i => i.ItemID == vm.ItemID);
 
                     if (item.CostingMethod == CostingMethod.Fixed ||
-                        item.CostingMethod == CostingMethod.WeightedAverage)
+    item.CostingMethod == CostingMethod.WeightedAverage)
                     {
                         var baseUnit = _context.ItemUnitConversions
                             .FirstOrDefault(u => u.ItemID == vm.ItemID && u.IsBaseUnit);
@@ -287,11 +287,16 @@ namespace Invexaaa.Controllers
                         if (baseUnit == null)
                         {
                             ModelState.AddModelError("", "Base unit is missing for this item. Please fix unit setup.");
+                            RehydrateAdjustVm(vm);
                             return View(vm);
                         }
 
                         row.UnitConversionID = baseUnit.ItemUnitConversionID;
+
+                        // 🔥 IMPORTANT: ModelState still has old (0) value
+                        ModelState.Remove($"Batches[{vm.Batches.IndexOf(row)}].UnitConversionID");
                     }
+
 
                     bool unitValid = _context.ItemUnitConversions.Any(u =>
                         u.ItemUnitConversionID == row.UnitConversionID &&
@@ -321,7 +326,7 @@ namespace Invexaaa.Controllers
                     int baseQty;
                     try
                     {
-                        baseQty = ValidateAndConvertToBase(
+                        baseQty = ValidateAndConvertToBaseAllowNegative(
                             vm.ItemID,
                             row.InputQuantity,
                             row.UnitConversionID,
@@ -333,6 +338,7 @@ namespace Invexaaa.Controllers
                         ModelState.AddModelError("", ex.Message);
                         return View(vm);
                     }
+
 
                     row.BaseQuantity = baseQty;
 
@@ -401,8 +407,11 @@ namespace Invexaaa.Controllers
 
                 if (netInventoryChange == 0)
                 {
-                    ModelState.AddModelError("", "No adjustments were entered.");
+                    Fail("ADJ-01", "No adjustments were entered.");
+                    RehydrateAdjustVm(vm);
                     return View(vm);
+
+                    
                 }
 
                 inventory.InventoryTotalQuantity += netInventoryChange;
@@ -442,6 +451,13 @@ namespace Invexaaa.Controllers
                 .Where(i => i.ItemID == itemIds.First())
                 .Select(i => i.CostingMethod)
                 .First();
+            // 🔒 FIFO cannot be bulk stock-in (requires per-item unit cost)
+            if (firstItemCostingMethod == CostingMethod.FIFO && itemIds.Count > 1)
+            {
+                TempData["Error"] =
+                    "FIFO items must be stocked in one item at a time because each batch requires its own unit cost.";
+                return RedirectToAction(nameof(StockIndex));
+            }
 
             // 🔒 Only Fixed / Weighted Average require SAME ITEM
             if ((firstItemCostingMethod == CostingMethod.Fixed ||
@@ -1256,6 +1272,68 @@ namespace Invexaaa.Controllers
                 return inputQty * unit.BaseUnitMultiplier;
             }
         }
+
+        // =====================================================
+        // 🔓 VALIDATE UNIT + CONVERT TO BASE (ALLOW NEGATIVE)
+        // 👉 USED ONLY FOR ADJUST STOCK
+        // =====================================================
+        private int ValidateAndConvertToBaseAllowNegative(
+            int itemId,
+            int inputQty,
+            int unitConversionId,
+            CostingMethod costingMethod)
+        {
+            if (inputQty == 0)
+                throw new InvalidOperationException("Quantity cannot be zero.");
+
+            var unit = _context.ItemUnitConversions
+                .FirstOrDefault(u =>
+                    u.ItemUnitConversionID == unitConversionId &&
+                    u.ItemID == itemId);
+
+            if (unit == null)
+                throw new InvalidOperationException("Invalid unit selected.");
+
+            // 🔒 Fixed + Weighted → base unit only
+            if ((costingMethod == CostingMethod.Fixed ||
+                 costingMethod == CostingMethod.WeightedAverage) &&
+                !unit.IsBaseUnit)
+            {
+                throw new InvalidOperationException(
+                    "This costing method only allows base unit."
+                );
+            }
+
+            checked
+            {
+                return inputQty * unit.BaseUnitMultiplier;
+            }
+        }
+
+        private void RehydrateAdjustVm(AdjustStockByBatchViewModel vm)
+        {
+            vm.Batches = _context.StockBatches
+                .Where(b => b.ItemID == vm.ItemID)
+                .OrderBy(b => b.BatchExpiryDate)
+                .Select(b => new AdjustStockBatchRowViewModel
+                {
+                    BatchID = b.BatchID,
+                    BatchNumber = b.BatchNumber,
+                    BatchExpiryDate = b.BatchExpiryDate,
+                    AvailableQuantity = b.BatchQuantity
+                })
+                .ToList();
+
+            vm.AvailableUnits = _context.ItemUnitConversions
+                .Where(u => u.ItemID == vm.ItemID)
+                .OrderByDescending(u => u.IsBaseUnit)
+                .ToList();
+
+            vm.Customers = _context.Customers
+                .OrderBy(c => c.CustomerName)
+                .ToList();
+        }
+
 
         public IActionResult SupplierStockInSummary()
         {
