@@ -1029,7 +1029,7 @@
                 This item is <strong>inactive</strong>. Stock adjustment is disabled.
             </div>
         }
-
+        
 
 
         <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
@@ -1092,21 +1092,29 @@
                                     <select asp-for="Batches[i].UnitConversionID"
                                             class="form-select"
                                             disabled="@(isInactive
-                                                        || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed
-                                                        || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage)">
+                                                                    || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed
+                                                                    || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage)">
 
-                                        <option value="">-- Unit --</option>
+                                    <option value="">-- Unit --</option>
+
                                     @foreach (var unit in Model.AvailableUnits)
                                         {
                                             <option value="@unit.ItemUnitConversionID"
-                                                    data-multiplier="@unit.BaseUnitMultiplier"
-                                                    selected="@(Model.CostingMethod != Invexaaa.Models.Invexa.Enums.CostingMethod.FIFO && unit.IsBaseUnit ? "selected" : null)">
+                                                    data-multiplier="@unit.BaseUnitMultiplier">
                                                 @unit.UnitName @(unit.IsBaseUnit ? "(Base)" : "")
                                             </option>
                                         }
-
                                     </select>
+
+                                    @* 🔥 IMPORTANT:
+       ONLY post hidden input when select is disabled *@
+                                    @if (Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.Fixed
+                                                                    || Model.CostingMethod == Invexaaa.Models.Invexa.Enums.CostingMethod.WeightedAverage)
+                                    {
+                                        <input type="hidden" asp-for="Batches[i].UnitConversionID" />
+                                    }
                                 </td>
+
                                 <td>
                                     <span class="base-preview"
                                           data-index="@i">
