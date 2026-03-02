@@ -255,28 +255,47 @@ namespace Invexaaa.Controllers
                 }
 
                 int rows = sheet.Dimension.Rows;
+                int cols = sheet.Dimension.Columns;
 
-                // Columns:
-                // 1 Name | 2 Phone | 3 Email | 4 Address | 5 Status
+                // ===== Build header map ONCE =====
+                var headerMap = new Dictionary<string, int>();
+
+                for (int col = 1; col <= cols; col++)
+                {
+                    var header = sheet.Cells[1, col].Text.Trim().ToLower();
+                    if (!string.IsNullOrEmpty(header) && !headerMap.ContainsKey(header))
+                        headerMap.Add(header, col);
+                }
+
+                // ===== Loop rows =====
                 for (int row = 2; row <= rows; row++)
                 {
-                    var name = sheet.Cells[row, 1].Text.Trim();
-                    if (string.IsNullOrWhiteSpace(name)) continue;
+                    string GetValue(string columnName)
+                    {
+                        if (headerMap.ContainsKey(columnName))
+                            return sheet.Cells[row, headerMap[columnName]].Text.Trim();
+
+                        return "";
+                    }
+
+                    var name = GetValue("customername");
+
+                    if (string.IsNullOrWhiteSpace(name))
+                        continue;
 
                     bool exists = await _context.Customers
                         .AnyAsync(c => c.CustomerName == name);
 
-                    if (exists) continue;
+                    if (exists)
+                        continue;
 
                     newCustomers.Add(new Customer
                     {
                         CustomerName = name,
-                        CustomerPhone = sheet.Cells[row, 2].Text.Trim(),
-                        CustomerEmail = sheet.Cells[row, 3].Text.Trim(),
-                        CustomerAddress = sheet.Cells[row, 4].Text.Trim(),
-                        CustomerStatus = string.IsNullOrWhiteSpace(sheet.Cells[row, 5].Text)
-                                            ? "Active"
-                                            : sheet.Cells[row, 5].Text.Trim(),
+                        CustomerPhone = GetValue("phone"),
+                        CustomerEmail = GetValue("email"),
+                        CustomerAddress = GetValue("address"),
+                        CustomerStatus = NormalizeStatus(GetValue("status")),
                         CustomerCreatedAt = DateTime.Now
                     });
                 }
@@ -349,6 +368,19 @@ namespace Invexaaa.Controllers
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"Customers_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
             );
+        }
+
+        private string NormalizeStatus(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return "Active";
+
+            var value = input.Trim().ToLower();
+
+            if (value == "inactive")
+                return "Inactive";
+
+            return "Active";
         }
 
     }
