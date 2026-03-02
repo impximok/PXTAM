@@ -162,13 +162,13 @@
 
     <script>
         (() => {
+
             const $ = id => document.getElementById(id);
 
             const fileInput = $('fileInput');
             const cameraInput = $('cameraInput');
             const browseBtn = $('browseBtn');
             const cameraBtn = $('cameraButton');
-            const dropzone = $('dropzone');
 
             const avatar = $('avatarPreview');
             const fileName = $('fileName');
@@ -185,10 +185,7 @@
             const rotL = $('rotateLeft');
             const rotR = $('rotateRight');
 
-            const CIRCLE_R = 0.38;
-
-            let img = new Image();
-            let imgLoaded = false;
+            let img = null;
             let scale = 1;
             let rotation = 0;
             let offsetX = 0;
@@ -196,166 +193,215 @@
             let dragging = false;
             let lastX = 0;
             let lastY = 0;
-
             let cameraStream = null;
 
-            /* ================= OPEN / CLOSE ================= */
+            // ------------------ Modal ------------------
 
             function openEditor() {
                 modal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
-                zoomEl.value = 1;
-                        scale = 1;
-        rotation = 0;
-        offsetX = 0;
-        offsetY = 0;
-
-                draw();
-                updateZoomFill();
             }
 
             function closeEditor() {
                 modal.classList.add('hidden');
                 document.body.style.overflow = '';
-                if (cameraStream) {
-                    cameraStream.getTracks().forEach(t => t.stop());
-                    cameraStream = null;
-                }
+                stopCamera();
                 video.classList.add('hidden');
                 canvas.classList.remove('hidden');
             }
 
-            /* ================= DRAW ================= */
-
-            function draw() {
-                if (!imgLoaded) return;
-
-                const w = canvas.width;
-                const h = canvas.height;
-
-                ctx.clearRect(0, 0, w, h);
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(0, 0, w, h);
-
-                ctx.save();
-                ctx.translate(w / 2 + offsetX, h / 2 + offsetY);
-                ctx.rotate(rotation);
-                ctx.scale(scale, scale);
-
-                const base = Math.max(w / img.width, h / img.height);
-                ctx.drawImage(
-                    img,
-                    -img.width * base / 2,
-                    -img.height * base / 2,
-                    img.width * base,
-                    img.height * base
-                );
-                ctx.restore();
-
-                ctx.save();
-                ctx.fillStyle = 'rgba(0,0,0,0.35)';
-                ctx.beginPath();
-                ctx.rect(0, 0, w, h);
-                ctx.arc(w / 2, h / 2, w * CIRCLE_R, 0, Math.PI * 2, true);
-                ctx.fill('evenodd');
-                ctx.restore();
+            function stopCamera() {
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(t => t.stop());
+                    cameraStream = null;
+                }
             }
 
-            /* ================= EXPORT ================= */
+            // ------------------ Drawing ------------------
 
-            function exportCircle() {
-                const out = document.createElement('canvas');
-                out.width = out.height = 320;
-                const octx = out.getContext('2d');
+                    function draw() {
 
-                octx.save();
-                octx.translate(out.width / 2 + offsetX * (out.width / canvas.width),
-                               out.height / 2 + offsetY * (out.height / canvas.height));
-                octx.rotate(rotation);
-                octx.scale(scale, scale);
+            if (!img) return;
 
-                const base = Math.max(out.width / img.width, out.height / img.height);
-                octx.drawImage(
-                    img,
-                    -img.width * base / 2,
-                    -img.height * base / 2,
-                    img.width * base,
-                    img.height * base
-                );
-                octx.restore();
+            const w = canvas.width;
+            const h = canvas.height;
 
-                const masked = document.createElement('canvas');
-                masked.width = masked.height = out.width;
-                const mctx = masked.getContext('2d');
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, w, h);
 
-                mctx.beginPath();
-                mctx.arc(out.width / 2, out.height / 2, out.width * CIRCLE_R, 0, Math.PI * 2);
-                mctx.clip();
-                mctx.drawImage(out, 0, 0);
+            const iw = img.naturalWidth || img.width;
+            const ih = img.naturalHeight || img.height;
 
-                return masked.toDataURL('image/png');
-            }
+            if (!iw || !ih) return;
 
-            /* ================= LOAD IMAGE ================= */
+            const base = Math.max(w / iw, h / ih);
+
+            ctx.save();
+            ctx.translate(w / 2 + offsetX, h / 2 + offsetY);
+            ctx.rotate(rotation);
+            ctx.scale(scale, scale);
+
+            ctx.drawImage(
+                img,
+                -iw * base / 2,
+                -ih * base / 2,
+                iw * base,
+                ih * base
+            );
+
+            ctx.restore();
+        }
+
+
+                    function loadImage(dataUrl) {
+
+            const image = new Image();
+
+            // VERY IMPORTANT
+            image.crossOrigin = "anonymous";
+
+            image.onload = () => {
+
+                // Force image to be fully decoded before drawing
+                image.decode().then(() => {
+
+                    img = image;
+
+                    scale = 1;
+                    rotation = 0;
+                    offsetX = 0;
+                    offsetY = 0;
+                    zoomEl.value = 1;
+
+                    draw();
+                    openEditor();
+
+                }).catch(() => {
+                    img = image;
+                    draw();
+                    openEditor();
+                });
+            };
+
+            image.onerror = () => {
+                alert("Image failed to load.");
+            };
+
+            image.src = dataUrl;
+        }
 
             function loadFile(file) {
                 if (!file) return;
                 fileName.textContent = file.name;
 
                 const reader = new FileReader();
-                reader.onload = e => {
-                    img = new Image();
-                    img.onload = () => {
-                        imgLoaded = true;
-                        openEditor();
-                    };
-                    img.src = e.target.result;
-                };
+                reader.onload = e => loadImage(e.target.result);
                 reader.readAsDataURL(file);
             }
 
-            /* ================= EVENTS ================= */
+            // ------------------ Upload ------------------
 
             browseBtn.onclick = () => fileInput.click();
             fileInput.onchange = e => loadFile(e.target.files[0]);
+            cameraInput.onchange = e => loadFile(e.target.files[0]);
 
-            dropzone.onclick = () => fileInput.click();
-            dropzone.ondrop = e => {
-                e.preventDefault();
-                loadFile(e.dataTransfer.files[0]);
-            };
-            dropzone.ondragover = e => e.preventDefault();
+            // ------------------ Camera ------------------
 
             cameraBtn.onclick = async () => {
+
                 const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
                 if (isMobile) {
                     cameraInput.click();
                     return;
                 }
 
-                cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = cameraStream;
-                video.classList.remove('hidden');
-                canvas.classList.add('hidden');
-                modal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
+                try {
+
+                    cameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "user" }
+                    });
+
+                    video.srcObject = cameraStream;
+
+                    await new Promise(resolve => {
+                        video.onloadedmetadata = () => {
+                            video.play();
+                            resolve();
+                        };
+                    });
+
+                    video.classList.remove('hidden');
+                    canvas.classList.add('hidden');
+                    openEditor();
+
+                } catch (err) {
+                    alert("Camera not supported or permission denied.");
+                }
             };
+
+            // ------------------ Confirm ------------------
+
+            useBtn.onclick = () => {
+
+                // Camera capture
+                if (cameraStream) {
+
+                    if (!video.videoWidth) {
+                        alert("Camera not ready.");
+                        return;
+                    }
+
+                    const snap = document.createElement("canvas");
+                    snap.width = video.videoWidth;
+                    snap.height = video.videoHeight;
+
+                    const snapCtx = snap.getContext("2d");
+                    snapCtx.drawImage(video, 0, 0);
+
+                    const dataUrl = snap.toDataURL("image/png");
+
+                    stopCamera();
+
+                    video.classList.add("hidden");
+                    canvas.classList.remove("hidden");
+
+                    loadImage(dataUrl);
+                    return;
+                }
+
+                // Normal confirm
+                const finalData = canvas.toDataURL("image/png");
+                avatar.src = finalData;
+                captured.value = finalData;
+                closeEditor();
+            };
+
+            // ------------------ Controls ------------------
 
             zoomEl.oninput = () => {
                 scale = parseFloat(zoomEl.value);
                 draw();
-                updateZoomFill();
             };
 
-            rotL.onclick = () => { rotation -= Math.PI / 2; draw(); };
-            rotR.onclick = () => { rotation += Math.PI / 2; draw(); };
+            rotL.onclick = () => {
+                rotation -= Math.PI / 2;
+                draw();
+            };
+
+            rotR.onclick = () => {
+                rotation += Math.PI / 2;
+                draw();
+            };
 
             canvas.onmousedown = e => {
                 dragging = true;
                 lastX = e.clientX;
                 lastY = e.clientY;
             };
+
             window.onmouseup = () => dragging = false;
+
             window.onmousemove = e => {
                 if (!dragging) return;
                 offsetX += e.clientX - lastX;
@@ -364,82 +410,32 @@
                 lastY = e.clientY;
                 draw();
             };
-        useBtn.onclick = () => {
-
-            // ================= CAMERA MODE =================
-            if (cameraStream) {
-
-                if (video.videoWidth === 0 || video.videoHeight === 0) {
-                    alert('Camera not ready yet. Please wait a moment.');
-                    return;
-                }
-
-                // Offscreen capture canvas
-                const snapCanvas = document.createElement('canvas');
-                snapCanvas.width = 420;
-                snapCanvas.height = 420;
-                const snapCtx = snapCanvas.getContext('2d');
-
-                const vw = video.videoWidth;
-                const vh = video.videoHeight;
-
-                const coverScale = Math.max(
-                    snapCanvas.width / vw,
-                    snapCanvas.height / vh
-                );
-
-                const sw = vw * coverScale;
-                const sh = vh * coverScale;
-                const dx = (snapCanvas.width - sw) / 2;
-                const dy = (snapCanvas.height - sh) / 2;
-
-                snapCtx.drawImage(video, dx, dy, sw, sh);
-
-                // Reset editor state
-                imgLoaded = false;
-                scale = 1;
-                rotation = 0;
-                offsetX = 0;
-                offsetY = 0;
-
-                img = new Image();
-                        img.onload = () => {
-            imgLoaded = true;
-
-            video.classList.add('hidden');
-            canvas.classList.remove('hidden');
-
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(t => t.stop());
-                cameraStream = null;
-            }
-
-            openEditor();   // 🔥 THIS WAS MISSING
-        };
-
-
-                img.src = snapCanvas.toDataURL('image/png');
-                return;
-            }
-
-            // ================= FILE MODE =================
-            const data = exportCircle();
-            avatar.src = data;
-            captured.value = data;
-            closeEditor();
-        };
-
 
             closeBtn.onclick = closeEditor;
-            modal.onclick = e => e.target === modal && closeEditor();
+            modal.onclick = e => {
+                if (e.target === modal) closeEditor();
+            };
 
-            function updateZoomFill() {
-                const p = ((zoomEl.value - zoomEl.min) / (zoomEl.max - zoomEl.min)) * 100;
-                zoomEl.style.setProperty('--percent', p + '%');
+                    const dropzone = $('dropzone');
+
+        // Make dropzone clickable
+        dropzone.onclick = () => fileInput.click();
+
+        // Drag & drop support
+        dropzone.ondragover = e => {
+            e.preventDefault();
+        };
+
+        dropzone.ondrop = e => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length > 0) {
+                loadFile(e.dataTransfer.files[0]);
             }
+        };
+
+
         })();
     </script>
-
 
 
 
@@ -452,480 +448,175 @@
         --muted: #6b7280;
         --text: #111827;
         --border: #e5e7eb;
-        --border-default: #d1d5db; /* grey */
-        --border-focus: #000; /* black */
-        --border-error: #dc2626; /* red */
+        --border-default: #d1d5db;
+        --border-error: #dc2626;
         --soft: #f9fafb;
         --radius: 14px;
-        --radius-sm: 12px;
         --shadow: 0 8px 24px rgba(16,24,40,.06);
+    }
+
+    /* ================= PAGE ================= */
+
+    html, body {
+        background: #fff !important;
     }
 
     .profile-page {
         width: 100%;
-        background: #fff !important;
         min-height: calc(100vh - 64px);
         display: flex;
         justify-content: center;
-        align-items: flex-start;
-        padding: 2px 14px 44px;
+        padding: 20px;
     }
-
 
     .profile-card {
         width: 100%;
-        max-width: 980px; /* down from 980 */
-        background: var(--card);
+        max-width: 950px;
+        background: #fff;
         border: 1px solid var(--border);
         border-radius: 18px;
-        padding: 28px 32px 24px;
+        padding: 28px;
         box-shadow: var(--shadow);
     }
 
-    @@media (max-width: 480px) {
-        .profile-page {
-            padding: 20px 14px 32px;
-        }
-
-        .profile-card {
-            padding: 22px 18px;
-        }
-    }
-
-
-    /* HEADER */
-    .profile-header {
-        margin-bottom: 20px; /* was ~28 */
-    }
+    /* ================= HEADER ================= */
 
     .profile-title {
-        font-size: 34px;
+        font-size: 32px;
         font-weight: 800;
-        letter-spacing: -0.02em;
-        color: var(--text);
-        margin: 0 0 6px;
+        margin-bottom: 6px;
     }
 
     .profile-subtitle {
         color: var(--muted);
-        margin: 0;
-        font-size: 15px;
+        margin-bottom: 20px;
     }
 
-    /* ALERT */
-    .monocrome-alert {
-        background: #f8fafc;
-        border: 1px solid var(--border);
-        color: #111827;
-        padding: 12px 14px;
-        border-radius: var(--radius-sm);
-        margin: 14px 0 18px;
-        box-shadow: var(--shadow-soft);
-    }
+    /* ================= AVATAR BLOCK ================= */
 
-    /* PROFILE IMAGE SECTION */
     .avatar-block {
         display: grid;
         grid-template-columns: 150px 1fr;
-        gap: 18px;
-        padding: 20px 22px; /* was larger */
-        margin: 18px 0 22px;
+        gap: 20px;
+        padding: 20px;
         border: 1px solid var(--border);
         border-radius: var(--radius);
-        background: #fff;
-        align-items: center;
-    }
-
-    .avatar-wrap {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        margin-bottom: 25px;
     }
 
     .ap-avatar {
-        width: 132px;
-        height: 132px;
+        width: 130px;
+        height: 130px;
         border-radius: 50%;
-        border: 1px solid var(--border-default);
         object-fit: cover;
-        background: #fff;
-        box-shadow: var(--shadow-soft);
+        border: 1px solid var(--border-default);
     }
 
-    /* DROPZONE */
     .dropzone {
         border: 1px dashed #cbd5e1;
-        border-radius: var(--radius);
         padding: 14px;
+        border-radius: var(--radius);
         background: var(--soft);
         cursor: pointer;
-        transition: border .15s ease, box-shadow .15s ease, background .15s ease;
-        outline: none;
     }
 
-        .dropzone:hover {
-            background: #f3f4f6;
-        }
-
-        .dropzone:focus {
-            border-color: var(--border-focus);
-            box-shadow: var(--shadow-focus);
-        }
-
-    .dz-main {
+    .file-actions {
+        margin-top: 12px;
         display: flex;
-        gap: 12px;
+        gap: 10px;
         align-items: center;
+        flex-wrap: wrap;
     }
 
-    .dz-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #fff;
-        border: 1px solid var(--border-default);
-        font-size: 18px;
-        box-shadow: var(--shadow-soft);
-    }
-
-    .dz-title {
-        font-weight: 800;
-        color: var(--text);
-        line-height: 1.15;
-    }
-
-    .dz-sub {
+    .file-name {
+        font-size: 14px;
         color: var(--muted);
-        font-size: 13px;
-        margin-top: 2px;
     }
 
-    /* FORM */
+    /* ================= FORM ================= */
+
     .field {
         margin-bottom: 18px;
     }
 
     .field-label {
         font-weight: 600;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         display: block;
-        color: var(--text);
-        font-size: 14px;
-        gap: 8px;
     }
 
-
-    /* INPUTS: Default grey -> Focus black -> Error red (even on focus) */
     .text-input {
         width: 100%;
-        height: 48px;
-        padding: 12px 16px;
+        height: 46px;
+        padding: 10px 14px;
         border-radius: 14px;
-        border: 2px solid var(--border); /* DEFAULT grey */
-        background: #fff;
-        color: var(--text);
-        font-size: 15px;
-        box-shadow: var(--shadow-soft);
-        transition: border .15s ease, box-shadow .15s ease;
+        border: 2px solid var(--border);
+        font-size: 14px;
     }
 
         .text-input:focus {
-            border: 2px solid #000
+            border-color: #000;
+            outline: none;
         }
 
-        /* readonly still looks premium but subtle */
-        .text-input[readonly] {
-            background: #f9fafb;
-            color: #374151;
-            cursor: not-allowed;
+        .text-input.input-validation-error {
+            border-color: var(--border-error) !important;
         }
 
-        /* ERROR (apply this class when invalid) */
-        .text-input.input-error,
-        .text-input.input-error:focus {
-            border-color: var(--border-error); /* ERROR red always wins */
-            box-shadow: var(--shadow-error);
-        }
-
-    /* Field error text */
     .field-error {
-        display: block;
-        margin-top: 6px;
-        color: #dc2626;
-        font-weight: 400;
-        font-size: 13px; /* optional, matches hint text */
+        color: var(--border-error);
+        font-size: 13px;
     }
 
-    /* Red border when validation fails (ASP.NET adds input-validation-error) */
-    .text-input.input-validation-error {
-        border-color: #dc2626 !important;
-    }
+    /* ================= BUTTONS ================= */
 
-        /* Even when focused, stay red */
-        .text-input.input-validation-error:focus {
-            border-color: #dc2626 !important;
-        }
-
-
-    /* FILE ACTIONS */
-    .file-actions {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-top: 12px;
-        flex-wrap: wrap;
-    }
-
-    .file-name {
-        color: var(--muted);
-        font-size: 14px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 260px;
-    }
-
-    /* BUTTONS — match Create Category behavior (invert hover) */
     .btn-primary,
     .btn-ghost {
-        height: 46px;
-        padding: 14px 18px;
+        height: 44px;
+        padding: 0 18px;
         border-radius: 999px;
-        font-weight: 800;
-        font-size: 14px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: auto;
+        font-weight: 700;
         cursor: pointer;
-        text-decoration: none;
-        transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 120ms ease;
+        border: 2px solid #000;
+        transition: 0.2s;
     }
 
-    /* Primary Save button (same as .btn-black) */
     .btn-primary {
         background: #000;
-        border: 2px solid #000;
         color: #fff;
     }
 
-        /* Hover: invert (black -> white) */
         .btn-primary:hover {
             background: #fff;
             color: #000;
-            border-color: #000;
         }
 
-    /* Secondary button (same as .btn-outline in your sample, but keep grey border default) */
     .btn-ghost {
         background: #fff;
-        border: 2px solid #000; /* grey default */
         color: #000;
     }
 
-        /* Hover: invert to black */
         .btn-ghost:hover {
             background: #000;
             color: #fff;
-            border-color: #000;
         }
 
-
-    /* ACTION BAR */
     .actions {
         display: flex;
         justify-content: flex-end;
-        gap: 8px;
-        margin-top: 14px;
-        padding-top: 14px;
-        border-top: 1px solid var(--border);
+        gap: 10px;
+        margin-top: 15px;
     }
 
-    /* RESPONSIVE (Razor uses @@media) */
-    @@media (max-width: 720px) {
-        .avatar-block {
-            grid-template-columns: 1fr;
-            text-align: left;
-        }
-
-        .avatar-wrap {
-            justify-content: flex-start;
-        }
-
-        .file-name {
-            max-width: 100%;
-        }
-    }
-
-    @@media (max-width: 480px) {
-        .actions {
-            flex-direction: column-reverse;
-            align-items: stretch;
-        }
-
-        .btn-primary,
-        .btn-ghost {
-            width: 100%;
-        }
-    }
-
-
-    /* Common layout wrappers — make them white */
-    #main-wrapper,
-    .content-body,
-    .container-fluid,
-    .page-wrapper,
-    .app-content {
-        background: #ffffff !important;
-    }
-
-    /* === FORCE WHOLE APP CANVAS WHITE (Layout wrappers) === */
-    html, body {
-        background: #ffffff !important;
-    }
-
-        body::before,
-        body::after {
-            background: #ffffff !important;
-        }
-
-    /* Most common admin layout wrappers */
-    #wrapper,
-    #page-top,
-    #app,
-    #app-root,
-    #root,
-    .wrapper,
-    .main-wrapper,
-    .main-content,
-    .content-wrapper,
-    .content-body,
-    .page-wrapper,
-    .page-content,
-    .app-content,
-    .app-wrapper,
-    .main-panel,
-    .main-container,
-    .layout-wrapper,
-    .layout-container,
-    .site-wrapper,
-    .shell,
-    .shell-content,
-    .dashboard-container {
-        background: #ffffff !important;
-    }
-
-    /* If any container adds a grey "panel" background */
-    .container,
-    .container-fluid {
-        background: #ffffff !important;
-    }
-
-    /* ===== FINAL: kill any remaining grey background from layout/theme ===== */
-
-    /* Always white canvas */
-    html, body {
-        background: #fff !important;
-    }
-
-    /* Generic main containers used by many admin layouts */
-    main,
-    .main,
-    .content,
-    .content-wrapper,
-    .content-body,
-    .page-content,
-    .page-wrapper,
-    .main-content,
-    .main-panel,
-    .main-container,
-    .page-body-wrapper,
-    .page-body,
-    .container-scroller,
-    .app,
-    .app-content,
-    .app-wrapper,
-    .layout,
-    .layout-wrapper,
-    .layout-container,
-    .wrapper,
-    .shell,
-    .shell-content {
-        background-color: #fff !important;
-    }
-
-    /* Bootstrap / theme helper backgrounds */
-    .bg-light,
-    .bg-body,
-    .bg-body-secondary,
-    .bg-body-tertiary,
-    .bg-gray,
-    .bg-grey,
-    .bg-success,
-    .bg-primary {
-        background-color: #fff !important;
-    }
-
-    /* Sometimes the grey is applied to a direct child of body */
-    body > div,
-    body > main,
-    body > section {
-        background-color: #fff !important;
-    }
-
-    /* Improve native "Choose File" button */
-    input[type="file"] {
-        font-size: 14px;
-        color: var(--muted);
-    }
-
-        input[type="file"]::file-selector-button {
-            height: 40px;
-            padding: 0 18px;
-            margin-right: 12px;
-            border-radius: 999px;
-            border: 1px solid var(--border-default);
-            background: #fff;
-            color: #111;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background .15s ease, border .15s ease;
-        }
-
-            input[type="file"]::file-selector-button:hover {
-                background: #f3f4f6;
-                border-color: #9ca3af;
-            }
-
-    /* =========================
-           Compact utility buttons
-           (Browse / Camera only)
-           ========================= */
-    .file-actions .btn-ghost {
-        height: 34px; /* ⬅ smaller */
-        padding: 6px 14px; /* ⬅ tighter */
-        font-size: 13px; /* ⬅ lighter text */
-        font-weight: 700;
-        border-width: 2px;
-    }
-
-    .file-actions .btn-ghost {
-        border-radius: 14px; /* less pill-like */
-    }
+    /* ================= HIDDEN FILE INPUT ================= */
 
     .file-input-hidden {
         position: absolute;
         left: -9999px;
-        width: 1px;
-        height: 1px;
-        opacity: 0;
     }
 
     /* ================= EDITOR MODAL ================= */
+
     .editor.hidden {
         display: none;
     }
@@ -933,407 +624,139 @@
     .editor {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,.55);
-        display: grid;
-        place-items: center;
+        background: rgba(0,0,0,.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         z-index: 9999;
-        padding: 18px;
     }
 
     .editor-box {
-        width: min(520px, 100%);
         background: #fff;
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 16px 16px 14px;
+        width: 480px;
+        padding: 20px;
+        border-radius: 20px;
         position: relative;
-        box-shadow: 0 18px 40px rgba(0,0,0,.22);
     }
 
     .editor-close {
         position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 36px;
-        height: 36px;
-        border-radius: 999px;
+        top: 12px;
+        right: 12px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
         border: 2px solid #000;
         background: #fff;
-        color: #000;
-        font-weight: 900;
         cursor: pointer;
-        transition: background-color 220ms ease, color 220ms ease;
     }
-
-        .editor-close:hover {
-            background: #000;
-            color: #fff;
-        }
 
     .editor-stage {
         display: flex;
         justify-content: center;
-        padding: 8px 0 10px;
+        margin-bottom: 15px;
     }
-
-    #editorCanvas {
-        width: 360px;
-        height: 360px;
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        background: #fff;
-        touch-action: none;
-    }
-
-    #zoom {
-        width: 100%;
-        margin: 6px 0 12px;
-    }
-
-    .editor-actions {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-    }
-
-    .dropzone * {
-        pointer-events: none;
-    }
-
-
-    .dropzone.is-dragging {
-        border-color: #000;
-        background: #f3f4f6;
-    }
-
-    /* Modal backdrop */
-    .editor {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.55);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-    }
-
-        .editor.hidden {
-            display: none;
-        }
-
-    /* Modal box */
-    .editor-box {
-        position: relative;
-        width: min(520px, 90vw); /* was ~560–720 */
-        background: #fff;
-        padding: 14px 14px 16px; /* tighter padding */
-        border-radius: 20px;
-        box-shadow: 0 18px 50px rgba(0,0,0,.22);
-    }
-
-    /* Close button */
-    .editor-close {
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        width: 42px;
-        height: 42px;
-        border-radius: 999px;
-        border: 2px solid #111;
-        background: #fff;
-        color: #111;
-        font-weight: 900;
-        cursor: pointer;
-    }
-
-        .editor-close:hover {
-            background: #111;
-            color: #fff;
-        }
-
-    /* Stage wrapper */
-    .editor-stage {
-        display: flex;
-        justify-content: center;
-        padding: 18px 10px 12px;
-    }
-
-    /* 🔥 The circle mask */
-    .editor-circle {
-        position: relative;
-        width: 500px; /* was ~540–560 */
-        max-width: 80vw;
-        aspect-ratio: 1 / 1;
-        border-radius: 50%;
-        overflow: hidden; /* THIS is what makes square -> circle */
-        background: #f3f4f6;
-        border: 10px solid #e5e7eb;
-        box-shadow: 0 12px 28px rgba(0,0,0,.12);
-        border-width: 8px; /* thinner ring */
-    }
-
-    /* Make canvas fill circle container */
-    #editorCanvas {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
-
-
-    /* Controls area */
-    .editor-controls {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 8px 6px 6px;
-    }
-
-    /* Each row centered */
-    .ctrl-row {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 12px;
-    }
-
-    /* Zoom slider centered & nice width */
-    #zoom {
-        width: min(560px, 82vw);
-    }
-
-
-    /* ============ EDITOR (SAMPLE STYLE) ============ */
-    .editor.hidden {
-        display: none;
-    }
-
-    .editor {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.55);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        padding: 18px;
-    }
-
-    .editor-box {
-        position: relative;
-        background: #fff;
-        width: min(500px, 92vw); /* was 640px */
-        padding: 12px 14px 14px;
-        border-radius: 18px;
-        box-shadow: 0 18px 50px rgba(0,0,0,.25);
-    }
-
-    .editor-close {
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        width: 44px;
-        height: 44px;
-        border-radius: 999px;
-        border: 2px solid #111;
-        background: #fff;
-        color: #111;
-        font-weight: 900;
-        cursor: pointer;
-        transition: background 220ms ease, color 220ms ease;
-    }
-
-        .editor-close:hover {
-            background: #111;
-            color: #fff;
-        }
-
-
 
     .editor-circle {
-        width: 460px; /* ⬅ main control */
-        max-width: 75vw;
-        border-width: 7px;
+        width: 420px;
+        height: 420px;
         border-radius: 50%;
         overflow: hidden;
+        border: 4px solid #e5e7eb;
         background: #fff;
-        border: 1px solid #d1d5db;
     }
-
 
     #editorCanvas {
-        width: 100%;
-        height: 100%;
+        width: 420px;
+        height: 420px;
         display: block;
-        touch-action: none;
     }
 
-
-
-    /* Zoom row (label left + slider) */
     .zoom-row {
         display: flex;
         align-items: center;
-        gap: 14px;
-        padding: 8px 6px 6px;
+        gap: 10px;
+        margin-bottom: 12px;
     }
 
     .zoom-label {
-        width: 56px;
-        font-weight: 800;
-        color: #111;
-        font-size: 14px;
+        font-weight: 700;
+        width: 60px;
     }
 
     #zoom {
         flex: 1;
     }
 
-    /* Confirm button row */
     .confirm-row {
         display: flex;
         justify-content: center;
-        padding: 10px 0 8px;
+        margin-bottom: 10px;
     }
 
     .btn-confirm {
-        background: #111;
+        background: #000;
         color: #fff;
-        border: 2px solid #111;
+        border: 2px solid #000;
         border-radius: 999px;
-        min-width: 200px; /* was 220 */
-        padding: 10px 22px; /* smaller height */
-        font-size: 14px;
-        font-weight: 900;
-        transition: background 220ms ease, color 220ms ease;
+        padding: 8px 22px;
+        font-weight: 800;
+        cursor: pointer;
     }
 
         .btn-confirm:hover {
             background: #fff;
-            color: #111;
+            color: #000;
         }
 
-    /* Rotate buttons row */
     .rotate-row {
         display: flex;
         justify-content: center;
         gap: 14px;
-        padding-top: 6px;
     }
 
     .btn-round {
-        width: 56px;
-        height: 48px;
+        width: 50px;
+        height: 44px;
         border-radius: 999px;
-        border: 2px solid #111;
+        border: 2px solid #000;
         background: #fff;
-        color: #111;
         font-weight: 900;
         cursor: pointer;
-        transition: background 220ms ease, color 220ms ease;
     }
 
         .btn-round:hover {
-            background: #111;
+            background: #000;
             color: #fff;
         }
 
-    /* Zoom slider — black */
-    #zoom {
-        flex: 1;
-        accent-color: #111; /* modern browsers */
+    .hidden {
+        display: none !important;
     }
 
-        /* Chrome/Edge/Safari */
-        #zoom::-webkit-slider-runnable-track {
-            height: 6px;
-            background: #111;
-            border-radius: 999px;
-        }
 
-        #zoom::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #111;
-            border: 2px solid #111;
-            margin-top: -6px; /* centers thumb on track */
-        }
+    /* ================= RESPONSIVE ================= */
 
-        /* Firefox */
-        #zoom::-moz-range-track {
-            height: 6px;
-            background: #111;
-            border-radius: 999px;
-        }
+    @@media (max-width: 768px) {
+        .avatar-block
 
-        #zoom::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #111;
-            border: 2px solid #111;
-        }
-
-    .editor-controls {
-        gap: 8px;
-        padding: 6px 6px 4px;
+    {
+        grid-template-columns: 1fr;
     }
 
-    /* ===== Zoom slider styling ===== */
-    #zoom {
-        -webkit-appearance: none;
-        appearance: none;
-        width: min(520px, 82vw);
-        height: 6px;
-        background: #e5e7eb; /* unfilled track = light grey */
-        border-radius: 999px;
-        outline: none;
+    .editor-box {
+        width: 95%;
     }
 
-        /* Filled part (WebKit: Chrome, Edge, Safari) */
-        #zoom::-webkit-slider-runnable-track {
-            height: 6px;
-            background: linear-gradient( to right, #000 var(--percent, 50%), #e5e7eb var(--percent, 50%) );
-            border-radius: 999px;
-        }
-
-        #zoom::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            background: #000;
-            border-radius: 50%;
-            margin-top: -5px;
-            cursor: pointer;
-        }
-
-        /* Firefox */
-        #zoom::-moz-range-track {
-            height: 6px;
-            background: #e5e7eb;
-            border-radius: 999px;
-        }
-
-        #zoom::-moz-range-progress {
-            background: #000;
-            height: 6px;
-            border-radius: 999px;
-        }
-
-        #zoom::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            background: #000;
-            border-radius: 50%;
-            border: none;
-        }
-
-    /* Rotate buttons tighter */
-    .editor-controls .btn {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
+    .editor-circle {
+        width: 300px;
+        height: 300px;
     }
 
+    #editorCanvas {
+        width: 300px;
+        height: 300px;
+    }
+
+    }
 </style>

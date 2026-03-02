@@ -219,3 +219,53 @@
         </table>
     </div>
 }
+
+<!-- ========================================================= -->
+<!-- ================= STOCK MOVEMENT ======================== -->
+<!-- ========================================================= -->
+@if (Model.ReportType == "StockMovement" && Model.StockMovementReport != null)
+{
+    <div class="section">
+        <h2>Stock Movement Report</h2>
+        <p>
+            This report includes all stock IN and OUT transactions
+            within the selected date range.
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Item</th>
+                    <th>Batch</th>
+                    <th>Type</th>
+                    <th>Qty</th>
+                    <th>Unit Cost</th>
+                    <th>Supplier / Customer</th>
+                    <th>User</th>
+                    <th>Remark</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Model.StockMovementReport)
+                {
+                    <tr>
+                        <td>@t.TransactionDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@t.ItemName</td>
+                        <td>@t.BatchNumber</td>
+                        <td>@t.TransactionType</td>
+                        <td>@t.TransactionQuantity</td>
+                        <td>RM @t.UnitCost.ToString("N4")</td>
+                        <td>
+                            @(t.TransactionType == "IN"
+                                                ? t.SupplierName
+                                                : t.CustomerName)
+                </td>
+                <td>@t.UserName</td>
+                <td>@t.TransactionRemark</td>
+            </tr>
+                        }
+            </tbody>
+        </table>
+    </div>
+}
