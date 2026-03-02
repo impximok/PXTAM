@@ -57,6 +57,7 @@ namespace Invexaaa.Controllers
                 FileName = $"{reportType}_Report_{DateTime.Now:yyyyMMdd}.pdf",
                 PageSize = Rotativa.AspNetCore.Options.Size.A4
             };
+
         }
 
         // =====================================================
@@ -226,9 +227,10 @@ namespace Invexaaa.Controllers
                                      : null,
 
                              ExpectedArrivalDate =
-                                 t.TransactionType == "IN"
-                                     ? batch.BatchReceivedDate.AddDays(batch.LeadTimeDays)
-                                     : null,
+    t.TransactionType == "IN" && batch != null
+        ? batch.BatchReceivedDate.AddDays(batch.LeadTimeDays)
+        : null,
+
 
                              CustomerName =
                                  t.TransactionType == "OUT"
