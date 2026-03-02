@@ -801,7 +801,10 @@ namespace Invexaaa.Controllers
                     if (exists) continue;
 
                     var category = await _context.Categories
-                        .FirstOrDefaultAsync(c => c.CategoryName == categoryName);
+    .FirstOrDefaultAsync(c =>
+        c.CategoryName.Trim().ToLower() ==
+        categoryName.Trim().ToLower()
+    );
 
                     if (category == null) continue;
 
@@ -841,10 +844,16 @@ namespace Invexaaa.Controllers
 
                 int rows = sheet.Dimension.Rows;
 
+                var categoryMap = await _context.Categories
+    .ToDictionaryAsync(
+        c => c.CategoryName.Trim().ToLower(),
+        c => c
+    );
+
                 for (int row = 2; row <= rows; row++)
                 {
-                    var itemName = sheet.Cells[row, 1].Text.Trim();
-                    var categoryName = sheet.Cells[row, 2].Text.Trim();
+                    var itemName = sheet.Cells[row, 2].Text.Trim();        // column B
+                    var categoryName = sheet.Cells[row, 3].Text.Trim();    // column C
 
                     if (string.IsNullOrWhiteSpace(itemName)) continue;
 
@@ -853,8 +862,8 @@ namespace Invexaaa.Controllers
 
                     if (exists) continue;
 
-                    var category = await _context.Categories
-                        .FirstOrDefaultAsync(c => c.CategoryName == categoryName);
+                    if (!categoryMap.TryGetValue(categoryName.Trim().ToLower(), out var category))
+                        continue;
 
                     if (category == null) continue;
 
@@ -862,14 +871,14 @@ namespace Invexaaa.Controllers
                     {
                         ItemName = itemName,
                         CategoryID = category.CategoryID,
-                        ItemUnitOfMeasure = sheet.Cells[row, 3].Text.Trim(),
-                        ItemBuyPrice = decimal.TryParse(sheet.Cells[row, 4].Text, out var buy) ? buy : 0,
-                        ItemSellPrice = decimal.TryParse(sheet.Cells[row, 5].Text, out var sell) ? sell : 0,
-                        ItemReorderLevel = int.TryParse(sheet.Cells[row, 6].Text, out var rl) ? rl : 0,
-                        SafetyStock = int.TryParse(sheet.Cells[row, 7].Text, out var ss) ? ss : 0,
-                        ItemStatus = string.IsNullOrWhiteSpace(sheet.Cells[row, 8].Text)
-                            ? "Active"
-                            : sheet.Cells[row, 8].Text.Trim(),
+                        ItemUnitOfMeasure = sheet.Cells[row, 4].Text.Trim(),
+                        ItemBuyPrice = decimal.TryParse(sheet.Cells[row, 5].Text, out var buy) ? buy : 0,
+                        ItemSellPrice = decimal.TryParse(sheet.Cells[row, 6].Text, out var sell) ? sell : 0,
+                        ItemReorderLevel = int.TryParse(sheet.Cells[row, 7].Text, out var rl) ? rl : 0,
+                        SafetyStock = int.TryParse(sheet.Cells[row, 8].Text, out var ss) ? ss : 0,
+                        ItemStatus = string.IsNullOrWhiteSpace(sheet.Cells[row, 9].Text)
+    ? "Active"
+    : sheet.Cells[row, 9].Text.Trim(),
                         ItemCreatedDate = DateTime.Now,
                         CostingMethod = category.CostingMethod
 
@@ -906,7 +915,7 @@ namespace Invexaaa.Controllers
                 item.ItemBarcode = $"INVX-{nextNumber:D6}";
                 nextNumber++;
             }
-
+   
 
             if (newItems.Any())
             {
@@ -936,6 +945,7 @@ namespace Invexaaa.Controllers
                 await _context.SaveChangesAsync();
 
             }
+
 
             TempData["Success"] = $"{newItems.Count} items imported successfully.";
             return RedirectToAction(nameof(ItemIndex));
